@@ -518,14 +518,12 @@ export class Renderer {
             this.ctx.fillRect(10, 5, 10, 5);
         }
 
-        // Health Bar
-        if (villain.hp < (villain.type === 'JUGGERNAUT' ? 200 : (villain.type === 'SPEEDSTER' ? 60 : 100))) {
-            const maxHp = villain.type === 'JUGGERNAUT' ? 200 : (villain.type === 'SPEEDSTER' ? 60 : 100);
-            this.ctx.fillStyle = '#333';
-            this.ctx.fillRect(-30, -50, 60, 6);
-            this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : (villain.type === 'JUGGERNAUT' ? '#ff8800' : '#f00');
-            this.ctx.fillRect(-30, -50, 60 * (villain.hp / maxHp), 6);
-        }
+        // Health Bar - Always show for all villains
+        const maxHp = villain.type === 'JUGGERNAUT' ? 100 : (villain.type === 'SPEEDSTER' ? 20 : 40);
+        this.ctx.fillStyle = '#333';
+        this.ctx.fillRect(-30, -50, 60, 6);
+        this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : (villain.type === 'JUGGERNAUT' ? '#ff8800' : '#f00');
+        this.ctx.fillRect(-30, -50, 60 * (villain.hp / maxHp), 6);
 
         this.ctx.restore();
     }

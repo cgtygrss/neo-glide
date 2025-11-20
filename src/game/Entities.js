@@ -106,7 +106,7 @@ export class Villain {
         this.width = 80;
         this.height = 60;
         this.markedForDeletion = false;
-        this.hp = 150;
+        this.hp = 20;
         this.state = 'ENTERING'; // ENTERING, ATTACKING, LEAVING
         this.stateTimer = 0;
         this.attackTimer = 0;
@@ -333,7 +333,7 @@ export class SpeedsterVillain extends Villain {
         super(x, y);
         this.width = 60; // Smaller
         this.height = 40;
-        this.hp = 50; // Dies in one shot
+        this.hp = 40; 
         this.type = 'SPEEDSTER';
         this.dashTimer = 0;
         this.dashState = 'IDLE'; // IDLE, DASHING, RETURNING
@@ -384,7 +384,7 @@ export class JuggernautVillain extends Villain {
         super(x, y);
         this.width = 100; // Larger
         this.height = 80;
-        this.hp = 250; // Dies in 5 shots
+        this.hp = 100; 
         this.type = 'JUGGERNAUT';
         this.maxSpeed = 80; // Slower movement (was 100, now 80)
         this.friction = 0.98; // Heavy

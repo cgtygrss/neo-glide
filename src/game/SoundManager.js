@@ -198,4 +198,95 @@ export class SoundManager {
             this.musicTimeout = null;
         }
     }
+
+    playMenuMusic() {
+        if (!this.initialized) this.init();
+        if (this.musicTimeout) clearTimeout(this.musicTimeout);
+        // Ensure context is valid
+        if (!this.ctx) return;
+        
+        // Catchy Menu Theme - Upbeat and energetic
+        // Using a mix of bass and melody notes for a full sound
+        const bassLine = [
+            130.81, 130.81, 146.83, 164.81, // C3, C3, D3, E3
+            130.81, 130.81, 146.83, 164.81, // Repeat
+        ];
+        
+        const melody = [
+            523.25, 659.25, 783.99, 659.25, // C5, E5, G5, E5
+            523.25, 659.25, 783.99, 1046.50, // C5, E5, G5, C6
+        ];
+
+        let noteIndex = 0;
+
+        const playNextNote = () => {
+            if (!this.isPlayingMusic) return;
+            
+            // Double check context state
+            if (this.ctx.state === 'suspended') {
+                this.ctx.resume().catch(e => console.error(e));
+            }
+
+            try {
+                // Play bass note
+                const bassOsc = this.ctx.createOscillator();
+                const bassGain = this.ctx.createGain();
+                bassOsc.type = 'triangle';
+                bassOsc.frequency.value = bassLine[noteIndex % bassLine.length];
+                bassGain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                bassGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                bassOsc.connect(bassGain);
+                bassGain.connect(this.masterGain);
+                bassOsc.start();
+                bassOsc.stop(this.ctx.currentTime + 0.25);
+
+                // Play melody note (slightly offset for rhythm)
+                setTimeout(() => {
+                    if (!this.isPlayingMusic) return;
+                    const melOsc = this.ctx.createOscillator();
+                    const melGain = this.ctx.createGain();
+                    melOsc.type = 'square';
+                    melOsc.frequency.value = melody[noteIndex % melody.length];
+                    melGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    melGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    melOsc.connect(melGain);
+                    melGain.connect(this.masterGain);
+                    melOsc.start();
+                    melOsc.stop(this.ctx.currentTime + 0.15);
+                }, 50);
+
+            } catch (e) {
+                console.error("Error playing menu note:", e);
+            }
+
+            noteIndex = (noteIndex + 1) % Math.max(bassLine.length, melody.length);
+
+            // 140 BPM - Catchy upbeat tempo
+            this.musicTimeout = setTimeout(playNextNote, 200);
+        };
+
+        playNextNote();
+    }
+
+    async startMenuMusic() {
+        if (!this.initialized) this.init();
+
+        // Always try to resume context first
+        if (this.ctx.state === 'suspended') {
+            try {
+                await this.ctx.resume();
+            } catch (e) {
+                console.error('Failed to resume audio context', e);
+            }
+        }
+        
+        // If context is closed, try to recreate it
+        if (this.ctx.state === 'closed') {
+             this.init();
+        }
+
+        if (this.isPlayingMusic) return;
+        this.isPlayingMusic = true;
+        this.playMenuMusic();
+    }
 }

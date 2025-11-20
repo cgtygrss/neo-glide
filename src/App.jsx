@@ -146,6 +146,16 @@ export default function App() {
     localStorage.setItem('neon_glide_upgrades', JSON.stringify(upgrades));
   }, [upgrades, equippedShip, equippedWeapon]);
 
+  // Menu Music Effect
+  useEffect(() => {
+    if ((gameState === 'MENU' || gameState === 'SHOP') && soundRef.current) {
+      soundRef.current.startMenuMusic();
+    } else if (gameState !== 'PLAYING' && soundRef.current) {
+      // Only stop music if not playing (for GAMEOVER state)
+      soundRef.current.stopMusic();
+    }
+  }, [gameState]);
+
   const startGame = () => {
     // Reset Game State
     const currentUpgrades = upgradesRef.current;
@@ -207,7 +217,8 @@ export default function App() {
     setMaxHealth(totalHealth);
     setGameState('PLAYING');
     if (soundRef.current) {
-      soundRef.current.startMusic(); // Start music
+      soundRef.current.stopMusic(); // Stop menu music first
+      soundRef.current.startMusic(); // Start gameplay music
     }
     loopRef.current.start();
   };

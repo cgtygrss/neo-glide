@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameLoop } from './game/GameLoop';
 import { Renderer } from './game/Renderer';
 import { SoundManager } from './game/SoundManager';
-import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain } from './game/Entities';
+import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile } from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
 import { Play, ShoppingCart } from 'lucide-react';
@@ -187,7 +187,7 @@ export default function App() {
       maxAmmo: 10,
       ammoTimer: 0,
       maxEnergy: maxEnergy,
-      
+
       // New Stats
       health: totalHealth,
       maxHealth: totalHealth,
@@ -243,15 +243,15 @@ export default function App() {
 
         // Plasma Breaker: Destroy without damage
         if (game.shipType === 'plasma_breaker') {
-             if (soundRef.current) soundRef.current.playExplosion();
-             game.floatingTexts.push({
-                x: p.x,
-                y: p.y,
-                text: 'SMASH!',
-                color: '#00ff00',
-                life: 1.0
-             });
-             continue;
+          if (soundRef.current) soundRef.current.playExplosion();
+          game.floatingTexts.push({
+            x: p.x,
+            y: p.y,
+            text: 'SMASH!',
+            color: '#00ff00',
+            life: 1.0
+          });
+          continue;
         }
 
         game.health -= 1;
@@ -368,7 +368,7 @@ export default function App() {
           proj.y + 4 > v.y
         ) {
           proj.markedForDeletion = true;
-          const died = v.takeDamage(10); // 10 damage per shot
+          const died = v.takeDamage(proj.damage || 10); // Use weapon damage
           if (died) {
             if (soundRef.current) soundRef.current.playExplosion();
             game.floatingTexts.push({
@@ -411,7 +411,7 @@ export default function App() {
     // Ammo Regeneration
     game.ammoTimer += deltaTime;
     const regenTime = game.ammoRegenTime || 2.0;
-    if (game.ammoTimer > regenTime) { 
+    if (game.ammoTimer > regenTime) {
       game.ammoTimer = 0;
       if (game.ammo < game.maxAmmo) {
         game.ammo++;
@@ -447,10 +447,13 @@ export default function App() {
     // Spawn Villain
     const villainChance = game.villainChance || 0.005;
     if (!game.villain && game.distance > 500 && Math.random() < villainChance) {
-      if (Math.random() > 0.5) {
+      const rand = Math.random();
+      if (rand < 0.4) {
         game.villain = new Villain(window.innerWidth, window.innerHeight / 2);
-      } else {
+      } else if (rand < 0.7) {
         game.villain = new SpeedsterVillain(window.innerWidth, window.innerHeight / 2);
+      } else {
+        game.villain = new JuggernautVillain(window.innerWidth, window.innerHeight / 2);
       }
 
       if (soundRef.current) {
@@ -472,30 +475,42 @@ export default function App() {
           soundRef.current.playNormalMusic();
         }
       } else {
-        // Attack Logic
-        if (game.villain.state === 'ATTACKING') {
-          if (game.villain.attackTimer > 2) { // Fire every 2 seconds
-            game.villain.attackTimer = 0;
-
-            if (game.villain.type === 'SPEEDSTER') {
+        // Villain Attack Logic
+        if (game.villain && game.villain.state === 'ATTACKING') {
+          if (game.villain.type === 'SPEEDSTER') {
+            if (game.villain.attackTimer > 2.0) {
+              game.villain.attackTimer = 0;
               // SPREAD SHOT (Shotgun style)
-              // 3 projectiles: one straight, one up-angled, one down-angled
               game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -600, 0));      // Straight
               game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -550, -150));   // Up
               game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -550, 150));    // Down
               if (soundRef.current) soundRef.current.playShoot();
-            } else {
-              // BURST FIRE - Fire all 3 shots immediately
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
+            }
+          } else if (game.villain.type === 'JUGGERNAUT') {
+            if (game.villain.attackTimer > 2.0) {
+              game.villain.attackTimer = 0;
+              // HOMING MISSILE
+              game.projectiles.push(new HomingProjectile(
+                game.villain.x,
+                game.villain.y,
+                game.player
+              ));
+              if (soundRef.current) soundRef.current.playShoot();
+            }
+          } else {
+            // NORMAL VILLAIN
+            if (game.villain.attackTimer > 1.0) {
+              game.villain.attackTimer = 0;
+              // BURST FIRE
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, 0));
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, 100));
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, -100));
               if (soundRef.current) soundRef.current.playShoot();
             }
           }
         }
       }
     }
-
     game.projectiles.forEach(proj => proj.update(deltaTime));
     game.playerProjectiles.forEach(proj => proj.update(deltaTime));
 

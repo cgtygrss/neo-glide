@@ -471,6 +471,33 @@ export class Renderer {
             this.ctx.lineTo(-10, 15);
             this.ctx.stroke();
 
+        } else if (villain.type === 'JUGGERNAUT') {
+            // Juggernaut Drawing (Heavy Tank)
+            this.ctx.shadowColor = '#ff8800'; // Orange/Brown
+            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : '#5c4033'; // Dark Brown/Metal
+
+            // Main Body (Hexagon)
+            this.ctx.beginPath();
+            this.ctx.moveTo(40, 0);
+            this.ctx.lineTo(20, 35);
+            this.ctx.lineTo(-30, 35);
+            this.ctx.lineTo(-50, 0);
+            this.ctx.lineTo(-30, -35);
+            this.ctx.lineTo(20, -35);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            // Armor Plates
+            this.ctx.fillStyle = '#3e2723';
+            this.ctx.fillRect(-20, -25, 40, 50);
+
+            // Glowing Core
+            this.ctx.fillStyle = '#ff4400';
+            this.ctx.shadowColor = '#ff4400';
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, 10, 0, Math.PI * 2);
+            this.ctx.fill();
+
         } else {
             // Normal Villain
             this.ctx.shadowColor = '#ff0000';
@@ -492,11 +519,12 @@ export class Renderer {
         }
 
         // Health Bar
-        if (villain.hp < 100) {
+        if (villain.hp < (villain.type === 'JUGGERNAUT' ? 200 : (villain.type === 'SPEEDSTER' ? 60 : 100))) {
+            const maxHp = villain.type === 'JUGGERNAUT' ? 200 : (villain.type === 'SPEEDSTER' ? 60 : 100);
             this.ctx.fillStyle = '#333';
-            this.ctx.fillRect(-20, -40, 60, 5);
-            this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : '#f00';
-            this.ctx.fillRect(-20, -40, 60 * (villain.hp / (villain.type === 'SPEEDSTER' ? 60 : 100)), 5);
+            this.ctx.fillRect(-30, -50, 60, 6);
+            this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : (villain.type === 'JUGGERNAUT' ? '#ff8800' : '#f00');
+            this.ctx.fillRect(-30, -50, 60 * (villain.hp / maxHp), 6);
         }
 
         this.ctx.restore();
@@ -507,26 +535,51 @@ export class Renderer {
             this.ctx.save();
             this.ctx.translate(proj.x, proj.y);
 
-            // Outer Glow (Red/Orange)
-            this.ctx.shadowBlur = 20;
-            this.ctx.shadowColor = '#ff0000';
+            if (proj.target) { // It's a Homing Projectile
+                // Missile Body
+                this.ctx.rotate(Math.atan2(proj.vy, proj.vx));
 
-            // Main Body (Gradient)
-            const grad = this.ctx.createRadialGradient(0, 0, 2, 0, 0, proj.radius + 4);
-            grad.addColorStop(0, '#ffffff'); // White hot center
-            grad.addColorStop(0.4, '#ff4400'); // Orange mid
-            grad.addColorStop(1, '#ff0000'); // Red edge
+                this.ctx.shadowBlur = 15;
+                this.ctx.shadowColor = '#ffaa00';
+                this.ctx.fillStyle = '#ffaa00';
 
-            this.ctx.fillStyle = grad;
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, proj.radius + 4, 0, Math.PI * 2); // Larger visual size
-            this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.moveTo(10, 0);
+                this.ctx.lineTo(-10, 5);
+                this.ctx.lineTo(-10, -5);
+                this.ctx.fill();
 
-            // Inner Core (Bright White)
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, proj.radius * 0.5, 0, Math.PI * 2);
-            this.ctx.fill();
+                // Thruster Flame
+                this.ctx.fillStyle = '#ffff00';
+                this.ctx.beginPath();
+                this.ctx.moveTo(-10, 0);
+                this.ctx.lineTo(-20, 3);
+                this.ctx.lineTo(-20, -3);
+                this.ctx.fill();
+
+            } else {
+                // Standard Projectile
+                // Outer Glow (Red/Orange)
+                this.ctx.shadowBlur = 20;
+                this.ctx.shadowColor = '#ff0000';
+
+                // Main Body (Gradient)
+                const grad = this.ctx.createRadialGradient(0, 0, 2, 0, 0, proj.radius + 4);
+                grad.addColorStop(0, '#ffffff'); // White hot center
+                grad.addColorStop(0.4, '#ff4400'); // Orange mid
+                grad.addColorStop(1, '#ff0000'); // Red edge
+
+                this.ctx.fillStyle = grad;
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, proj.radius + 4, 0, Math.PI * 2); // Larger visual size
+                this.ctx.fill();
+
+                // Inner Core (Bright White)
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, proj.radius * 0.5, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
 
             this.ctx.restore();
         });

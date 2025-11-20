@@ -243,18 +243,86 @@ export class PlayerProjectile {
 
         // Weapon Stats
         switch (type) {
-            case 'blaster': this.speed = 1200; break;
-            case 'cannon': this.speed = 600; this.radius = 8; break;
-            case 'beam': this.speed = 2000; break;
-            case 'wave': this.speed = 500; this.radius = 10; break;
-            case 'shock': this.speed = 1000; break;
-            default: this.speed = 800; break;
+            case 'blaster':
+                this.speed = 1200;
+                this.damage = 25;
+                break;
+            case 'cannon':
+                this.speed = 600;
+                this.radius = 8;
+                this.damage = 50;
+                break;
+            case 'beam':
+                this.speed = 2000;
+                this.damage = 75;
+                break;
+            case 'wave':
+                this.speed = 500;
+                this.radius = 10;
+                this.damage = 100;
+                break;
+            case 'shock':
+                this.speed = 1000;
+                this.damage = 150;
+                break;
+            default:
+                this.speed = 800;
+                this.damage = 10;
+                break;
         }
     }
 
     update(deltaTime) {
         this.x += this.speed * deltaTime;
         if (this.x > window.innerWidth) {
+            this.markedForDeletion = true;
+        }
+    }
+}
+
+export class HomingProjectile extends Projectile {
+    constructor(x, y, target) {
+        super(x, y, -300, 0); // Slower base speed
+        this.target = target;
+        this.radius = 10;
+        this.turnRate = 2.0; // Radians per second
+        this.speed = 400;
+        this.life = 5.0; // Expires after 5 seconds
+    }
+
+    update(deltaTime) {
+        this.life -= deltaTime;
+        if (this.life <= 0) {
+            this.markedForDeletion = true;
+            return;
+        }
+
+        if (this.target) {
+            const dx = this.target.x - this.x;
+            const dy = this.target.y - this.y;
+            const angle = Math.atan2(dy, dx);
+
+            // Simple homing: adjust velocity towards target
+            // Calculate current velocity angle
+            const currentAngle = Math.atan2(this.vy, this.vx);
+
+            // Smoothly rotate towards target
+            let diff = angle - currentAngle;
+            // Normalize angle to -PI to PI
+            while (diff <= -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+
+            const turn = Math.max(-this.turnRate * deltaTime, Math.min(this.turnRate * deltaTime, diff));
+            const newAngle = currentAngle + turn;
+
+            this.vx = Math.cos(newAngle) * this.speed;
+            this.vy = Math.sin(newAngle) * this.speed;
+        }
+
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+
+        if (this.x < -50 || this.y < -50 || this.y > window.innerHeight + 50) {
             this.markedForDeletion = true;
         }
     }
@@ -308,6 +376,40 @@ export class SpeedsterVillain extends Villain {
             // Enhanced vertical movement (faster than normal villain)
             this.vy *= 0.95; // Slightly more friction
             this.maxSpeed = 350; // Faster max speed
+        }
+    }
+}
+export class JuggernautVillain extends Villain {
+    constructor(x, y) {
+        super(x, y);
+        this.width = 100; // Larger
+        this.height = 80;
+        this.hp = 200; // Tanky
+        this.type = 'JUGGERNAUT';
+        this.speed = 100; // Slow
+        this.friction = 0.98; // Heavy
+        this.acceleration = 800; // Slow acceleration
+    }
+
+    update(deltaTime, playerY, playerProjectiles = []) {
+        super.update(deltaTime, playerY, playerProjectiles);
+
+        if (this.state === 'ATTACKING') {
+            // Juggernaut moves slowly and relentlessly towards player Y
+            // Less dodging, just tanking
+
+            const desiredY = playerY + this.targetOffset;
+            const distY = desiredY - this.y;
+
+            if (Math.abs(distY) > 10) {
+                const dir = Math.sign(distY);
+                this.vy += dir * this.acceleration * deltaTime;
+            }
+
+            this.vy *= this.friction;
+            this.vy = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, this.vy));
+            this.y += this.vy * deltaTime;
+            this.y = Math.max(50, Math.min(window.innerHeight - 100, this.y));
         }
     }
 }

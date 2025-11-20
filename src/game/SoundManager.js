@@ -65,12 +65,19 @@ export class SoundManager {
         noise.start();
     }
 
-    startMusic() {
-        if (this.isPlayingMusic) return;
-        this.isPlayingMusic = true;
+    playNormalMusic() {
+        if (this.musicTimeout) clearTimeout(this.musicTimeout);
+        if (!this.ctx || !this.isPlayingMusic) return;
 
-        // Simple Bassline Loop
-        const bassFreqs = [110, 110, 130, 146, 98, 98, 110, 110];
+        // Catchier Arcade Melody (Arpeggio)
+        // C Minor Pentatonic: C, Eb, F, G, Bb
+        const melody = [
+            261.63, 311.13, 392.00, 523.25, // C4, Eb4, G4, C5
+            311.13, 392.00, 523.25, 622.25, // Eb4, G4, C5, Eb5
+            392.00, 523.25, 622.25, 783.99, // G4, C5, Eb5, G5
+            523.25, 392.00, 311.13, 261.63  // C5, G4, Eb4, C4
+        ];
+
         let noteIndex = 0;
 
         const playNextNote = () => {
@@ -79,11 +86,53 @@ export class SoundManager {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
 
-            osc.type = 'square';
-            osc.frequency.value = bassFreqs[noteIndex];
+            osc.type = 'square'; // Retro sound
+            osc.frequency.value = melody[noteIndex];
+
+            // Short staccato notes
+            gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.1);
+
+            noteIndex = (noteIndex + 1) % melody.length;
+
+            // 150 BPM 16th notes approx
+            this.musicTimeout = setTimeout(playNextNote, 100);
+        };
+
+        playNextNote();
+    }
+
+    startMusic() {
+        if (this.isPlayingMusic) return;
+        this.isPlayingMusic = true;
+        this.playNormalMusic();
+    }
+
+    playBossMusic() {
+        if (this.musicTimeout) clearTimeout(this.musicTimeout);
+        if (!this.ctx || !this.isPlayingMusic) return;
+
+        // Menacing Sawtooth Bass
+        const melody = [110, 103, 98, 103]; // A2, G#2, G2, G#2
+        let noteIndex = 0;
+
+        const playNextNote = () => {
+            if (!this.isPlayingMusic) return;
+
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.value = melody[noteIndex];
 
             gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+            gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
 
             osc.connect(gain);
             gain.connect(this.masterGain);
@@ -91,9 +140,8 @@ export class SoundManager {
             osc.start();
             osc.stop(this.ctx.currentTime + 0.2);
 
-            noteIndex = (noteIndex + 1) % bassFreqs.length;
-
-            this.musicTimeout = setTimeout(playNextNote, 250); // 120 BPM eighth notes
+            noteIndex = (noteIndex + 1) % melody.length;
+            this.musicTimeout = setTimeout(playNextNote, 200); // Faster tempo
         };
 
         playNextNote();
@@ -101,6 +149,9 @@ export class SoundManager {
 
     stopMusic() {
         this.isPlayingMusic = false;
-        if (this.musicTimeout) clearTimeout(this.musicTimeout);
+        if (this.musicTimeout) {
+            clearTimeout(this.musicTimeout);
+            this.musicTimeout = null;
+        }
     }
 }

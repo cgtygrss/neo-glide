@@ -35,8 +35,8 @@ export default function Shop({ currency, upgrades, ownedShips = [], equippedShip
                     <button
                         onClick={() => setActiveTab('upgrades')}
                         className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'upgrades'
-                                ? 'bg-blue-600 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]'
-                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                            ? 'bg-blue-600 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                             }`}
                     >
                         UPGRADES
@@ -44,8 +44,8 @@ export default function Shop({ currency, upgrades, ownedShips = [], equippedShip
                     <button
                         onClick={() => setActiveTab('ships')}
                         className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === 'ships'
-                                ? 'bg-pink-600 text-white shadow-[0_0_10px_rgba(219,39,119,0.5)]'
-                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                            ? 'bg-pink-600 text-white shadow-[0_0_10px_rgba(219,39,119,0.5)]'
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                             }`}
                     >
                         SHIPS
@@ -74,8 +74,8 @@ export default function Shop({ currency, upgrades, ownedShips = [], equippedShip
                                                 onClick={() => onBuy(item.id, currentCost, 'upgrade')}
                                                 disabled={!canAfford}
                                                 className={`px-4 py-1 rounded font-bold text-sm transition-all ${canAfford
-                                                        ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]'
-                                                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]'
+                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
                                             >
                                                 Buy {currentCost}
@@ -106,8 +106,8 @@ export default function Shop({ currency, upgrades, ownedShips = [], equippedShip
                                                     onClick={() => onEquip(item.id)}
                                                     disabled={isEquipped}
                                                     className={`px-4 py-1 rounded font-bold text-sm transition-all ${isEquipped
-                                                            ? 'bg-green-600 text-white cursor-default'
-                                                            : 'bg-gray-600 hover:bg-gray-500 text-white'
+                                                        ? 'bg-green-600 text-white cursor-default'
+                                                        : 'bg-gray-600 hover:bg-gray-500 text-white'
                                                         }`}
                                                 >
                                                     {isEquipped ? 'EQUIPPED' : 'EQUIP'}
@@ -117,8 +117,8 @@ export default function Shop({ currency, upgrades, ownedShips = [], equippedShip
                                                     onClick={() => onBuy(item.id, item.cost, 'ship')}
                                                     disabled={!canAfford}
                                                     className={`px-4 py-1 rounded font-bold text-sm transition-all ${canAfford
-                                                            ? 'bg-pink-600 hover:bg-pink-500 text-white shadow-[0_0_10px_rgba(219,39,119,0.5)]'
-                                                            : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                        ? 'bg-pink-600 hover:bg-pink-500 text-white shadow-[0_0_10px_rgba(219,39,119,0.5)]'
+                                                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                         }`}
                                                 >
                                                     Buy {item.cost}

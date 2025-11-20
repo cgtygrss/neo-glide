@@ -13,6 +13,7 @@ export default function App() {
   const [distance, setDistance] = useState(0);
   const [currency, setCurrency] = useState(() => parseInt(localStorage.getItem('neon_glide_currency')) || 0);
   const [energy, setEnergy] = useState(100);
+  const [ammo, setAmmo] = useState(10);
   const [upgrades, setUpgrades] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('neon_glide_upgrades')) || {};
@@ -38,7 +39,10 @@ export default function App() {
     speed: 300,
     distance: 0,
     energy: 100,
-    gameOver: false
+    ammo: 10,
+    maxAmmo: 10,
+    gameOver: false,
+    floatingTexts: []
   });
 
   const loopRef = useRef(null);
@@ -105,15 +109,21 @@ export default function App() {
       fuels: [],
       villain: null,
       projectiles: [],
+      playerProjectiles: [],
+      floatingTexts: [],
       speed: 300 + ((currentUpgrades.thruster || 1) * 20), // Base speed increases with thruster
       distance: 0,
       energy: maxEnergy,
+      ammo: 10,
+      maxAmmo: 10,
+      ammoTimer: 0,
       maxEnergy: maxEnergy,
       gameOver: false
     };
 
     setDistance(0);
     setEnergy(100);
+    setAmmo(10); // Reset ammo state
     setGameState('PLAYING');
     soundRef.current.ctx.resume(); // Ensure AudioContext is active
     soundRef.current.startMusic();
@@ -132,6 +142,16 @@ export default function App() {
     game.distance += game.speed * deltaTime / 10; // 10x faster distance accumulation (approx 30m/s)
     setDistance(game.distance);
 
+    // Ammo Regeneration
+    game.ammoTimer += deltaTime;
+    if (game.ammoTimer > 2.0) { // Regenerate 1 ammo every 2 seconds
+      game.ammoTimer = 0;
+      if (game.ammo < game.maxAmmo) {
+        game.ammo++;
+        setAmmo(game.ammo);
+      }
+    }
+
     // Spawn Obstacles
     if (Math.random() < 0.02) {
       const h = Math.random() * 100 + 50;
@@ -145,15 +165,18 @@ export default function App() {
       game.collectibles.push(new Collectible(window.innerWidth, y));
     }
 
-    // Spawn Fuel (Uncommon)
-    if (Math.random() < 0.01) { // 1% chance per frame (~1.6s)
+    // Spawn Fuel (Common)
+    if (Math.random() < 0.02) { // 2% chance per frame (~0.8s)
       const y = Math.random() * (window.innerHeight - 100) + 50;
       game.fuels.push(new Fuel(window.innerWidth, y));
     }
 
-    // Spawn Villain (Every 500m if not active)
+    // Spawn Villain
     if (!game.villain && game.distance > 500 && Math.random() < 0.005) {
-      game.villain = new Villain(window.innerWidth - 100, window.innerHeight / 2);
+      game.villain = new Villain(window.innerWidth, window.innerHeight / 2);
+      if (soundRef.current) {
+        soundRef.current.playBossMusic();
+      }
     }
 
     // Update Entities
@@ -162,23 +185,48 @@ export default function App() {
     game.fuels.forEach(fuel => fuel.update(deltaTime, game.speed));
 
     if (game.villain) {
-      game.villain.update(deltaTime, game.player.y);
-      // Attack
-      if (game.villain.attackTimer > 2) {
-        game.villain.attackTimer = 0;
-        game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
-        soundRef.current.playShoot();
+      game.villain.update(deltaTime, game.player.y, game.playerProjectiles);
+
+      if (game.villain.markedForDeletion) {
+        game.villain = null;
+        if (soundRef.current) {
+          soundRef.current.playNormalMusic();
+        }
+      } else {
+        // Attack Logic (Burst Fire)
+        if (game.villain.state === 'ATTACKING') {
+          if (game.villain.attackTimer > 2) { // Fire every 2 seconds
+            game.villain.attackTimer = 0;
+            // Fire 3 shots in quick succession
+            for (let i = 0; i < 3; i++) {
+              setTimeout(() => {
+                if (game.villain && !game.gameOver) {
+                  game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
+                  soundRef.current.playShoot();
+                }
+              }, i * 200);
+            }
+          }
+        }
       }
-      // Despawn logic could go here (e.g. after 20s)
     }
 
     game.projectiles.forEach(proj => proj.update(deltaTime));
+    game.playerProjectiles.forEach(proj => proj.update(deltaTime));
+
+    // Update Floating Texts
+    game.floatingTexts.forEach(ft => {
+      ft.y -= 50 * deltaTime; // Float up
+      ft.life -= deltaTime;
+    });
+    game.floatingTexts = game.floatingTexts.filter(ft => ft.life > 0);
 
     // Cleanup
     game.obstacles = game.obstacles.filter(obs => !obs.markedForDeletion);
     game.collectibles = game.collectibles.filter(col => !col.markedForDeletion);
-    game.fuels = game.fuels.filter(fuel => !fuel.markedForDeletion);
+    game.fuels = game.fuels.filter(col => !col.markedForDeletion);
     game.projectiles = game.projectiles.filter(proj => !proj.markedForDeletion);
+    game.playerProjectiles = game.playerProjectiles.filter(proj => !proj.markedForDeletion);
 
     // Collision Detection
     checkCollisions(game);
@@ -239,6 +287,13 @@ export default function App() {
         col.markedForDeletion = true;
         setCurrency(c => c + 1);
         soundRef.current.playCollect();
+        game.floatingTexts.push({
+          x: col.x,
+          y: col.y,
+          text: '+$1',
+          color: '#00ff99',
+          life: 1.0
+        });
       }
     });
 
@@ -251,22 +306,62 @@ export default function App() {
         pRect.y + pRect.h > fuel.y
       ) {
         fuel.markedForDeletion = true;
-        game.energy = Math.min(game.maxEnergy, game.energy + (game.maxEnergy * 0.25));
+        game.floatingTexts.push({
+          x: fuel.x,
+          y: fuel.y,
+          text: fuel.type === 'LARGE' ? '+SUPER FUEL' : '+FUEL',
+          color: fuel.color,
+          life: 1.0
+        });
+
+        game.energy = Math.min(game.maxEnergy, game.energy + (game.maxEnergy * (fuel.value / 100)));
         setEnergy((game.energy / game.maxEnergy) * 100);
         soundRef.current.playCollect();
       }
     });
 
-    // Projectiles
+    // Projectiles (Villain)
     game.projectiles.forEach(proj => {
-      const dx = p.x - proj.x;
-      const dy = p.y - proj.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 20) {
+      if (
+        pRect.x < proj.x + proj.radius &&
+        pRect.x + pRect.w > proj.x - proj.radius &&
+        pRect.y < proj.y + proj.radius &&
+        pRect.y + pRect.h > proj.y - proj.radius
+      ) {
+        // Hull Strength Logic could go here (survive 1 hit)
         handleGameOver();
-        return;
+        soundRef.current.playExplosion();
       }
     });
+
+    // Player Projectiles vs Villain
+    if (game.villain) {
+      const v = game.villain;
+      game.playerProjectiles.forEach(proj => {
+        if (
+          proj.x < v.x + v.width &&
+          proj.x + 15 > v.x &&
+          proj.y < v.y + v.height &&
+          proj.y + 4 > v.y
+        ) {
+          proj.markedForDeletion = true;
+          const died = v.takeDamage(10); // 10 damage per shot
+          if (died) {
+            soundRef.current.playExplosion();
+            game.floatingTexts.push({
+              x: v.x,
+              y: v.y,
+              text: 'BOSS DEFEATED!',
+              color: '#ff0000',
+              life: 2.0
+            });
+            setCurrency(c => c + 50); // Bonus for killing boss
+          } else {
+            soundRef.current.playShoot(); // Hit sound
+          }
+        }
+      });
+    }
   };
 
   const handleGameOver = () => {
@@ -276,19 +371,21 @@ export default function App() {
     setGameState('GAMEOVER');
   };
 
-  const draw = () => {
+  const draw = (deltaTime) => {
     const renderer = rendererRef.current;
     const game = gameRef.current;
     if (!renderer) return;
 
     renderer.clear();
-    renderer.drawBackground(game.speed);
+    renderer.drawBackground(game.speed, deltaTime);
     renderer.drawObstacles(game.obstacles);
     renderer.drawCollectibles(game.collectibles);
     renderer.drawFuels(game.fuels);
     renderer.drawVillain(game.villain);
     renderer.drawProjectiles(game.projectiles);
+    renderer.drawPlayerProjectiles(game.playerProjectiles);
     renderer.drawPlayer(game.player, game.shipType);
+    renderer.drawFloatingTexts(game.floatingTexts);
   };
 
   const handleInputStart = () => {
@@ -303,10 +400,38 @@ export default function App() {
     }
   };
 
+  const handleShoot = () => {
+    if (gameState === 'PLAYING' && gameRef.current.ammo > 0) {
+      gameRef.current.ammo--;
+      setAmmo(gameRef.current.ammo);
+
+      gameRef.current.playerProjectiles.push(new PlayerProjectile(
+        gameRef.current.player.x + 50,
+        gameRef.current.player.y + 25
+      ));
+
+      if (soundRef.current) {
+        soundRef.current.playShoot();
+      }
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space' || e.code === 'ArrowUp') {
         handleInputStart();
+      }
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        setAmmo(gameRef.current.ammo);
+
+        gameRef.current.playerProjectiles.push(new PlayerProjectile(
+          gameRef.current.player.x + 50,
+          gameRef.current.player.y + 25
+        ));
+
+        if (soundRef.current) {
+          soundRef.current.playShoot();
+        }
       }
     };
 
@@ -326,8 +451,13 @@ export default function App() {
   }, [gameState]); // Re-bind when gameState changes to capture correct state closure
 
   const buyUpgrade = (id, cost, type = 'upgrade') => {
+    console.log(`Attempting to buy ${id} for ${cost}. Current currency: ${currency}`);
     if (currency >= cost) {
-      setCurrency(c => c - cost);
+      setCurrency(c => {
+        const newCurrency = c - cost;
+        console.log(`Purchase successful. New currency: ${newCurrency}`);
+        return newCurrency;
+      });
 
       if (type === 'ship') {
         setOwnedShips(ships => [...ships, id]);
@@ -338,6 +468,8 @@ export default function App() {
           [id]: (u[id] || 1) + 1
         }));
       }
+    } else {
+      console.log("Not enough currency.");
     }
   };
 
@@ -356,7 +488,14 @@ export default function App() {
       <canvas ref={canvasRef} className="block" />
 
       {gameState === 'PLAYING' && (
-        <HUD distance={distance} currency={currency} energy={energy} />
+        <HUD
+          distance={distance}
+          currency={currency}
+          energy={energy}
+          ammo={ammo}
+          maxAmmo={10}
+          onShoot={handleShoot}
+        />
       )}
 
       {gameState === 'MENU' && (
@@ -380,22 +519,42 @@ export default function App() {
       )}
 
       {gameState === 'GAMEOVER' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-          <h2 className="text-5xl font-bold mb-4 text-red-500 neon-text-pink">CRASHED</h2>
-          <p className="text-2xl mb-8 text-gray-300">Distance: {Math.floor(distance)}m</p>
-          <div className="flex gap-4">
-            <button
-              onClick={startGame}
-              className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-full font-bold text-xl transition-all hover:scale-105"
-            >
-              <RotateCcw /> RETRY
-            </button>
-            <button
-              onClick={() => setGameState('SHOP')}
-              className="flex items-center gap-2 px-8 py-4 bg-pink-600 hover:bg-pink-500 rounded-full font-bold text-xl transition-all hover:scale-105"
-            >
-              <ShoppingCart /> SHOP
-            </button>
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-black/90 border-2 border-red-600 p-8 max-w-md w-full text-center clip-angled shadow-[0_0_50px_rgba(255,0,0,0.3)] relative overflow-hidden">
+
+            {/* Glitch Effect Overlay */}
+            <div className="absolute inset-0 bg-red-500/5 pointer-events-none animate-pulse"></div>
+
+            <h2 className="text-5xl font-black text-red-600 mb-2 tracking-tighter animate-glitch drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">
+              SYSTEM FAILURE
+            </h2>
+            <div className="text-red-400 text-sm tracking-[0.5em] mb-8 opacity-80">MISSION TERMINATED</div>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center border-b border-red-900/50 pb-2">
+                <span className="text-gray-400 font-mono text-sm">DISTANCE TRAVELED</span>
+                <span className="text-2xl text-white font-bold font-mono">{Math.floor(distance)}m</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-red-900/50 pb-2">
+                <span className="text-gray-400 font-mono text-sm">DATA COLLECTED</span>
+                <span className="text-xl text-neon-green font-bold font-mono">+${Math.floor(distance * 0.5)}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={startGame}
+                className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold tracking-widest clip-angled-sm transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,0,0,0.6)]"
+              >
+                REBOOT SYSTEM
+              </button>
+              <button
+                onClick={() => setGameState('MENU')}
+                className="w-full py-3 bg-transparent border border-gray-600 hover:border-white text-gray-300 hover:text-white font-bold tracking-widest clip-angled-sm transition-all"
+              >
+                ACCESS TERMINAL
+              </button>
+            </div>
           </div>
         </div>
       )}

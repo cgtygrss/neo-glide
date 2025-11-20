@@ -81,6 +81,11 @@ export class Fuel {
         this.height = 30;
         this.markedForDeletion = false;
         this.oscillation = Math.random() * Math.PI * 2;
+
+        // Varied Fuel Types
+        this.type = Math.random() > 0.9 ? 'LARGE' : 'SMALL'; // 10% chance for large (Rare)
+        this.value = this.type === 'LARGE' ? 50 : 25;
+        this.color = this.type === 'LARGE' ? '#0088ff' : '#ffff00'; // Blue vs Yellow
     }
 
     update(deltaTime, speed) {
@@ -102,20 +107,76 @@ export class Villain {
         this.height = 60;
         this.markedForDeletion = false;
         this.hp = 100;
+        this.state = 'ENTERING'; // ENTERING, ATTACKING, LEAVING
+        this.stateTimer = 0;
         this.attackTimer = 0;
         this.targetY = y;
         this.active = true;
+        this.oscillation = 0;
+        this.hitFlashTimer = 0;
     }
 
-    update(deltaTime, playerY) {
-        // Hover movement - try to align with player but with lag
-        this.targetY = playerY;
-        this.y += (this.targetY - this.y) * 2 * deltaTime;
+    takeDamage(amount) {
+        this.hp -= amount;
+        this.hitFlashTimer = 0.1; // Flash for 100ms
+        if (this.hp <= 0) {
+            this.markedForDeletion = true;
+            return true; // Died
+        }
+        return false;
+    }
 
-        // Clamp to screen
-        this.y = Math.max(50, Math.min(window.innerHeight - 100, this.y));
+    update(deltaTime, playerY, playerProjectiles = []) {
+        this.stateTimer += deltaTime;
+        this.oscillation += deltaTime * 2;
+        if (this.hitFlashTimer > 0) this.hitFlashTimer -= deltaTime;
 
-        this.attackTimer += deltaTime;
+        // Dodge Logic
+        let dodgeOffset = 0;
+        playerProjectiles.forEach(proj => {
+            const dx = proj.x - this.x;
+            const dy = proj.y - this.y;
+            // If projectile is close and incoming
+            if (Math.abs(dx) < 300 && Math.abs(dy) < 60) {
+                // Dodge away from projectile
+                dodgeOffset += dy > 0 ? -100 : 100;
+            }
+        });
+
+        if (this.state === 'ENTERING') {
+            // Move to attack position (right side of screen)
+            const targetX = window.innerWidth - 150;
+            this.x -= (this.x - targetX) * 2 * deltaTime;
+
+            // Smoothly match player Y
+            this.y += (playerY - this.y) * 1 * deltaTime;
+
+            if (Math.abs(this.x - targetX) < 10) {
+                this.state = 'ATTACKING';
+                this.stateTimer = 0;
+            }
+        } else if (this.state === 'ATTACKING') {
+            // Sine wave movement around player Y + Dodge
+            const wave = Math.sin(this.oscillation) * 150;
+            this.targetY = playerY + wave + dodgeOffset;
+            this.y += (this.targetY - this.y) * 3 * deltaTime;
+
+            // Clamp
+            this.y = Math.max(50, Math.min(window.innerHeight - 100, this.y));
+
+            this.attackTimer += deltaTime;
+
+            // Leave after 15 seconds
+            if (this.stateTimer > 15) {
+                this.state = 'LEAVING';
+            }
+        } else if (this.state === 'LEAVING') {
+            // Fly away to the left
+            this.x -= 500 * deltaTime;
+            if (this.x < -200) {
+                this.markedForDeletion = true;
+            }
+        }
     }
 }
 
@@ -131,6 +192,23 @@ export class Projectile {
     update(deltaTime) {
         this.x -= this.speed * deltaTime;
         if (this.x < 0) {
+            this.markedForDeletion = true;
+        }
+    }
+}
+
+export class PlayerProjectile {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 5;
+        this.speed = 800;
+        this.markedForDeletion = false;
+    }
+
+    update(deltaTime) {
+        this.x += this.speed * deltaTime;
+        if (this.x > window.innerWidth) {
             this.markedForDeletion = true;
         }
     }

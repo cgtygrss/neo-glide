@@ -40,6 +40,72 @@ button {
   text-shadow: 0 0 10px var(--neon-pink);
 }
 
+@layer utilities {
+  .text-shadow-neon {
+    text-shadow: 0 0 5px #00f3ff, 0 0 10px #00f3ff;
+  }
+
+  .clip-angled {
+    clip-path: polygon(10px 0, 100% 0,
+        100% calc(100% - 10px), calc(100% - 10px) 100%,
+        0 100%, 0 10px);
+  }
+
+  .clip-angled-sm {
+    clip-path: polygon(5px 0, 100% 0,
+        100% calc(100% - 5px), calc(100% - 5px) 100%,
+        0 100%, 0 5px);
+  }
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0)
+  }
+
+  20% {
+    transform: translate(-2px, 2px)
+  }
+
+  40% {
+    transform: translate(-2px, -2px)
+  }
+
+  60% {
+    transform: translate(2px, 2px)
+  }
+
+  80% {
+    transform: translate(2px, -2px)
+  }
+
+  100% {
+    transform: translate(0)
+  }
+}
+
+.animate-glitch {
+  animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+}
+
+@keyframes pulse-red {
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px #ff0000;
+    border-color: #ff0000;
+  }
+
+  50% {
+    box-shadow: 0 0 20px #ff0000;
+    border-color: #ff5555;
+  }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 1.5s infinite;
+}
+
 .neon-border {
   border: 1px solid var(--neon-blue);
   box-shadow: 0 0 10px var(--neon-blue), inset 0 0 10px var(--neon-blue);

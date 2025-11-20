@@ -427,7 +427,7 @@ export default function App() {
 
     // Spawn Obstacles
     if (Math.random() < 0.02) {
-      const h = Math.random() * 100 + 50;
+      const h = Math.random() * 60 + 40; // Smaller obstacles (40-100 instead of 50-150)
       const y = Math.random() > 0.5 ? 0 : window.innerHeight - h; // Top or Bottom
       game.obstacles.push(new Obstacle(window.innerWidth, y, 50, h));
     }
@@ -438,8 +438,8 @@ export default function App() {
       game.collectibles.push(new Collectible(window.innerWidth, y));
     }
 
-    // Spawn Fuel (Common)
-    if (Math.random() < 0.02) { // 2% chance per frame (~0.8s)
+    // Spawn Fuel (Less common)
+    if (Math.random() < 0.01) { // Reduced from 0.02 to 0.01 (50% less frequent)
       const y = Math.random() * (window.innerHeight - 100) + 50;
       game.fuels.push(new Fuel(window.innerWidth, y));
     }
@@ -487,7 +487,7 @@ export default function App() {
               if (soundRef.current) soundRef.current.playShoot();
             }
           } else if (game.villain.type === 'JUGGERNAUT') {
-            if (game.villain.attackTimer > 2.0) {
+            if (game.villain.attackTimer > 3.5) { // Slower fire rate (was 2.0, now 3.5 seconds)
               game.villain.attackTimer = 0;
               // HOMING MISSILE
               game.projectiles.push(new HomingProjectile(
@@ -498,13 +498,11 @@ export default function App() {
               if (soundRef.current) soundRef.current.playShoot();
             }
           } else {
-            // NORMAL VILLAIN
-            if (game.villain.attackTimer > 1.0) {
+            // NORMAL VILLAIN - Single shot
+            if (game.villain.attackTimer > 1.5) {
               game.villain.attackTimer = 0;
-              // BURST FIRE
+              // SINGLE SHOT (fires one projectile at a time)
               game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, 0));
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, 100));
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, -100));
               if (soundRef.current) soundRef.current.playShoot();
             }
           }

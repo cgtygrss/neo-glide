@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap, Coins } from 'lucide-react';
 
-export default function HUD({ distance, currency, energy, ammo, maxAmmo, onShoot }) {
+export default function HUD({ distance, currency, energy, ammo, maxAmmo, health, maxHealth, onShoot }) {
     return (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10 flex flex-col justify-between p-4">
 
@@ -26,14 +26,31 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, onShoot
 
                 {/* Right Panel: Energy & Ammo */}
                 <div className="flex flex-col items-end gap-2">
+                    {/* Hull Integrity */}
+                    <div className="clip-angled bg-black/60 backdrop-blur-md border-r-4 border-red-500 p-2 pl-6 w-64">
+                        <div className="text-xs text-red-500 font-bold tracking-widest mb-1 text-right">HULL INTEGRITY</div>
+                        <div className="w-full h-6 bg-gray-900 rounded-sm overflow-hidden relative border border-gray-700 shadow-[0_0_10px_rgba(255,0,0,0.3)]">
+                            <div
+                                className="h-full transition-all duration-200 bg-red-600"
+                                style={{ width: `${Math.max(0, Math.min(100, (health / maxHealth) * 100))}%` }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">
+                                {Math.ceil(health)} / {maxHealth}
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Energy Bar */}
-                    <div className="clip-angled bg-black/60 backdrop-blur-md border-r-4 border-neon-pink p-2 pl-6 w-48">
+                    <div className="clip-angled bg-black/60 backdrop-blur-md border-r-4 border-neon-pink p-2 pl-6 w-64">
                         <div className="text-xs text-neon-pink font-bold tracking-widest mb-1 text-right">ENERGY</div>
-                        <div className="w-full h-3 bg-gray-900 rounded-sm overflow-hidden relative border border-gray-700">
+                        <div className="w-full h-6 bg-gray-900 rounded-sm overflow-hidden relative border border-gray-700 shadow-[0_0_10px_rgba(236,72,153,0.3)]">
                             <div
                                 className={`h-full transition-all duration-200 ${energy < 30 ? 'bg-red-500 animate-pulse' : 'bg-neon-pink'}`}
                                 style={{ width: `${Math.max(0, Math.min(100, energy))}%` }}
                             />
+                            <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">
+                                {Math.floor(energy)}%
+                            </div>
                         </div>
                     </div>
 
@@ -50,11 +67,11 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, onShoot
             </div>
 
             {/* Bottom Right: Shoot Button (Mobile) */}
-            <div className="pointer-events-auto flex justify-end pb-8 pr-4">
+            <div className="pointer-events-auto flex justify-end pb-16 pr-8">
                 <button
                     className={`w-24 h-24 rounded-full border-4 flex items-center justify-center text-white font-bold text-lg tracking-widest transition-all active:scale-95 shadow-lg ${ammo >= 1
-                            ? 'bg-red-600/80 border-red-400 shadow-[0_0_20px_#ff0000] hover:bg-red-500'
-                            : 'bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed'
+                        ? 'bg-red-600/80 border-red-400 shadow-[0_0_20px_#ff0000] hover:bg-red-500'
+                        : 'bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed'
                         }`}
                     onClick={onShoot}
                     disabled={ammo < 1}

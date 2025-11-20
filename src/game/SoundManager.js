@@ -1,14 +1,27 @@
 export class SoundManager {
     constructor() {
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.masterGain = this.ctx.createGain();
-        this.masterGain.connect(this.ctx.destination);
-        this.masterGain.gain.value = 0.3; // Lower volume
+        this.ctx = null;
+        this.masterGain = null;
         this.musicOscillators = [];
         this.isPlayingMusic = false;
+        this.initialized = false;
+    }
+
+    init() {
+        if (this.initialized) return;
+        
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.connect(this.ctx.destination);
+        this.masterGain.gain.value = 0.8; // Master volume
+        this.initialized = true;
     }
 
     playTone(freq, type, duration, startTime = 0) {
+        if (!this.initialized) this.init();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
@@ -26,11 +39,13 @@ export class SoundManager {
     }
 
     playCollect() {
+        if (!this.initialized) this.init();
         this.playTone(880, 'sine', 0.1);
         this.playTone(1760, 'sine', 0.1, 0.1);
     }
 
     playShoot() {
+        if (!this.initialized) this.init();
         this.playTone(400, 'sawtooth', 0.1);
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -46,6 +61,7 @@ export class SoundManager {
     }
 
     playExplosion() {
+        if (!this.initialized) this.init();
         // White noise buffer for explosion
         const bufferSize = this.ctx.sampleRate * 0.5; // 0.5 seconds
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -66,9 +82,11 @@ export class SoundManager {
     }
 
     playNormalMusic() {
+        if (!this.initialized) this.init();
         if (this.musicTimeout) clearTimeout(this.musicTimeout);
-        if (!this.ctx || !this.isPlayingMusic) return;
-
+        // Ensure context is valid
+        if (!this.ctx) return;
+        
         // Catchier Arcade Melody (Arpeggio)
         // C Minor Pentatonic: C, Eb, F, G, Bb
         const melody = [
@@ -82,22 +100,31 @@ export class SoundManager {
 
         const playNextNote = () => {
             if (!this.isPlayingMusic) return;
+            
+            // Double check context state
+            if (this.ctx.state === 'suspended') {
+                this.ctx.resume().catch(e => console.error(e));
+            }
 
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
+            try {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
 
-            osc.type = 'square'; // Retro sound
-            osc.frequency.value = melody[noteIndex];
+                osc.type = 'square'; // Retro sound
+                osc.frequency.value = melody[noteIndex];
 
-            // Short staccato notes
-            gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+                // Short staccato notes
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
 
-            osc.connect(gain);
-            gain.connect(this.masterGain);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
 
-            osc.start();
-            osc.stop(this.ctx.currentTime + 0.1);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.1);
+            } catch (e) {
+                console.error("Error playing note:", e);
+            }
 
             noteIndex = (noteIndex + 1) % melody.length;
 
@@ -108,13 +135,30 @@ export class SoundManager {
         playNextNote();
     }
 
-    startMusic() {
+    async startMusic() {
+        if (!this.initialized) this.init();
+
+        // Always try to resume context first
+        if (this.ctx.state === 'suspended') {
+            try {
+                await this.ctx.resume();
+            } catch (e) {
+                console.error('Failed to resume audio context', e);
+            }
+        }
+        
+        // If context is closed, try to recreate it (rare but possible)
+        if (this.ctx.state === 'closed') {
+             this.init();
+        }
+
         if (this.isPlayingMusic) return;
         this.isPlayingMusic = true;
         this.playNormalMusic();
     }
 
     playBossMusic() {
+        if (!this.initialized) this.init();
         if (this.musicTimeout) clearTimeout(this.musicTimeout);
         if (!this.ctx || !this.isPlayingMusic) return;
 
@@ -131,7 +175,7 @@ export class SoundManager {
             osc.type = 'sawtooth';
             osc.frequency.value = melody[noteIndex];
 
-            gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
             gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
 
             osc.connect(gain);

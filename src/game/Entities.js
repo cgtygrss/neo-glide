@@ -1,10 +1,10 @@
 export class Player {
-    constructor() {
+    constructor(thrusterLevel = 1) {
         this.x = 100;
         this.y = 300;
         this.velocity = 0;
         this.gravity = 500;
-        this.lift = -800;
+        this.lift = -800 - ((thrusterLevel - 1) * 100); // Stronger lift with upgrades
         this.width = 40;
         this.height = 20;
         this.isBoosting = false;
@@ -114,6 +114,14 @@ export class Villain {
         this.active = true;
         this.oscillation = 0;
         this.hitFlashTimer = 0;
+
+        // Physics & AI Properties
+        this.vy = 0;
+        this.targetOffset = 0;
+        this.repositionTimer = 0;
+        this.friction = 0.92;
+        this.acceleration = 1500;
+        this.maxSpeed = 250;
     }
 
     takeDamage(amount) {
@@ -131,15 +139,23 @@ export class Villain {
         this.oscillation += deltaTime * 2;
         if (this.hitFlashTimer > 0) this.hitFlashTimer -= deltaTime;
 
-        // Dodge Logic
-        let dodgeOffset = 0;
+        // AI: Repositioning Logic (Randomly change "lane" relative to player)
+        this.repositionTimer -= deltaTime;
+        if (this.repositionTimer <= 0) {
+            // Pick a new offset between -100 and 100
+            this.targetOffset = (Math.random() - 0.5) * 200;
+            this.repositionTimer = 1 + Math.random() * 2; // Change every 1-3 seconds
+        }
+
+        // AI: Dodge Logic (Burst of speed)
+        let dodgeForce = 0;
         playerProjectiles.forEach(proj => {
             const dx = proj.x - this.x;
             const dy = proj.y - this.y;
             // If projectile is close and incoming
-            if (Math.abs(dx) < 300 && Math.abs(dy) < 60) {
-                // Dodge away from projectile
-                dodgeOffset += dy > 0 ? -100 : 100;
+            if (Math.abs(dx) < 250 && Math.abs(dy) < 60) {
+                // Dodge away from projectile with a burst
+                dodgeForce += dy > 0 ? -2000 : 2000;
             }
         });
 
@@ -148,26 +164,43 @@ export class Villain {
             const targetX = window.innerWidth - 150;
             this.x -= (this.x - targetX) * 2 * deltaTime;
 
-            // Smoothly match player Y
-            this.y += (playerY - this.y) * 1 * deltaTime;
+            // Smoothly center vertically
+            this.y += (window.innerHeight / 2 - this.y) * 2 * deltaTime;
 
             if (Math.abs(this.x - targetX) < 10) {
                 this.state = 'ATTACKING';
                 this.stateTimer = 0;
             }
         } else if (this.state === 'ATTACKING') {
-            // Sine wave movement around player Y + Dodge
-            const wave = Math.sin(this.oscillation) * 150;
-            this.targetY = playerY + wave + dodgeOffset;
-            this.y += (this.targetY - this.y) * 3 * deltaTime;
+            // Human-like Tracking with Physics
+            const desiredY = playerY + this.targetOffset;
+            const distY = desiredY - this.y;
 
-            // Clamp
+            // Accelerate towards desired Y
+            if (Math.abs(distY) > 10) {
+                const dir = Math.sign(distY);
+                this.vy += dir * this.acceleration * deltaTime;
+            }
+
+            // Apply Dodge Force
+            this.vy += dodgeForce * deltaTime;
+
+            // Apply Friction (Damping)
+            this.vy *= this.friction;
+
+            // Clamp Speed
+            this.vy = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, this.vy));
+
+            // Apply Velocity
+            this.y += this.vy * deltaTime;
+
+            // Clamp Position
             this.y = Math.max(50, Math.min(window.innerHeight - 100, this.y));
 
             this.attackTimer += deltaTime;
 
-            // Leave after 15 seconds
-            if (this.stateTimer > 15) {
+            // Leave after 20 seconds (gave them a bit more time)
+            if (this.stateTimer > 20) {
                 this.state = 'LEAVING';
             }
         } else if (this.state === 'LEAVING') {
@@ -181,35 +214,91 @@ export class Villain {
 }
 
 export class Projectile {
-    constructor(x, y) {
+    constructor(x, y, vx = -500, vy = 0) {
         this.x = x;
         this.y = y;
+        this.vx = vx;
+        this.vy = vy;
         this.radius = 8;
-        this.speed = 500;
         this.markedForDeletion = false;
     }
 
     update(deltaTime) {
-        this.x -= this.speed * deltaTime;
-        if (this.x < 0) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+
+        if (this.x < 0 || this.y < 0 || this.y > window.innerHeight) {
             this.markedForDeletion = true;
         }
     }
 }
 
 export class PlayerProjectile {
-    constructor(x, y) {
+    constructor(x, y, type = 'default') {
         this.x = x;
         this.y = y;
         this.radius = 5;
         this.speed = 800;
         this.markedForDeletion = false;
+        this.type = type;
     }
 
     update(deltaTime) {
         this.x += this.speed * deltaTime;
         if (this.x > window.innerWidth) {
             this.markedForDeletion = true;
+        }
+    }
+}
+
+export class SpeedsterVillain extends Villain {
+    constructor(x, y) {
+        super(x, y);
+        this.width = 60; // Smaller
+        this.height = 40;
+        this.hp = 60; // Less HP
+        this.type = 'SPEEDSTER';
+        this.dashTimer = 0;
+        this.dashState = 'IDLE'; // IDLE, DASHING, RETURNING
+        this.dashDuration = 0;
+        this.vx = 0; // Horizontal velocity
+    }
+
+    update(deltaTime, playerY, playerProjectiles = []) {
+        super.update(deltaTime, playerY, playerProjectiles);
+
+        if (this.state === 'ATTACKING') {
+            // Smooth Dash Logic
+            this.dashTimer += deltaTime;
+
+            if (this.dashState === 'IDLE' && this.dashTimer > 3.0) {
+                // Start dash
+                this.dashState = 'DASHING';
+                this.dashTimer = 0;
+                this.dashDuration = 0;
+                this.vx = -400; // Fast forward velocity
+            } else if (this.dashState === 'DASHING') {
+                this.dashDuration += deltaTime;
+                if (this.dashDuration > 0.3) { // Dash for 0.3 seconds
+                    this.dashState = 'RETURNING';
+                    this.dashDuration = 0;
+                    this.vx = 200; // Return velocity (slower)
+                }
+            } else if (this.dashState === 'RETURNING') {
+                this.dashDuration += deltaTime;
+                if (this.dashDuration > 0.5) { // Return for 0.5 seconds
+                    this.dashState = 'IDLE';
+                    this.vx = 0;
+                    this.dashTimer = 0;
+                }
+            }
+
+            // Apply horizontal velocity
+            this.x += this.vx * deltaTime;
+
+            // Enhanced vertical movement (faster than normal villain)
+            this.vy *= 0.95; // Slightly more friction
+            this.maxSpeed = 350; // Faster max speed
         }
     }
 }

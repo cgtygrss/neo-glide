@@ -39,15 +39,15 @@ export class Renderer {
             });
         }
 
-        // Create 3 Planets/Galaxies
-        for (let i = 0; i < 3; i++) {
+        // Create 2 Planets/Galaxies in background
+        for (let i = 0; i < 2; i++) {
             this.planets.push({
-                x: Math.random() * this.width + this.width, // Start off-screen right
+                x: (i * this.width) + Math.random() * 500,
                 y: Math.random() * this.height,
-                radius: Math.random() * 40 + 20,
-                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-                speed: Math.random() * 20 + 5,
-                type: Math.random() > 0.5 ? 'PLANET' : 'GALAXY'
+                radius: Math.random() * 100 + 40, // Random sizes (40-140)
+                color: `hsl(${Math.random() * 360}, 90%, 70%)`, // More colorful
+                type: Math.random() > 0.5 ? 'PLANET' : 'GALAXY',
+                opacity: 0.5 + Math.random() * 0.3
             });
         }
     }
@@ -83,20 +83,23 @@ export class Renderer {
         });
         this.ctx.globalAlpha = 1.0;
 
-        // Update and Draw Planets
+        // Update and Draw Planets (scroll with game world)
         this.planets.forEach(planet => {
-            planet.x -= (planet.speed + speed * 0.05) * deltaTime;
+            // Move at game speed (like obstacles)
+            planet.x -= speed * deltaTime;
 
-            // Respawn far right if off-screen left
-            if (planet.x + planet.radius < 0) {
-                planet.x = this.width + Math.random() * 1000 + 500; // Random delay
+            // Respawn when off-screen left
+            if (planet.x + planet.radius < -200) {
+                planet.x = this.width + Math.random() * 2000 + 500; // Less appearing (large gap)
                 planet.y = Math.random() * this.height;
-                planet.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                planet.radius = Math.random() * 100 + 40; // New random size
+                planet.color = `hsl(${Math.random() * 360}, 90%, 70%)`; // New random color
                 planet.type = Math.random() > 0.5 ? 'PLANET' : 'GALAXY';
             }
 
             this.ctx.save();
             this.ctx.translate(planet.x, planet.y);
+            this.ctx.globalAlpha = planet.opacity || 0.4; // Apply low opacity
 
             if (planet.type === 'PLANET') {
                 // Draw Planet
@@ -137,55 +140,212 @@ export class Renderer {
         this.ctx.translate(player.x, player.y);
         this.ctx.rotate(player.rotation * Math.PI / 180);
 
-        // Glow effect
-        this.ctx.shadowBlur = 20;
-        this.ctx.shadowColor = '#00f3ff';
-        this.ctx.fillStyle = '#00f3ff';
-
-        this.ctx.beginPath();
-
+        // Determine Boost Color based on Ship Type
+        let boostColor = '#ff0055'; // Default Red/Pink
         switch (shipType) {
-            case 'interceptor':
-                // X-Wing style
-                this.ctx.moveTo(20, 0);
-                this.ctx.lineTo(-10, 15);
-                this.ctx.lineTo(-5, 0);
-                this.ctx.lineTo(-10, -15);
-                break;
-            case 'cruiser':
-                // Bulky blocky ship
-                this.ctx.rect(-15, -10, 35, 20);
-                this.ctx.rect(-20, -15, 10, 30); // Engines
-                break;
-            case 'stealth':
-                // Sharp angular stealth bomber
-                this.ctx.moveTo(25, 0);
-                this.ctx.lineTo(-15, 20);
-                this.ctx.lineTo(-5, 0);
-                this.ctx.lineTo(-15, -20);
-                break;
-            case 'default':
-            default:
-                // Standard Triangle
-                this.ctx.moveTo(20, 0);
-                this.ctx.lineTo(-10, 10);
-                this.ctx.lineTo(-10, -10);
-                break;
+            case 'interceptor': boostColor = '#ffaa00'; break; // Orange
+            case 'cruiser': boostColor = '#ff4400'; break; // Red-Orange
+            case 'stealth': boostColor = '#0088ff'; break; // Blue
+            case 'void_runner': boostColor = '#a855f7'; break; // Purple
+            case 'plasma_breaker': boostColor = '#00ff00'; break; // Green
         }
 
-        this.ctx.closePath();
-        this.ctx.fill();
-
-        // Engine Trail
+        // Advanced Engine Effect
         if (player.isBoosting) {
-            this.ctx.shadowColor = '#ff0055';
-            this.ctx.fillStyle = '#ff0055';
+            // 1. Shockwave Rings (Pulsating)
+            const time = Date.now() / 100;
+            const ringSize = (time % 10) * 2;
+            const ringAlpha = 1 - ((time % 10) / 10);
+
+            this.ctx.strokeStyle = boostColor;
+            this.ctx.globalAlpha = ringAlpha * 0.5;
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.arc(-20, 0, 10 + ringSize, 0, Math.PI * 2);
+            this.ctx.stroke();
+            this.ctx.globalAlpha = 1.0;
+
+            // 2. Multi-layered Flame
+            // Outer Glow
+            this.ctx.shadowBlur = 30;
+            this.ctx.shadowColor = boostColor;
+
+            // Inner Core (White Hot)
+            const grad = this.ctx.createLinearGradient(-15, 0, -60, 0);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.2, boostColor);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+            this.ctx.fillStyle = grad;
             this.ctx.beginPath();
             this.ctx.moveTo(-15, 0);
-            this.ctx.lineTo(-35, 5);
-            this.ctx.lineTo(-35, -5);
+            this.ctx.lineTo(-50 - Math.random() * 10, 8); // Flicker effect
+            this.ctx.lineTo(-50 - Math.random() * 10, -8);
             this.ctx.closePath();
             this.ctx.fill();
+        }
+
+        switch (shipType) {
+            case 'interceptor': {
+                // INTERCEPTOR: Aggressive Fighter
+                // Main Body
+                this.ctx.shadowBlur = 15;
+                this.ctx.shadowColor = '#ffaa00';
+                const gradInt = this.ctx.createLinearGradient(0, 0, 40, 0);
+                gradInt.addColorStop(0, '#442200');
+                gradInt.addColorStop(1, '#ffaa00');
+                this.ctx.fillStyle = gradInt;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(30, 0);
+                this.ctx.lineTo(-10, 8);
+                this.ctx.lineTo(-10, -8);
+                this.ctx.closePath();
+                this.ctx.fill();
+
+                // Wings
+                this.ctx.fillStyle = '#cc8800';
+                this.ctx.beginPath();
+                this.ctx.moveTo(10, 0);
+                this.ctx.lineTo(-15, 25); // Forward swept
+                this.ctx.lineTo(-5, 5);
+                this.ctx.lineTo(-5, -5);
+                this.ctx.lineTo(-15, -25);
+                this.ctx.closePath();
+                this.ctx.fill();
+
+                // Cockpit
+                this.ctx.fillStyle = '#00ffff';
+                this.ctx.beginPath();
+                this.ctx.ellipse(5, 0, 8, 3, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                break;
+            }
+
+            case 'cruiser':
+                // HEAVY CRUISER: Tank
+                this.ctx.shadowBlur = 15;
+                this.ctx.shadowColor = '#ff0000';
+
+                // Main Hull
+                this.ctx.fillStyle = '#550000';
+                this.ctx.fillRect(-20, -12, 40, 24);
+
+                // Armor Plates
+                this.ctx.fillStyle = '#aa0000';
+                this.ctx.fillRect(-15, -15, 30, 5); // Top
+                this.ctx.fillRect(-15, 10, 30, 5);  // Bottom
+                this.ctx.fillRect(10, -8, 15, 16);  // Front Armor
+
+                // Cockpit
+                this.ctx.fillStyle = '#ffaa00';
+                this.ctx.fillRect(0, -4, 8, 8);
+                break;
+
+            case 'stealth':
+                // STEALTH WING: Bomber
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = '#0000ff';
+
+                this.ctx.fillStyle = '#111111';
+                this.ctx.strokeStyle = '#0044ff';
+                this.ctx.lineWidth = 2;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(30, 0);
+                this.ctx.lineTo(-10, 25);
+                this.ctx.lineTo(-5, 0);
+                this.ctx.lineTo(-10, -25);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke();
+
+                // Pulse Lights
+                this.ctx.fillStyle = '#0088ff';
+                this.ctx.beginPath();
+                this.ctx.arc(-10, 25, 2, 0, Math.PI * 2);
+                this.ctx.arc(-10, -25, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                break;
+
+            case 'void_runner':
+                // VOID RUNNER: Sci-Fi Split
+                this.ctx.shadowBlur = 20;
+                this.ctx.shadowColor = '#a855f7'; // Purple
+
+                // Floating Core
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // Split Hulls
+                this.ctx.fillStyle = '#581c87';
+                // Top Hull
+                this.ctx.beginPath();
+                this.ctx.moveTo(20, -5);
+                this.ctx.lineTo(-15, -15);
+                this.ctx.lineTo(-15, -5);
+                this.ctx.fill();
+                // Bottom Hull
+                this.ctx.beginPath();
+                this.ctx.moveTo(20, 5);
+                this.ctx.lineTo(-15, 15);
+                this.ctx.lineTo(-15, 5);
+                this.ctx.fill();
+                break;
+
+            case 'plasma_breaker': {
+                // PLASMA BREAKER: Spiked Ram
+                this.ctx.shadowBlur = 25;
+                this.ctx.shadowColor = '#00ff00';
+
+                // Main Spike
+                const gradPlasma = this.ctx.createLinearGradient(0, 0, 40, 0);
+                gradPlasma.addColorStop(0, '#003300');
+                gradPlasma.addColorStop(1, '#00ff00');
+                this.ctx.fillStyle = gradPlasma;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(40, 0); // Long spike
+                this.ctx.lineTo(-10, 10);
+                this.ctx.lineTo(-10, -10);
+                this.ctx.closePath();
+                this.ctx.fill();
+
+                // Side Spikes
+                this.ctx.fillStyle = '#00aa00';
+                this.ctx.beginPath();
+                this.ctx.moveTo(10, 0);
+                this.ctx.lineTo(-15, 20);
+                this.ctx.lineTo(-5, 5);
+                this.ctx.lineTo(-5, -5);
+                this.ctx.lineTo(-15, -20);
+                this.ctx.fill();
+                break;
+            }
+
+            case 'default':
+            default:
+                // STANDARD GLIDER: Refined
+                this.ctx.shadowBlur = 15;
+                this.ctx.shadowColor = '#00f3ff';
+
+                // Body
+                this.ctx.fillStyle = '#005555';
+                this.ctx.beginPath();
+                this.ctx.moveTo(25, 0);
+                this.ctx.lineTo(-10, 12);
+                this.ctx.lineTo(-5, 0);
+                this.ctx.lineTo(-10, -12);
+                this.ctx.closePath();
+                this.ctx.fill();
+
+                // Highlights
+                this.ctx.strokeStyle = '#00f3ff';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                break;
         }
 
         this.ctx.restore();
@@ -278,6 +438,8 @@ export class Renderer {
         });
     }
 
+
+
     drawVillain(villain) {
         if (!villain) return;
 
@@ -285,56 +447,175 @@ export class Renderer {
         this.ctx.translate(villain.x, villain.y);
 
         this.ctx.shadowBlur = 25;
-        this.ctx.shadowColor = '#ff0000';
-        this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : '#cc0000'; // Flash white on hit
 
-        // Draw menacing ship
-        this.ctx.beginPath();
-        this.ctx.moveTo(40, 0);
-        this.ctx.lineTo(-20, 30);
-        this.ctx.lineTo(-10, 0);
-        this.ctx.lineTo(-20, -30);
-        this.ctx.closePath();
-        this.ctx.fill();
+        if (villain.type === 'SPEEDSTER') {
+            // Speedster Drawing (Purple Lightning Shape)
+            this.ctx.shadowColor = '#a855f7'; // Purple
+            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : '#a855f7';
 
-        // Eyes
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.shadowColor = '#ffffff';
-        this.ctx.fillRect(10, -10, 10, 5);
-        this.ctx.fillRect(10, 5, 10, 5);
+            this.ctx.beginPath();
+            this.ctx.moveTo(30, 0);
+            this.ctx.lineTo(-10, 20);
+            this.ctx.lineTo(0, 0);
+            this.ctx.lineTo(-10, -20);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            // Lightning Bolt Detail
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(10, -10);
+            this.ctx.lineTo(-5, 5);
+            this.ctx.lineTo(5, 5);
+            this.ctx.lineTo(-10, 15);
+            this.ctx.stroke();
+
+        } else {
+            // Normal Villain
+            this.ctx.shadowColor = '#ff0000';
+            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : '#cc0000';
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(40, 0);
+            this.ctx.lineTo(-20, 30);
+            this.ctx.lineTo(-10, 0);
+            this.ctx.lineTo(-20, -30);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            // Eyes
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.shadowColor = '#ffffff';
+            this.ctx.fillRect(10, -10, 10, 5);
+            this.ctx.fillRect(10, 5, 10, 5);
+        }
 
         // Health Bar
         if (villain.hp < 100) {
             this.ctx.fillStyle = '#333';
             this.ctx.fillRect(-20, -40, 60, 5);
-            this.ctx.fillStyle = '#f00';
-            this.ctx.fillRect(-20, -40, 60 * (villain.hp / 100), 5);
+            this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : '#f00';
+            this.ctx.fillRect(-20, -40, 60 * (villain.hp / (villain.type === 'SPEEDSTER' ? 60 : 100)), 5);
         }
 
         this.ctx.restore();
     }
 
     drawProjectiles(projectiles) {
-        this.ctx.shadowBlur = 10;
-        this.ctx.shadowColor = '#ff0000';
-        this.ctx.fillStyle = '#ff0000';
-
         projectiles.forEach(proj => {
+            this.ctx.save();
+            this.ctx.translate(proj.x, proj.y);
+
+            // Outer Glow (Red/Orange)
+            this.ctx.shadowBlur = 20;
+            this.ctx.shadowColor = '#ff0000';
+
+            // Main Body (Gradient)
+            const grad = this.ctx.createRadialGradient(0, 0, 2, 0, 0, proj.radius + 4);
+            grad.addColorStop(0, '#ffffff'); // White hot center
+            grad.addColorStop(0.4, '#ff4400'); // Orange mid
+            grad.addColorStop(1, '#ff0000'); // Red edge
+
+            this.ctx.fillStyle = grad;
             this.ctx.beginPath();
-            this.ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+            this.ctx.arc(0, 0, proj.radius + 4, 0, Math.PI * 2); // Larger visual size
             this.ctx.fill();
+
+            // Inner Core (Bright White)
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, proj.radius * 0.5, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            this.ctx.restore();
         });
     }
 
     drawPlayerProjectiles(projectiles) {
-        this.ctx.shadowBlur = 10;
-        this.ctx.shadowColor = '#0088ff';
-        this.ctx.fillStyle = '#0088ff';
-
         projectiles.forEach(proj => {
-            this.ctx.beginPath();
-            this.ctx.rect(proj.x, proj.y - 2, 15, 4); // Laser beam
-            this.ctx.fill();
+            this.ctx.save();
+            this.ctx.translate(proj.x, proj.y);
+
+            switch (proj.type) {
+                case 'interceptor':
+                    // Orange Laser Bolt
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#ffaa00';
+                    this.ctx.fillStyle = '#ffaa00';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(10, 0);
+                    this.ctx.lineTo(-10, 3);
+                    this.ctx.lineTo(-10, -3);
+                    this.ctx.fill();
+                    break;
+
+                case 'cruiser':
+                    // Red Plasma Cannonball
+                    this.ctx.shadowBlur = 15;
+                    this.ctx.shadowColor = '#ff0000';
+                    this.ctx.fillStyle = '#ff0000';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    // Core
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    break;
+
+                case 'stealth':
+                    // Blue Precision Beam
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#0088ff';
+                    this.ctx.fillStyle = '#0088ff';
+                    this.ctx.fillRect(-15, -2, 30, 4);
+                    break;
+
+                case 'void_runner':
+                    // Purple Energy Wave
+                    this.ctx.shadowBlur = 15;
+                    this.ctx.shadowColor = '#a855f7';
+                    this.ctx.strokeStyle = '#a855f7';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                    // Inner
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    break;
+
+                case 'plasma_breaker':
+                    // Green Electric Bolt
+                    this.ctx.shadowBlur = 15;
+                    this.ctx.shadowColor = '#00ff00';
+                    this.ctx.strokeStyle = '#00ff00';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(-10, 0);
+                    this.ctx.lineTo(-5, 5);
+                    this.ctx.lineTo(0, -5);
+                    this.ctx.lineTo(5, 5);
+                    this.ctx.lineTo(10, 0);
+                    this.ctx.stroke();
+                    break;
+
+                default:
+                    // Default Cyan Laser
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#00f3ff';
+                    this.ctx.fillStyle = '#00f3ff';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    break;
+            }
+
+            this.ctx.restore();
         });
     }
 

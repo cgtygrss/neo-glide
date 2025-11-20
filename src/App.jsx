@@ -2,38 +2,51 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameLoop } from './game/GameLoop';
 import { Renderer } from './game/Renderer';
 import { SoundManager } from './game/SoundManager';
-import { Player, Obstacle, Collectible, Fuel, Villain, Projectile } from './game/Entities';
+import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain } from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
-import { Play, ShoppingCart, RotateCcw, Zap } from 'lucide-react';
+import { Play, ShoppingCart } from 'lucide-react';
 
 export default function App() {
-  const canvasRef = useRef(null);
   const [gameState, setGameState] = useState('MENU'); // MENU, PLAYING, GAMEOVER, SHOP
   const [distance, setDistance] = useState(0);
   const [currency, setCurrency] = useState(() => parseInt(localStorage.getItem('neon_glide_currency')) || 0);
   const [energy, setEnergy] = useState(100);
   const [ammo, setAmmo] = useState(10);
+  const [health, setHealth] = useState(1);
+  const [maxHealth, setMaxHealth] = useState(1);
+  const [sessionCurrency, setSessionCurrency] = useState(0);
+
   const [upgrades, setUpgrades] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('neon_glide_upgrades')) || {};
-    } catch (e) {
-      console.error("Failed to parse upgrades", e);
+    } catch {
       return {};
     }
   });
+
   const [ownedShips, setOwnedShips] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('neon_glide_owned_ships')) || ['default'];
-    } catch (e) {
+    } catch {
       return ['default'];
     }
   });
-  const [equippedShip, setEquippedShip] = useState(() => localStorage.getItem('neon_glide_equipped_ship') || 'default');
+
+  const [equippedShip, setEquippedShip] = useState(() => {
+    return localStorage.getItem('neon_glide_equipped_ship') || 'default';
+  });
+
+  // Refs for Game Loop
+  const canvasRef = useRef(null);
+  const loopRef = useRef(null);
+  const rendererRef = useRef(null);
+  const soundRef = useRef(null);
 
   // Game refs to avoid closure staleness in loop
   const gameRef = useRef({
     player: new Player(),
+    shipType: 'default', // Initialize shipType
     obstacles: [],
     collectibles: [],
     speed: 300,
@@ -45,9 +58,8 @@ export default function App() {
     floatingTexts: []
   });
 
-  const loopRef = useRef(null);
-  const rendererRef = useRef(null);
-  const soundRef = useRef(null);
+  const upgradesRef = useRef(upgrades);
+  const equippedShipRef = useRef(equippedShip);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -65,12 +77,22 @@ export default function App() {
     window.addEventListener('resize', handleResize);
     handleResize();
 
-    // Initialize Loop
-    loopRef.current = new GameLoop(update, draw);
+    // Resume AudioContext on user interaction
+    const handleUserInteraction = () => {
+      if (soundRef.current && soundRef.current.ctx.state === 'suspended') {
+        soundRef.current.ctx.resume();
+      }
+    };
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
+    window.addEventListener('touchstart', handleUserInteraction);
 
     return () => {
-      loopRef.current.stop();
+      if (loopRef.current) loopRef.current.stop();
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
     };
   }, []);
 
@@ -86,12 +108,12 @@ export default function App() {
     localStorage.setItem('neon_glide_equipped_ship', equippedShip);
   }, [equippedShip]);
 
-  const upgradesRef = useRef(upgrades);
-  const equippedShipRef = useRef(equippedShip);
-
   useEffect(() => {
     upgradesRef.current = upgrades;
     equippedShipRef.current = equippedShip;
+    if (gameRef.current) {
+      gameRef.current.shipType = equippedShip;
+    }
     localStorage.setItem('neon_glide_upgrades', JSON.stringify(upgrades));
   }, [upgrades, equippedShip]);
 
@@ -101,8 +123,25 @@ export default function App() {
     const batteryLvl = currentUpgrades.battery || 1;
     const maxEnergy = 100 + (batteryLvl - 1) * 20;
 
+    // New Upgrades Logic
+    const hullLvl = currentUpgrades.hull || 1;
+    const shieldGenLvl = currentUpgrades.shield_gen || 0;
+    const multiplierLvl = currentUpgrades.multiplier || 1;
+
+    // Ship Bonuses
+    const ship = equippedShipRef.current;
+    let bonusHealth = 0;
+    let ammoRegenTime = 2.0;
+    let villainChance = 0.005;
+
+    if (ship === 'cruiser') bonusHealth = 2;
+    if (ship === 'interceptor') ammoRegenTime = 1.5;
+    if (ship === 'stealth') villainChance = 0.0025;
+
+    const totalHealth = hullLvl + bonusHealth;
+
     gameRef.current = {
-      player: new Player(),
+      player: new Player(currentUpgrades.thruster || 1),
       shipType: equippedShipRef.current,
       obstacles: [],
       collectibles: [],
@@ -118,19 +157,215 @@ export default function App() {
       maxAmmo: 10,
       ammoTimer: 0,
       maxEnergy: maxEnergy,
-      gameOver: false
+      
+      // New Stats
+      health: totalHealth,
+      maxHealth: totalHealth,
+      regenRate: shieldGenLvl * 0.05, // Regenerate 0.05 HP per second per level
+      currencyMultiplier: multiplierLvl,
+      ammoRegenTime: ammoRegenTime,
+      villainChance: villainChance,
+
+      gameOver: false,
+      sessionCurrency: 0 // Track coins collected in this run
     };
 
     setDistance(0);
     setEnergy(100);
     setAmmo(10); // Reset ammo state
+    setHealth(totalHealth);
+    setMaxHealth(totalHealth);
     setGameState('PLAYING');
-    soundRef.current.ctx.resume(); // Ensure AudioContext is active
-    soundRef.current.startMusic();
+    if (soundRef.current) {
+      soundRef.current.startMusic(); // Start music
+    }
     loopRef.current.start();
   };
 
-  const update = (deltaTime) => {
+  const handleGameOver = React.useCallback(() => {
+    gameRef.current.gameOver = true;
+    if (loopRef.current) loopRef.current.stop();
+    if (soundRef.current) soundRef.current.stopMusic();
+
+    // No distance reward anymore, only collected coins matter
+    setSessionCurrency(gameRef.current.sessionCurrency || 0);
+    setGameState('GAMEOVER');
+  }, []);
+
+  const checkCollisions = React.useCallback((game) => {
+    const p = game.player;
+    // Simple AABB Collision
+    // Player is roughly 40x20
+    const pRect = { x: p.x, y: p.y - 10, w: 40, h: 20 }; // Approximate
+
+    // Obstacles
+    for (let obs of game.obstacles) {
+      // Void Runner: Phase through small obstacles
+      if (game.shipType === 'void_runner' && obs.height < 80) continue;
+
+      if (
+        pRect.x < obs.x + obs.width &&
+        pRect.x + pRect.w > obs.x &&
+        pRect.y < obs.y + obs.height &&
+        pRect.y + pRect.h > obs.y
+      ) {
+        obs.markedForDeletion = true;
+
+        // Plasma Breaker: Destroy without damage
+        if (game.shipType === 'plasma_breaker') {
+             if (soundRef.current) soundRef.current.playExplosion();
+             game.floatingTexts.push({
+                x: p.x,
+                y: p.y,
+                text: 'SMASH!',
+                color: '#00ff00',
+                life: 1.0
+             });
+             continue;
+        }
+
+        game.health -= 1;
+        if (soundRef.current) soundRef.current.playExplosion();
+        game.floatingTexts.push({
+          x: p.x,
+          y: p.y,
+          text: '-1 HP',
+          color: '#ff0000',
+          life: 1.0
+        });
+
+        if (game.health < 0) {
+          handleGameOver();
+          return;
+        }
+      }
+    }
+
+    // Floor/Ceiling (if out of bounds too much)
+    if (p.y > window.innerHeight || p.y < -50) {
+      handleGameOver();
+      if (soundRef.current) soundRef.current.playExplosion();
+      return;
+    }
+
+    // Collectibles
+    const currentUpgrades = upgradesRef.current;
+    const magnetRange = 50 + ((currentUpgrades.magnet || 1) * 20);
+    game.collectibles.forEach(col => {
+      const dx = p.x - col.x;
+      const dy = p.y - col.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Magnet Effect
+      if (dist < magnetRange) {
+        col.x += (p.x - col.x) * 0.1;
+        col.y += (p.y - col.y) * 0.1;
+      }
+
+      // Collection
+      if (dist < 30) {
+        col.markedForDeletion = true;
+        const amount = 1 * (game.currencyMultiplier || 1);
+        setCurrency(c => c + amount);
+        game.sessionCurrency = (game.sessionCurrency || 0) + amount; // Track session currency
+        if (soundRef.current) soundRef.current.playCollect();
+        game.floatingTexts.push({
+          x: col.x,
+          y: col.y,
+          text: `+$${amount}`,
+          color: '#00ff99',
+          life: 1.0
+        });
+      }
+    });
+
+    // Fuel
+    game.fuels.forEach(fuel => {
+      if (
+        pRect.x < fuel.x + fuel.width &&
+        pRect.x + pRect.w > fuel.x &&
+        pRect.y < fuel.y + fuel.height &&
+        pRect.y + pRect.h > fuel.y
+      ) {
+        fuel.markedForDeletion = true;
+        game.floatingTexts.push({
+          x: fuel.x,
+          y: fuel.y,
+          text: fuel.type === 'LARGE' ? '+SUPER FUEL' : '+FUEL',
+          color: fuel.color,
+          life: 1.0
+        });
+
+        game.energy = Math.min(game.maxEnergy, game.energy + (game.maxEnergy * (fuel.value / 100)));
+        setEnergy((game.energy / game.maxEnergy) * 100);
+        if (soundRef.current) soundRef.current.playCollect();
+      }
+    });
+
+    // Projectiles (Villain)
+    game.projectiles.forEach(proj => {
+      if (
+        pRect.x < proj.x + proj.radius &&
+        pRect.x + pRect.w > proj.x - proj.radius &&
+        pRect.y < proj.y + proj.radius &&
+        pRect.y + pRect.h > proj.y - proj.radius
+      ) {
+        proj.markedForDeletion = true;
+        game.health -= 1;
+        if (soundRef.current) soundRef.current.playExplosion();
+        game.floatingTexts.push({
+          x: p.x,
+          y: p.y,
+          text: '-1 HP',
+          color: '#ff0000',
+          life: 1.0
+        });
+
+        if (game.health < 0) {
+          handleGameOver();
+        }
+      }
+    });
+
+    // Player Projectiles vs Villain
+    if (game.villain) {
+      const v = game.villain;
+      game.playerProjectiles.forEach(proj => {
+        if (
+          proj.x < v.x + v.width &&
+          proj.x + 15 > v.x &&
+          proj.y < v.y + v.height &&
+          proj.y + 4 > v.y
+        ) {
+          proj.markedForDeletion = true;
+          const died = v.takeDamage(10); // 10 damage per shot
+          if (died) {
+            if (soundRef.current) soundRef.current.playExplosion();
+            game.floatingTexts.push({
+              x: v.x,
+              y: v.y,
+              text: 'BOSS DEFEATED!',
+              color: '#ff0000',
+              life: 2.0
+            });
+            game.floatingTexts.push({
+              x: v.x,
+              y: v.y + 30,
+              text: '+$50',
+              color: '#ffd700', // Gold color
+              life: 2.0
+            });
+            setCurrency(c => c + 50); // Bonus for killing boss
+            game.sessionCurrency = (game.sessionCurrency || 0) + 50; // Add boss bonus to session currency
+          } else {
+            if (soundRef.current) soundRef.current.playShoot(); // Hit sound
+          }
+        }
+      });
+    }
+  }, [handleGameOver]);
+
+  const update = React.useCallback((deltaTime) => {
     const game = gameRef.current;
     if (game.gameOver) return;
 
@@ -141,15 +376,23 @@ export default function App() {
     game.speed += deltaTime * 10; // Accelerate over time
     game.distance += game.speed * deltaTime / 10; // 10x faster distance accumulation (approx 30m/s)
     setDistance(game.distance);
+    setHealth(game.health);
 
     // Ammo Regeneration
     game.ammoTimer += deltaTime;
-    if (game.ammoTimer > 2.0) { // Regenerate 1 ammo every 2 seconds
+    const regenTime = game.ammoRegenTime || 2.0;
+    if (game.ammoTimer > regenTime) { 
       game.ammoTimer = 0;
       if (game.ammo < game.maxAmmo) {
         game.ammo++;
         setAmmo(game.ammo);
       }
+    }
+
+    // Health Regeneration (Shield Generator)
+    if (game.health < game.maxHealth && game.regenRate > 0) {
+      game.health += game.regenRate * deltaTime;
+      if (game.health > game.maxHealth) game.health = game.maxHealth;
     }
 
     // Spawn Obstacles
@@ -172,8 +415,14 @@ export default function App() {
     }
 
     // Spawn Villain
-    if (!game.villain && game.distance > 500 && Math.random() < 0.005) {
-      game.villain = new Villain(window.innerWidth, window.innerHeight / 2);
+    const villainChance = game.villainChance || 0.005;
+    if (!game.villain && game.distance > 500 && Math.random() < villainChance) {
+      if (Math.random() > 0.5) {
+        game.villain = new Villain(window.innerWidth, window.innerHeight / 2);
+      } else {
+        game.villain = new SpeedsterVillain(window.innerWidth, window.innerHeight / 2);
+      }
+
       if (soundRef.current) {
         soundRef.current.playBossMusic();
       }
@@ -193,18 +442,24 @@ export default function App() {
           soundRef.current.playNormalMusic();
         }
       } else {
-        // Attack Logic (Burst Fire)
+        // Attack Logic
         if (game.villain.state === 'ATTACKING') {
           if (game.villain.attackTimer > 2) { // Fire every 2 seconds
             game.villain.attackTimer = 0;
-            // Fire 3 shots in quick succession
-            for (let i = 0; i < 3; i++) {
-              setTimeout(() => {
-                if (game.villain && !game.gameOver) {
-                  game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
-                  soundRef.current.playShoot();
-                }
-              }, i * 200);
+
+            if (game.villain.type === 'SPEEDSTER') {
+              // SPREAD SHOT (Shotgun style)
+              // 3 projectiles: one straight, one up-angled, one down-angled
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -600, 0));      // Straight
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -550, -150));   // Up
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -550, 150));    // Down
+              if (soundRef.current) soundRef.current.playShoot();
+            } else {
+              // BURST FIRE - Fire all 3 shots immediately
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
+              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 30));
+              if (soundRef.current) soundRef.current.playShoot();
             }
           }
         }
@@ -240,138 +495,9 @@ export default function App() {
       }
       setEnergy((game.energy / game.maxEnergy) * 100);
     }
-  };
+  }, [checkCollisions]);
 
-  const checkCollisions = (game) => {
-    const p = game.player;
-    // Simple AABB Collision
-    // Player is roughly 40x20
-    const pRect = { x: p.x, y: p.y - 10, w: 40, h: 20 }; // Approximate
-
-    // Obstacles
-    for (let obs of game.obstacles) {
-      if (
-        pRect.x < obs.x + obs.width &&
-        pRect.x + pRect.w > obs.x &&
-        pRect.y < obs.y + obs.height &&
-        pRect.y + pRect.h > obs.y
-      ) {
-        handleGameOver();
-        return;
-      }
-    }
-
-    // Floor/Ceiling (if out of bounds too much)
-    if (p.y > window.innerHeight || p.y < -50) {
-      handleGameOver();
-      soundRef.current.playExplosion();
-      return;
-    }
-
-    // Collectibles
-    const currentUpgrades = upgradesRef.current;
-    const magnetRange = 50 + ((currentUpgrades.magnet || 1) * 20);
-    game.collectibles.forEach(col => {
-      const dx = p.x - col.x;
-      const dy = p.y - col.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      // Magnet Effect
-      if (dist < magnetRange) {
-        col.x += (p.x - col.x) * 0.1;
-        col.y += (p.y - col.y) * 0.1;
-      }
-
-      // Collection
-      if (dist < 30) {
-        col.markedForDeletion = true;
-        setCurrency(c => c + 1);
-        soundRef.current.playCollect();
-        game.floatingTexts.push({
-          x: col.x,
-          y: col.y,
-          text: '+$1',
-          color: '#00ff99',
-          life: 1.0
-        });
-      }
-    });
-
-    // Fuel
-    game.fuels.forEach(fuel => {
-      if (
-        pRect.x < fuel.x + fuel.width &&
-        pRect.x + pRect.w > fuel.x &&
-        pRect.y < fuel.y + fuel.height &&
-        pRect.y + pRect.h > fuel.y
-      ) {
-        fuel.markedForDeletion = true;
-        game.floatingTexts.push({
-          x: fuel.x,
-          y: fuel.y,
-          text: fuel.type === 'LARGE' ? '+SUPER FUEL' : '+FUEL',
-          color: fuel.color,
-          life: 1.0
-        });
-
-        game.energy = Math.min(game.maxEnergy, game.energy + (game.maxEnergy * (fuel.value / 100)));
-        setEnergy((game.energy / game.maxEnergy) * 100);
-        soundRef.current.playCollect();
-      }
-    });
-
-    // Projectiles (Villain)
-    game.projectiles.forEach(proj => {
-      if (
-        pRect.x < proj.x + proj.radius &&
-        pRect.x + pRect.w > proj.x - proj.radius &&
-        pRect.y < proj.y + proj.radius &&
-        pRect.y + pRect.h > proj.y - proj.radius
-      ) {
-        // Hull Strength Logic could go here (survive 1 hit)
-        handleGameOver();
-        soundRef.current.playExplosion();
-      }
-    });
-
-    // Player Projectiles vs Villain
-    if (game.villain) {
-      const v = game.villain;
-      game.playerProjectiles.forEach(proj => {
-        if (
-          proj.x < v.x + v.width &&
-          proj.x + 15 > v.x &&
-          proj.y < v.y + v.height &&
-          proj.y + 4 > v.y
-        ) {
-          proj.markedForDeletion = true;
-          const died = v.takeDamage(10); // 10 damage per shot
-          if (died) {
-            soundRef.current.playExplosion();
-            game.floatingTexts.push({
-              x: v.x,
-              y: v.y,
-              text: 'BOSS DEFEATED!',
-              color: '#ff0000',
-              life: 2.0
-            });
-            setCurrency(c => c + 50); // Bonus for killing boss
-          } else {
-            soundRef.current.playShoot(); // Hit sound
-          }
-        }
-      });
-    }
-  };
-
-  const handleGameOver = () => {
-    gameRef.current.gameOver = true;
-    loopRef.current.stop();
-    soundRef.current.stopMusic();
-    setGameState('GAMEOVER');
-  };
-
-  const draw = (deltaTime) => {
+  const draw = React.useCallback((deltaTime) => {
     const renderer = rendererRef.current;
     const game = gameRef.current;
     if (!renderer) return;
@@ -386,35 +512,44 @@ export default function App() {
     renderer.drawPlayerProjectiles(game.playerProjectiles);
     renderer.drawPlayer(game.player, game.shipType);
     renderer.drawFloatingTexts(game.floatingTexts);
-  };
+  }, []);
 
-  const handleInputStart = () => {
+  // Initialize Loop
+  useEffect(() => {
+    loopRef.current = new GameLoop(update, draw);
+    return () => {
+      if (loopRef.current) loopRef.current.stop();
+    };
+  }, [update, draw]);
+
+  const handleInputStart = React.useCallback(() => {
     if (gameState === 'PLAYING' && gameRef.current.energy > 0) {
       gameRef.current.player.boost(true);
     }
-  };
+  }, [gameState]);
 
-  const handleInputEnd = () => {
+  const handleInputEnd = React.useCallback(() => {
     if (gameState === 'PLAYING') {
       gameRef.current.player.boost(false);
     }
-  };
+  }, [gameState]);
 
-  const handleShoot = () => {
+  const handleShoot = React.useCallback(() => {
     if (gameState === 'PLAYING' && gameRef.current.ammo > 0) {
       gameRef.current.ammo--;
       setAmmo(gameRef.current.ammo);
 
       gameRef.current.playerProjectiles.push(new PlayerProjectile(
         gameRef.current.player.x + 50,
-        gameRef.current.player.y + 25
+        gameRef.current.player.y + 25,
+        gameRef.current.shipType
       ));
 
       if (soundRef.current) {
         soundRef.current.playShoot();
       }
     }
-  };
+  }, [gameState]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -422,16 +557,7 @@ export default function App() {
         handleInputStart();
       }
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        setAmmo(gameRef.current.ammo);
-
-        gameRef.current.playerProjectiles.push(new PlayerProjectile(
-          gameRef.current.player.x + 50,
-          gameRef.current.player.y + 25
-        ));
-
-        if (soundRef.current) {
-          soundRef.current.playShoot();
-        }
+        handleShoot();
       }
     };
 
@@ -448,28 +574,35 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [gameState]); // Re-bind when gameState changes to capture correct state closure
+  }, [gameState, handleInputStart, handleInputEnd, handleShoot]); // Re-bind when gameState changes to capture correct state closure
 
   const buyUpgrade = (id, cost, type = 'upgrade') => {
-    console.log(`Attempting to buy ${id} for ${cost}. Current currency: ${currency}`);
-    if (currency >= cost) {
+    const currentBalance = parseInt(currency) || 0;
+    const itemCost = parseInt(cost) || 0;
+
+
+
+    if (currentBalance >= itemCost) {
       setCurrency(c => {
-        const newCurrency = c - cost;
-        console.log(`Purchase successful. New currency: ${newCurrency}`);
+        const newCurrency = (parseInt(c) || 0) - itemCost;
+
         return newCurrency;
       });
 
       if (type === 'ship') {
-        setOwnedShips(ships => [...ships, id]);
+        setOwnedShips(ships => {
+          if (ships.includes(id)) return ships;
+          return [...ships, id];
+        });
         setEquippedShip(id);
       } else {
-        setUpgrades(u => ({
-          ...u,
-          [id]: (u[id] || 1) + 1
-        }));
+        setUpgrades(u => {
+          return {
+            ...u,
+            [id]: (u[id] || 1) + 1
+          };
+        });
       }
-    } else {
-      console.log("Not enough currency.");
     }
   };
 
@@ -494,25 +627,33 @@ export default function App() {
           energy={energy}
           ammo={ammo}
           maxAmmo={10}
+          health={health}
+          maxHealth={maxHealth}
           onShoot={handleShoot}
         />
       )}
 
       {gameState === 'MENU' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
-          <h1 className="text-6xl font-bold mb-8 neon-text-blue italic">NEON GLIDE</h1>
-          <div className="flex gap-4">
+        <div className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm">
+          <h1 className="text-7xl font-bold mb-12 neon-text-blue italic tracking-wider drop-shadow-[0_0_30px_rgba(0,243,255,0.8)]">NEON GLIDE</h1>
+          <div className="flex gap-6">
             <button
               onClick={startGame}
-              className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(37,99,235,0.6)]"
+              className="group relative px-12 py-6 border-2 border-cyan-400 rounded-lg font-black text-3xl tracking-widest text-cyan-400 transition-all duration-300 hover:bg-cyan-400 hover:text-black"
             >
-              <Play fill="white" /> START
+              <div className="flex items-center gap-4">
+                <Play className="w-8 h-8 fill-current" />
+                <span>START</span>
+              </div>
             </button>
             <button
               onClick={() => setGameState('SHOP')}
-              className="flex items-center gap-2 px-8 py-4 bg-pink-600 hover:bg-pink-500 rounded-full font-bold text-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(219,39,119,0.6)]"
+              className="group relative px-12 py-6 border-2 border-pink-500 rounded-lg font-black text-3xl tracking-widest text-pink-500 transition-all duration-300 hover:bg-pink-500 hover:text-black"
             >
-              <ShoppingCart /> SHOP
+              <div className="flex items-center gap-4">
+                <ShoppingCart className="w-8 h-8" />
+                <span>SHOP</span>
+              </div>
             </button>
           </div>
         </div>
@@ -526,7 +667,7 @@ export default function App() {
             <div className="absolute inset-0 bg-red-500/5 pointer-events-none animate-pulse"></div>
 
             <h2 className="text-5xl font-black text-red-600 mb-2 tracking-tighter animate-glitch drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">
-              SYSTEM FAILURE
+              GAME OVER
             </h2>
             <div className="text-red-400 text-sm tracking-[0.5em] mb-8 opacity-80">MISSION TERMINATED</div>
 
@@ -537,7 +678,7 @@ export default function App() {
               </div>
               <div className="flex justify-between items-center border-b border-red-900/50 pb-2">
                 <span className="text-gray-400 font-mono text-sm">DATA COLLECTED</span>
-                <span className="text-xl text-neon-green font-bold font-mono">+${Math.floor(distance * 0.5)}</span>
+                <span className="text-xl text-neon-green font-bold font-mono">+${sessionCurrency}</span>
               </div>
             </div>
 
@@ -546,13 +687,13 @@ export default function App() {
                 onClick={startGame}
                 className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold tracking-widest clip-angled-sm transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,0,0,0.6)]"
               >
-                REBOOT SYSTEM
+                RETRY
               </button>
               <button
                 onClick={() => setGameState('MENU')}
                 className="w-full py-3 bg-transparent border border-gray-600 hover:border-white text-gray-300 hover:text-white font-bold tracking-widest clip-angled-sm transition-all"
               >
-                ACCESS TERMINAL
+                MAIN MENU
               </button>
             </div>
           </div>

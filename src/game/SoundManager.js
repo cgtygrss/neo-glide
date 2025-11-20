@@ -14,7 +14,7 @@ export class SoundManager {
         this.ctx = new AudioContext();
         this.masterGain = this.ctx.createGain();
         this.masterGain.connect(this.ctx.destination);
-        this.masterGain.gain.value = 0.8; // Master volume
+        this.masterGain.gain.value = 0.5; // Master volume
         this.initialized = true;
     }
 
@@ -114,7 +114,7 @@ export class SoundManager {
                 osc.frequency.value = melody[noteIndex];
 
                 // Short staccato notes
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
 
                 osc.connect(gain);
@@ -175,7 +175,7 @@ export class SoundManager {
             osc.type = 'sawtooth';
             osc.frequency.value = melody[noteIndex];
 
-            gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+            gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
             gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
 
             osc.connect(gain);

@@ -538,20 +538,27 @@ export class Renderer {
             this.ctx.translate(proj.x, proj.y);
 
             switch (proj.type) {
-                case 'interceptor':
-                    // Orange Laser Bolt
-                    this.ctx.shadowBlur = 10;
+                case 'blaster': {
+                    // Solar Blaster: Aggressive Fighter
+                    // Main Body
+                    this.ctx.shadowBlur = 15;
                     this.ctx.shadowColor = '#ffaa00';
-                    this.ctx.fillStyle = '#ffaa00';
+                    const gradInt = this.ctx.createLinearGradient(0, 0, 40, 0);
+                    gradInt.addColorStop(0, '#442200');
+                    gradInt.addColorStop(1, '#ffaa00');
+                    this.ctx.fillStyle = gradInt;
+
                     this.ctx.beginPath();
-                    this.ctx.moveTo(10, 0);
-                    this.ctx.lineTo(-10, 3);
-                    this.ctx.lineTo(-10, -3);
+                    this.ctx.moveTo(30, 0);
+                    this.ctx.lineTo(-10, 6);
+                    this.ctx.lineTo(-10, -6);
+                    this.ctx.closePath();
                     this.ctx.fill();
                     break;
+                }
 
-                case 'cruiser':
-                    // Red Plasma Cannonball
+                case 'cannon':
+                    // Magma Cannon: Red Plasma Cannonball
                     this.ctx.shadowBlur = 15;
                     this.ctx.shadowColor = '#ff0000';
                     this.ctx.fillStyle = '#ff0000';
@@ -565,16 +572,16 @@ export class Renderer {
                     this.ctx.fill();
                     break;
 
-                case 'stealth':
-                    // Blue Precision Beam
+                case 'beam':
+                    // Ion Beam: Blue Precision Beam
                     this.ctx.shadowBlur = 10;
                     this.ctx.shadowColor = '#0088ff';
                     this.ctx.fillStyle = '#0088ff';
                     this.ctx.fillRect(-15, -2, 30, 4);
                     break;
 
-                case 'void_runner':
-                    // Purple Energy Wave
+                case 'wave':
+                    // Void Wave: Purple Energy Wave
                     this.ctx.shadowBlur = 15;
                     this.ctx.shadowColor = '#a855f7';
                     this.ctx.strokeStyle = '#a855f7';
@@ -589,8 +596,8 @@ export class Renderer {
                     this.ctx.fill();
                     break;
 
-                case 'plasma_breaker':
-                    // Green Electric Bolt
+                case 'shock':
+                    // Tesla Arc: Green Electric Bolt
                     this.ctx.shadowBlur = 15;
                     this.ctx.shadowColor = '#00ff00';
                     this.ctx.strokeStyle = '#00ff00';
@@ -605,7 +612,7 @@ export class Renderer {
                     break;
 
                 default:
-                    // Default Cyan Laser
+                    // Default Pulse Laser: Cyan Laser
                     this.ctx.shadowBlur = 10;
                     this.ctx.shadowColor = '#00f3ff';
                     this.ctx.fillStyle = '#00f3ff';

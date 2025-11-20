@@ -37,6 +37,18 @@ export default function App() {
     return localStorage.getItem('neon_glide_equipped_ship') || 'default';
   });
 
+  const [ownedWeapons, setOwnedWeapons] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('neon_glide_owned_weapons')) || ['default'];
+    } catch {
+      return ['default'];
+    }
+  });
+
+  const [equippedWeapon, setEquippedWeapon] = useState(() => {
+    return localStorage.getItem('neon_glide_equipped_weapon') || 'default';
+  });
+
   // Refs for Game Loop
   const canvasRef = useRef(null);
   const loopRef = useRef(null);
@@ -47,6 +59,7 @@ export default function App() {
   const gameRef = useRef({
     player: new Player(),
     shipType: 'default', // Initialize shipType
+    weaponType: 'default',
     obstacles: [],
     collectibles: [],
     speed: 300,
@@ -60,6 +73,7 @@ export default function App() {
 
   const upgradesRef = useRef(upgrades);
   const equippedShipRef = useRef(equippedShip);
+  const equippedWeaponRef = useRef(equippedWeapon);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -79,8 +93,13 @@ export default function App() {
 
     // Resume AudioContext on user interaction
     const handleUserInteraction = () => {
-      if (soundRef.current && soundRef.current.ctx.state === 'suspended') {
-        soundRef.current.ctx.resume();
+      if (soundRef.current) {
+        if (!soundRef.current.initialized) {
+          soundRef.current.init();
+        }
+        if (soundRef.current.ctx && soundRef.current.ctx.state === 'suspended') {
+          soundRef.current.ctx.resume();
+        }
       }
     };
     window.addEventListener('click', handleUserInteraction);
@@ -109,13 +128,23 @@ export default function App() {
   }, [equippedShip]);
 
   useEffect(() => {
+    localStorage.setItem('neon_glide_owned_weapons', JSON.stringify(ownedWeapons));
+  }, [ownedWeapons]);
+
+  useEffect(() => {
+    localStorage.setItem('neon_glide_equipped_weapon', equippedWeapon);
+  }, [equippedWeapon]);
+
+  useEffect(() => {
     upgradesRef.current = upgrades;
     equippedShipRef.current = equippedShip;
+    equippedWeaponRef.current = equippedWeapon;
     if (gameRef.current) {
       gameRef.current.shipType = equippedShip;
+      gameRef.current.weaponType = equippedWeapon;
     }
     localStorage.setItem('neon_glide_upgrades', JSON.stringify(upgrades));
-  }, [upgrades, equippedShip]);
+  }, [upgrades, equippedShip, equippedWeapon]);
 
   const startGame = () => {
     // Reset Game State
@@ -143,6 +172,7 @@ export default function App() {
     gameRef.current = {
       player: new Player(currentUpgrades.thruster || 1),
       shipType: equippedShipRef.current,
+      weaponType: equippedWeaponRef.current,
       obstacles: [],
       collectibles: [],
       fuels: [],
@@ -542,7 +572,7 @@ export default function App() {
       gameRef.current.playerProjectiles.push(new PlayerProjectile(
         gameRef.current.player.x + 50,
         gameRef.current.player.y + 25,
-        gameRef.current.shipType
+        gameRef.current.weaponType
       ));
 
       if (soundRef.current) {
@@ -595,6 +625,12 @@ export default function App() {
           return [...ships, id];
         });
         setEquippedShip(id);
+      } else if (type === 'weapon') {
+        setOwnedWeapons(weapons => {
+          if (weapons.includes(id)) return weapons;
+          return [...weapons, id];
+        });
+        setEquippedWeapon(id);
       } else {
         setUpgrades(u => {
           return {
@@ -606,8 +642,12 @@ export default function App() {
     }
   };
 
-  const equipShip = (id) => {
-    setEquippedShip(id);
+  const equipItem = (id, type = 'ship') => {
+    if (type === 'ship') {
+      setEquippedShip(id);
+    } else if (type === 'weapon') {
+      setEquippedWeapon(id);
+    }
   };
 
   return (
@@ -706,8 +746,10 @@ export default function App() {
           upgrades={upgrades}
           ownedShips={ownedShips}
           equippedShip={equippedShip}
+          ownedWeapons={ownedWeapons}
+          equippedWeapon={equippedWeapon}
           onBuy={buyUpgrade}
-          onEquip={equipShip}
+          onEquip={equipItem}
           onClose={() => setGameState('MENU')}
         />
       )}

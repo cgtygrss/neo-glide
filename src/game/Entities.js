@@ -238,9 +238,18 @@ export class PlayerProjectile {
         this.x = x;
         this.y = y;
         this.radius = 5;
-        this.speed = 800;
         this.markedForDeletion = false;
         this.type = type;
+
+        // Weapon Stats
+        switch (type) {
+            case 'blaster': this.speed = 1200; break;
+            case 'cannon': this.speed = 600; this.radius = 8; break;
+            case 'beam': this.speed = 2000; break;
+            case 'wave': this.speed = 500; this.radius = 10; break;
+            case 'shock': this.speed = 1000; break;
+            default: this.speed = 800; break;
+        }
     }
 
     update(deltaTime) {

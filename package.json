@@ -1,14 +1,21 @@
 {
-  "name": "app-store-game",
+  "name": "neon-glide",
+  "displayName": "Neon Glide",
+  "version": "1.0.0",
+  "description": "An exciting neon-themed gliding game",
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "host": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:sync": "cap sync",
+    "cap:open": "cap open ios",
+    "ios:build": "npm run build && cap sync ios && cap open ios"
   },
   "dependencies": {
     "@capacitor/cli": "^7.4.4",

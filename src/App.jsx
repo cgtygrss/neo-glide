@@ -699,7 +699,7 @@ export default function App() {
 
       {gameState === 'MENU' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm">
-          <h1 className="text-7xl font-bold mb-12 neon-text-blue italic tracking-wider drop-shadow-[0_0_30px_rgba(0,243,255,0.8)]">NEON GLIDE</h1>
+          <h1 className="text-7xl font-bold mb-12 neon-text-blue italic tracking-wider drop-shadow-[0_0_30px_rgba(0,243,255,0.8)]">NEO GLIDE</h1>
           <div className="flex gap-6">
             <button
               onClick={startGame}

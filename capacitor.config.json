@@ -1,13 +1,13 @@
 {
-  "appId": "com.neonglide.game",
-  "appName": "Neon Glide",
+  "appId": "com.cgtygrss.neonglide",
+  "appName": "Neo Glide",
   "webDir": "dist",
   "server": {
     "cleartext": true
   },
   "ios": {
     "contentInset": "automatic",
-    "scheme": "Neon Glide",
+    "scheme": "Neo Glide",
     "backgroundColor": "#000000"
   },
   "plugins": {

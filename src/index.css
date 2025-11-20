@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --neon-blue: #00f3ff;
+  --neon-pink: #ff0055;
+  --neon-green: #00ff99;
+  --bg-dark: #050510;
+  --panel-bg: rgba(10, 10, 25, 0.9);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Courier New', Courier, monospace;
+  /* Cyberpunk feel */
+  user-select: none;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: white;
+  overflow: hidden;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+/* Utility classes for neon effects */
+.neon-text-blue {
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.neon-text-pink {
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
+}
+
+.neon-border {
+  border: 1px solid var(--neon-blue);
+  box-shadow: 0 0 10px var(--neon-blue), inset 0 0 10px var(--neon-blue);
+}
+
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}

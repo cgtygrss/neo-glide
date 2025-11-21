@@ -5,7 +5,6 @@ import { SoundManager } from './game/SoundManager';
 import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile } from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
-import Leaderboard from './components/Leaderboard';
 import { Play, ShoppingCart } from 'lucide-react';
 
 export default function App() {
@@ -749,12 +748,6 @@ export default function App() {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => setGameState('LEADERBOARD')}
-                className="w-full py-3 bg-yellow-600 hover:bg-yellow-500 text-white font-bold tracking-widest clip-angled-sm transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(250,204,21,0.4)] mb-2"
-              >
-                VIEW LEADERBOARD
-              </button>
-              <button
                 onClick={startGame}
                 className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold tracking-widest clip-angled-sm transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(255,0,0,0.6)]"
               >
@@ -769,17 +762,6 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
-
-      {gameState === 'LEADERBOARD' && (
-        <Leaderboard
-          currentScore={Math.floor(distance)}
-          onClose={() => setGameState('GAMEOVER')}
-          onReward={() => {
-            setCurrency(c => c + 100000);
-            if (soundRef.current) soundRef.current.playCollect(); // Or a special reward sound
-          }}
-        />
       )}
 
       {gameState === 'SHOP' && (

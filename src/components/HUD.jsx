@@ -55,7 +55,7 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                         </div>
                         <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-700">
                             <div
-                                className="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-200 rounded-full"
+                                className="h-full bg-linear-to-r from-red-600 to-red-500 transition-all duration-200 rounded-full"
                                 style={{ width: `${Math.max(0, Math.min(100, (health / maxHealth) * 100))}%` }}
                             />
                         </div>
@@ -70,8 +70,8 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                         <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-700">
                             <div
                                 className={`h-full transition-all duration-200 rounded-full ${energy < 30
-                                    ? 'bg-gradient-to-r from-red-600 to-red-500 animate-pulse'
-                                    : 'bg-gradient-to-r from-pink-600 to-fuchsia-500'
+                                    ? 'bg-linear-to-r from-red-600 to-red-500 animate-pulse'
+                                    : 'bg-linear-to-r from-pink-600 to-fuchsia-500'
                                     }`}
                                 style={{ width: `${Math.max(0, Math.min(100, energy))}%` }}
                             />
@@ -83,7 +83,7 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                 <div className="flex items-center justify-center">
                     <button
                         className={`relative w-20 h-20 sm:w-20 sm:h-20 rounded-full border-[3px] flex items-center justify-center font-bold transition-all active:scale-90 shadow-2xl ${ammo >= 1
-                            ? 'bg-gradient-to-br from-red-500/40 to-orange-600/40 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:shadow-[0_0_30px_rgba(239,68,68,0.7)] active:shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                            ? 'bg-linear-to-br from-red-500/40 to-orange-600/40 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:shadow-[0_0_30px_rgba(239,68,68,0.7)] active:shadow-[0_0_12px_rgba(239,68,68,0.3)]'
                             : 'bg-gray-800/30 border-gray-600 opacity-50 cursor-not-allowed'
                             }`}
                         onClick={onShoot}
@@ -94,7 +94,7 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                             <span className="text-xs text-white/80 font-bold mt-0.5">{ammo}/{maxAmmo}</span>
                         </div>
                         {ammo >= 1 && (
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-red-400/20 to-transparent animate-pulse"></div>
+                            <div className="absolute inset-0 rounded-full bg-linear-to-tr from-transparent via-red-400/20 to-transparent animate-pulse"></div>
                         )}
                     </button>
                 </div>

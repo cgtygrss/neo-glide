@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Neo Glide</string>
+    <string name="title_activity_main">Neo Glide</string>
+    <string name="package_name">com.cgtygrss.neoglide</string>
+    <string name="custom_url_scheme">com.cgtygrss.neoglide</string>
+</resources>

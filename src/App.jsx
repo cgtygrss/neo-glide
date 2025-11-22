@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameLoop } from './game/GameLoop';
 import { Renderer } from './game/Renderer';
 import { SoundManager } from './game/SoundManager';
-import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile } from './game/Entities';
+import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile, PowerUp } from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
 import { Play, ShoppingCart } from 'lucide-react';
@@ -49,6 +49,9 @@ export default function App() {
     return localStorage.getItem('neon_glide_equipped_weapon') || 'default';
   });
 
+  // Active power-ups state
+  const [activePowerUps, setActivePowerUps] = useState([]);
+
   // Refs for Game Loop
   const canvasRef = useRef(null);
   const loopRef = useRef(null);
@@ -62,6 +65,8 @@ export default function App() {
     weaponType: 'default',
     obstacles: [],
     collectibles: [],
+    powerUps: [],
+    activePowerUps: [],
     speed: 300,
     distance: 0,
     energy: 100,
@@ -186,6 +191,8 @@ export default function App() {
       obstacles: [],
       collectibles: [],
       fuels: [],
+      powerUps: [],
+      activePowerUps: [],
       villain: null,
       projectiles: [],
       playerProjectiles: [],
@@ -211,7 +218,7 @@ export default function App() {
     };
 
     setDistance(0);
-    setEnergy(100);
+    setEnergy(100); // Always start at 100% regardless of max energy
     setAmmo(10); // Reset ammo state
     setHealth(totalHealth);
     setMaxHealth(totalHealth);
@@ -241,6 +248,9 @@ export default function App() {
 
     // Obstacles
     for (let obs of game.obstacles) {
+      // Ghost Mode: Phase through all obstacles
+      if (game.ghostMode) continue;
+      
       // Void Runner: Phase through small obstacles
       if (game.shipType === 'void_runner' && obs.height < 80) continue;
 
@@ -291,16 +301,25 @@ export default function App() {
 
     // Collectibles
     const currentUpgrades = upgradesRef.current;
-    const magnetRange = 50 + ((currentUpgrades.magnet || 1) * 20);
+    const hasMagnetPowerUp = game.activePowerUps.some(p => p.type === 'MAGNET');
+    
     game.collectibles.forEach(col => {
       const dx = p.x - col.x;
       const dy = p.y - col.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       // Magnet Effect
-      if (dist < magnetRange) {
-        col.x += (p.x - col.x) * 0.1;
-        col.y += (p.y - col.y) * 0.1;
+      if (hasMagnetPowerUp) {
+        // Power-up active: Pull ALL coins on screen strongly
+        col.x += (p.x - col.x) * 0.15; // Faster pull
+        col.y += (p.y - col.y) * 0.15;
+      } else {
+        // Normal magnet upgrade: Only pull nearby coins
+        const magnetRange = 50 + ((currentUpgrades.magnet || 1) * 20);
+        if (dist < magnetRange) {
+          col.x += (p.x - col.x) * 0.1;
+          col.y += (p.y - col.y) * 0.1;
+        }
       }
 
       // Collection
@@ -338,13 +357,89 @@ export default function App() {
         });
 
         game.energy = Math.min(game.maxEnergy, game.energy + (game.maxEnergy * (fuel.value / 100)));
-        setEnergy((game.energy / game.maxEnergy) * 100);
+        setEnergy(Math.max(0, Math.min(100, (game.energy / game.maxEnergy) * 100)));
         if (soundRef.current) soundRef.current.playCollect();
+      }
+    });
+
+    // Power-Up Collection
+    game.powerUps.forEach(powerUp => {
+      if (
+        pRect.x < powerUp.x + powerUp.width &&
+        pRect.x + pRect.w > powerUp.x &&
+        pRect.y < powerUp.y + powerUp.height &&
+        pRect.y + pRect.h > powerUp.y
+      ) {
+        powerUp.markedForDeletion = true;
+        
+        // Handle instant effect power-ups
+        if (powerUp.type === 'COIN_RAIN') {
+          // Spawn burst of coins around player
+          const coinCount = Math.floor(Math.random() * 6) + 10; // 10-15 coins
+          for (let i = 0; i < coinCount; i++) {
+            const angle = (Math.PI * 2 * i) / coinCount;
+            const distance = 100 + Math.random() * 100;
+            const coinX = game.player.x + Math.cos(angle) * distance;
+            const coinY = game.player.y + Math.sin(angle) * distance;
+            
+            game.collectibles.push(new Collectible(
+              coinX,
+              coinY,
+              Math.random() < 0.3 ? 'RUBY' : (Math.random() < 0.5 ? 'COIN' : 'GOLD')
+            ));
+          }
+          
+          // Show floating text only (no timer)
+          game.floatingTexts.push({
+            x: powerUp.x,
+            y: powerUp.y,
+            text: '+COIN RAIN!',
+            color: powerUp.color,
+            life: 1.5
+          });
+          
+          if (soundRef.current) soundRef.current.playCollect();
+        } else {
+          // Add to active power-ups (timed effects)
+          const existingPowerUp = game.activePowerUps.find(p => p.type === powerUp.type);
+          if (existingPowerUp) {
+            // Refresh duration
+            existingPowerUp.remainingTime = powerUp.duration;
+            existingPowerUp.maxDuration = powerUp.duration;
+          } else {
+            // Add new power-up
+            game.activePowerUps.push({
+              type: powerUp.type,
+              remainingTime: powerUp.duration,
+              maxDuration: powerUp.duration,
+              icon: powerUp.getIcon(),
+              name: powerUp.getName(),
+              color: powerUp.color
+            });
+          }
+
+          // Update React state for HUD
+          setActivePowerUps([...game.activePowerUps]);
+
+          // Show floating text
+          game.floatingTexts.push({
+            x: powerUp.x,
+            y: powerUp.y,
+            text: `+${powerUp.getName()}!`,
+            color: powerUp.color,
+            life: 1.5
+          });
+
+          if (soundRef.current) soundRef.current.playCollect();
+        }
       }
     });
 
     // Projectiles (Villain)
     game.projectiles.forEach(proj => {
+      // Ghost Mode: Phase through projectiles
+      if (game.ghostMode) return;
+      
       if (
         pRect.x < proj.x + proj.radius &&
         pRect.x + pRect.w > proj.x - proj.radius &&
@@ -455,6 +550,12 @@ export default function App() {
       game.fuels.push(new Fuel(window.innerWidth, y));
     }
 
+    // Spawn Power-Ups (Rare)
+    if (Math.random() < 0.003) { // Very rare - 0.3% chance per frame
+      const y = Math.random() * (window.innerHeight - 100) + 50;
+      game.powerUps.push(new PowerUp(window.innerWidth, y));
+    }
+
     // Spawn Villain
     const villainChance = game.villainChance || 0.005;
     if (!game.villain && game.distance > 500 && Math.random() < villainChance) {
@@ -472,10 +573,12 @@ export default function App() {
       }
     }
 
-    // Update Entities
-    game.obstacles.forEach(obs => obs.update(deltaTime, game.speed));
-    game.collectibles.forEach(col => col.update(deltaTime, game.speed));
-    game.fuels.forEach(fuel => fuel.update(deltaTime, game.speed));
+    // Update Entities (apply time slow if active)
+    const effectiveSpeed = game.speed * (game.timeSlowMultiplier || 1);
+    game.obstacles.forEach(obs => obs.update(deltaTime, effectiveSpeed));
+    game.collectibles.forEach(col => col.update(deltaTime, effectiveSpeed));
+    game.fuels.forEach(fuel => fuel.update(deltaTime, effectiveSpeed));
+    game.powerUps.forEach(powerUp => powerUp.update(deltaTime, effectiveSpeed));
 
     if (game.villain) {
       game.villain.update(deltaTime, game.player.y, game.playerProjectiles);
@@ -536,6 +639,45 @@ export default function App() {
     game.fuels = game.fuels.filter(col => !col.markedForDeletion);
     game.projectiles = game.projectiles.filter(proj => !proj.markedForDeletion);
     game.playerProjectiles = game.playerProjectiles.filter(proj => !proj.markedForDeletion);
+    game.powerUps = game.powerUps.filter(powerUp => !powerUp.markedForDeletion);
+
+    // Update Active Power-Ups timers
+    game.activePowerUps.forEach(powerUp => {
+      powerUp.remainingTime -= deltaTime;
+    });
+    game.activePowerUps = game.activePowerUps.filter(p => p.remainingTime > 0);
+    setActivePowerUps([...game.activePowerUps]);
+
+    // Apply Active Power-Up Effects
+    game.currencyMultiplier = 1;
+    game.hasShield = false;
+    game.hasInvincibility = false;
+    game.timeSlowMultiplier = 1;
+    game.rapidFire = false;
+    game.ghostMode = false;
+
+    game.activePowerUps.forEach(powerUp => {
+      switch (powerUp.type) {
+        case 'SHIELD':
+          game.hasShield = true;
+          break;
+        case 'TIME_SLOW':
+          game.timeSlowMultiplier = 0.5; // Slow down game speed to 50%
+          break;
+        case 'MAGNET':
+          // Magnet range already amplified by active power-up
+          break;
+        case 'RAPID_FIRE':
+          game.rapidFire = true;
+          break;
+        case 'GHOST_MODE':
+          game.ghostMode = true; // Can pass through obstacles
+          break;
+        case 'INVINCIBILITY':
+          game.hasInvincibility = true;
+          break;
+      }
+    });
 
     // Collision Detection
     checkCollisions(game);
@@ -547,8 +689,10 @@ export default function App() {
         game.energy = 0;
         game.player.boost(false);
       }
-      setEnergy((game.energy / game.maxEnergy) * 100);
     }
+    
+    // Update energy display every frame
+    setEnergy(Math.max(0, Math.min(100, (game.energy / game.maxEnergy) * 100)));
   }, [checkCollisions]);
 
   const draw = React.useCallback((deltaTime) => {
@@ -561,10 +705,11 @@ export default function App() {
     renderer.drawObstacles(game.obstacles);
     renderer.drawCollectibles(game.collectibles);
     renderer.drawFuels(game.fuels);
+    renderer.drawPowerUps(game.powerUps);
     renderer.drawVillain(game.villain);
     renderer.drawProjectiles(game.projectiles);
     renderer.drawPlayerProjectiles(game.playerProjectiles);
-    renderer.drawPlayer(game.player, game.shipType);
+    renderer.drawPlayer(game.player, game.shipType, game.ghostMode);
     renderer.drawFloatingTexts(game.floatingTexts);
   }, []);
 
@@ -589,9 +734,14 @@ export default function App() {
   }, [gameState]);
 
   const handleShoot = React.useCallback(() => {
-    if (gameState === 'PLAYING' && gameRef.current.ammo > 0) {
-      gameRef.current.ammo--;
-      setAmmo(gameRef.current.ammo);
+    const hasUnlimitedAmmo = gameRef.current.rapidFire;
+    
+    if (gameState === 'PLAYING' && (gameRef.current.ammo > 0 || hasUnlimitedAmmo)) {
+      // Only decrease ammo if not in unlimited mode
+      if (!hasUnlimitedAmmo) {
+        gameRef.current.ammo--;
+        setAmmo(gameRef.current.ammo);
+      }
 
       gameRef.current.playerProjectiles.push(new PlayerProjectile(
         gameRef.current.player.x + 50,
@@ -676,13 +826,14 @@ export default function App() {
 
   return (
     <div
-      className="w-full h-screen overflow-hidden relative"
+      className="w-full h-full overflow-hidden relative"
+      style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
       onMouseDown={handleInputStart}
       onMouseUp={handleInputEnd}
       onTouchStart={handleInputStart}
       onTouchEnd={handleInputEnd}
     >
-      <canvas ref={canvasRef} className="block" />
+      <canvas ref={canvasRef} className="block" style={{ width: '100%', height: '100%' }} />
 
       {gameState === 'PLAYING' && (
         <HUD
@@ -693,6 +844,7 @@ export default function App() {
           maxAmmo={10}
           health={health}
           maxHealth={maxHealth}
+          activePowerUps={activePowerUps}
           onShoot={handleShoot}
         />
       )}

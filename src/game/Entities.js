@@ -413,3 +413,84 @@ export class JuggernautVillain extends Villain {
         }
     }
 }
+
+// Power-Up System
+export class PowerUp {
+    constructor(x, y, type = null) {
+        this.x = x;
+        this.y = y;
+        this.width = 35;
+        this.height = 35;
+        this.markedForDeletion = false;
+        this.oscillation = Math.random() * Math.PI * 2;
+        this.rotation = 0;
+        this.pulseTimer = 0;
+        
+        // Power-up types with different rarities
+        const types = [
+            { type: 'SHIELD', weight: 25, duration: 10, color: '#00ffff' },        // Shield - Common
+            { type: 'TIME_SLOW', weight: 25, duration: 8, color: '#9d4edd' },      // Slow Motion - Common
+            { type: 'MAGNET', weight: 20, duration: 12, color: '#ffff00' },        // Coin Magnet - Common
+            { type: 'RAPID_FIRE', weight: 15, duration: 10, color: '#ff6600' },    // Unlimited Ammo - Uncommon
+            { type: 'GHOST_MODE', weight: 10, duration: 8, color: '#00ff88' },     // Phase Through Everything - Rare
+            { type: 'COIN_RAIN', weight: 5, duration: 0, color: '#ffd700' }        // Instant Coin Burst - Very Rare
+        ];
+        
+        if (type) {
+            const powerType = types.find(t => t.type === type);
+            this.type = type;
+            this.duration = powerType.duration;
+            this.color = powerType.color;
+        } else {
+            // Random weighted selection
+            const totalWeight = types.reduce((sum, t) => sum + t.weight, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (const powerType of types) {
+                random -= powerType.weight;
+                if (random <= 0) {
+                    this.type = powerType.type;
+                    this.duration = powerType.duration;
+                    this.color = powerType.color;
+                    break;
+                }
+            }
+        }
+    }
+
+    update(deltaTime, speed) {
+        this.x -= speed * deltaTime;
+        this.oscillation += deltaTime * 4;
+        this.rotation += deltaTime * 3;
+        this.pulseTimer += deltaTime * 6;
+        this.y += Math.sin(this.oscillation) * 0.8; // Floating effect
+
+        if (this.x + this.width < 0) {
+            this.markedForDeletion = true;
+        }
+    }
+
+    getIcon() {
+        switch (this.type) {
+            case 'SHIELD': return '🛡️';
+            case 'TIME_SLOW': return '⏰';
+            case 'MAGNET': return '🧲';
+            case 'RAPID_FIRE': return '∞';
+            case 'GHOST_MODE': return '👻';
+            case 'COIN_RAIN': return '💰';
+            default: return '❓';
+        }
+    }
+
+    getName() {
+        switch (this.type) {
+            case 'SHIELD': return 'Shield';
+            case 'TIME_SLOW': return 'Slow Motion';
+            case 'MAGNET': return 'Coin Magnet';
+            case 'RAPID_FIRE': return 'Unlimited Ammo';
+            case 'GHOST_MODE': return 'Ghost Mode';
+            case 'COIN_RAIN': return 'Coin Rain';
+            default: return 'Power-Up';
+        }
+    }
+}

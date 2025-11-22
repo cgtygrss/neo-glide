@@ -135,10 +135,17 @@ export class Renderer {
         });
     }
 
-    drawPlayer(player, shipType = 'default') {
+    drawPlayer(player, shipType = 'default', ghostMode = false) {
         this.ctx.save();
         this.ctx.translate(player.x, player.y);
         this.ctx.rotate(player.rotation * Math.PI / 180);
+
+        // Ghost Mode Effect - make player semi-transparent and glowing
+        if (ghostMode) {
+            this.ctx.globalAlpha = 0.5;
+            this.ctx.shadowBlur = 30;
+            this.ctx.shadowColor = '#00ff88';
+        }
 
         // Determine Boost Color based on Ship Type
         let boostColor = '#ff0055'; // Default Red/Pink
@@ -438,6 +445,103 @@ export class Renderer {
         });
     }
 
+    drawPowerUps(powerUps) {
+        powerUps.forEach(powerUp => {
+            this.ctx.save();
+            this.ctx.translate(powerUp.x, powerUp.y);
+            this.ctx.rotate(powerUp.rotation);
+
+            // Pulsing glow effect
+            const pulseSize = 1 + Math.sin(powerUp.pulseTimer) * 0.15;
+            this.ctx.scale(pulseSize, pulseSize);
+
+            // Outer glow
+            const gradient = this.ctx.createRadialGradient(0, 0, 5, 0, 0, 25);
+            gradient.addColorStop(0, powerUp.color + 'ff');
+            gradient.addColorStop(0.5, powerUp.color + '88');
+            gradient.addColorStop(1, powerUp.color + '00');
+            
+            this.ctx.fillStyle = gradient;
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, 25, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Main hexagon shape
+            this.ctx.shadowBlur = 20;
+            this.ctx.shadowColor = powerUp.color;
+            this.ctx.fillStyle = powerUp.color;
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+
+            this.ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 3) * i;
+                const x = Math.cos(angle) * 15;
+                const y = Math.sin(angle) * 15;
+                if (i === 0) {
+                    this.ctx.moveTo(x, y);
+                } else {
+                    this.ctx.lineTo(x, y);
+                }
+            }
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            // Inner icon background
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, 10, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Draw icon based on type
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.font = 'bold 16px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.shadowBlur = 5;
+            this.ctx.shadowColor = '#000000';
+            
+            switch (powerUp.type) {
+                case 'SHIELD':
+                    // Draw shield symbol
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, -8);
+                    this.ctx.lineTo(6, -4);
+                    this.ctx.lineTo(6, 4);
+                    this.ctx.lineTo(0, 8);
+                    this.ctx.lineTo(-6, 4);
+                    this.ctx.lineTo(-6, -4);
+                    this.ctx.closePath();
+                    this.ctx.stroke();
+                    break;
+                case 'TIME_SLOW':
+                    // Draw clock symbol
+                    this.ctx.fillText('⏰', 0, 0);
+                    break;
+                case 'MAGNET':
+                    // Draw magnet symbol
+                    this.ctx.fillText('🧲', 0, 0);
+                    break;
+                case 'RAPID_FIRE':
+                    // Draw infinity symbol for unlimited ammo
+                    this.ctx.font = 'bold 20px Arial';
+                    this.ctx.fillText('∞', 0, 0);
+                    break;
+                case 'GHOST_MODE':
+                    // Draw ghost emoji
+                    this.ctx.fillText('👻', 0, 0);
+                    break;
+                case 'COIN_RAIN':
+                    // Draw money bag emoji
+                    this.ctx.fillText('💰', 0, 0);
+                    break;
+            }
+
+            this.ctx.restore();
+        });
+    }
+
 
 
     drawVillain(villain) {
@@ -519,7 +623,7 @@ export class Renderer {
         }
 
         // Health Bar - Always show for all villains
-        const maxHp = villain.type === 'JUGGERNAUT' ? 100 : (villain.type === 'SPEEDSTER' ? 20 : 40);
+        const maxHp = villain.type === 'JUGGERNAUT' ? 100 : (villain.type === 'SPEEDSTER' ? 40 : 20);
         this.ctx.fillStyle = '#333';
         this.ctx.fillRect(-30, -50, 60, 6);
         this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : (villain.type === 'JUGGERNAUT' ? '#ff8800' : '#f00');

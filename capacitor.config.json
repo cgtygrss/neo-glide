@@ -6,7 +6,7 @@
     "cleartext": true
   },
   "ios": {
-    "contentInset": "automatic",
+    "contentInset": "never",
     "scheme": "Neo Glide",
     "backgroundColor": "#000000"
   },

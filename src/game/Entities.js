@@ -328,12 +328,51 @@ export class HomingProjectile extends Projectile {
     }
 }
 
+export class FuseProjectile extends Projectile {
+    constructor(x, y) {
+        super(x, y, -700, 0); // Straight line, fast speed
+        this.radius = 12;
+        this.rotation = 0;
+        this.rotationSpeed = 5;
+        this.type = 'FUSE';
+    }
+
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.rotation += this.rotationSpeed * deltaTime;
+
+        if (this.x < -50 || this.y < -50 || this.y > window.innerHeight + 50) {
+            this.markedForDeletion = true;
+        }
+    }
+}
+
+export class SonicBladeProjectile extends Projectile {
+    constructor(x, y, vx, vy) {
+        super(x, y, vx, vy);
+        this.radius = 15; // Larger hit area
+        this.rotation = Math.atan2(vy, vx); // Face direction of travel
+        this.type = 'SONIC_BLADE';
+    }
+
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        // No rotation update needed as it faces travel direction
+
+        if (this.x < -50 || this.y < -50 || this.y > window.innerHeight + 50) {
+            this.markedForDeletion = true;
+        }
+    }
+}
+
 export class SpeedsterVillain extends Villain {
     constructor(x, y) {
         super(x, y);
         this.width = 60; // Smaller
         this.height = 40;
-        this.hp = 40; 
+        this.hp = 40;
         this.type = 'SPEEDSTER';
         this.dashTimer = 0;
         this.dashState = 'IDLE'; // IDLE, DASHING, RETURNING
@@ -384,7 +423,7 @@ export class JuggernautVillain extends Villain {
         super(x, y);
         this.width = 100; // Larger
         this.height = 80;
-        this.hp = 100; 
+        this.hp = 100;
         this.type = 'JUGGERNAUT';
         this.maxSpeed = 80; // Slower movement (was 100, now 80)
         this.friction = 0.98; // Heavy
@@ -425,7 +464,7 @@ export class PowerUp {
         this.oscillation = Math.random() * Math.PI * 2;
         this.rotation = 0;
         this.pulseTimer = 0;
-        
+
         // Power-up types with different rarities
         const types = [
             { type: 'SHIELD', weight: 25, duration: 10, color: '#00ffff' },        // Shield - Common
@@ -433,9 +472,9 @@ export class PowerUp {
             { type: 'MAGNET', weight: 20, duration: 12, color: '#ffff00' },        // Coin Magnet - Common
             { type: 'RAPID_FIRE', weight: 15, duration: 10, color: '#ff6600' },    // Unlimited Ammo - Uncommon
             { type: 'GHOST_MODE', weight: 10, duration: 8, color: '#00ff88' },     // Phase Through Everything - Rare
-            { type: 'COIN_RAIN', weight: 5, duration: 0, color: '#ffd700' }        // Instant Coin Burst - Very Rare
+            { type: 'NEON_BLAZE', weight: 5, duration: 10, color: '#ff00ff' }      // Visual Effect - Very Rare
         ];
-        
+
         if (type) {
             const powerType = types.find(t => t.type === type);
             this.type = type;
@@ -445,7 +484,7 @@ export class PowerUp {
             // Random weighted selection
             const totalWeight = types.reduce((sum, t) => sum + t.weight, 0);
             let random = Math.random() * totalWeight;
-            
+
             for (const powerType of types) {
                 random -= powerType.weight;
                 if (random <= 0) {
@@ -477,7 +516,7 @@ export class PowerUp {
             case 'MAGNET': return '🧲';
             case 'RAPID_FIRE': return '∞';
             case 'GHOST_MODE': return '👻';
-            case 'COIN_RAIN': return '💰';
+            case 'NEON_BLAZE': return '🔥';
             default: return '❓';
         }
     }
@@ -489,7 +528,7 @@ export class PowerUp {
             case 'MAGNET': return 'Coin Magnet';
             case 'RAPID_FIRE': return 'Unlimited Ammo';
             case 'GHOST_MODE': return 'Ghost Mode';
-            case 'COIN_RAIN': return 'Coin Rain';
+            case 'NEON_BLAZE': return 'Neon Blaze';
             default: return 'Power-Up';
         }
     }

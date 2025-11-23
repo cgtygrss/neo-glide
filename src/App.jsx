@@ -2,13 +2,24 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameLoop } from './game/GameLoop';
 import { Renderer } from './game/Renderer';
 import { SoundManager } from './game/SoundManager';
-import { Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile, PowerUp } from './game/Entities';
+import {
+  Player, Obstacle, Collectible, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile,
+  PowerUp,
+  FuseProjectile,
+  SonicBladeProjectile
+} from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
+import Tutorial from './components/Tutorial';
 import { Play, ShoppingCart } from 'lucide-react';
 
 export default function App() {
-  const [gameState, setGameState] = useState('MENU'); // MENU, PLAYING, GAMEOVER, SHOP
+  const [gameState, setGameState] = useState('MENU'); // MENU, TUTORIAL, COUNTDOWN, PLAYING, GAMEOVER, SHOP
+  const [showTutorialOnStart, setShowTutorialOnStart] = useState(() => {
+    // Show tutorial once per session (not stored in localStorage)
+    return true;
+  });
+  const [countdown, setCountdown] = useState(3);
   const [distance, setDistance] = useState(0);
   const [currency, setCurrency] = useState(() => parseInt(localStorage.getItem('neon_glide_currency')) || 0);
   const [energy, setEnergy] = useState(100);
@@ -161,7 +172,14 @@ export default function App() {
     }
   }, [gameState]);
 
-  const startGame = () => {
+  const startGame = (skipTutorial = false) => {
+    // Check if we should show tutorial
+    if (showTutorialOnStart && !skipTutorial) {
+      setGameState('TUTORIAL');
+      setShowTutorialOnStart(false); // Only show once per session
+      return;
+    }
+
     // Reset Game State
     const currentUpgrades = upgradesRef.current;
     const batteryLvl = currentUpgrades.battery || 1;
@@ -230,6 +248,20 @@ export default function App() {
     loopRef.current.start();
   };
 
+  const handleTutorialComplete = () => {
+    // Tutorial finished, start the actual game
+    startGame(true); // Skip tutorial check
+  };
+
+  const handleTutorialSkip = () => {
+    // User skipped tutorial, start the game
+    startGame(true); // Skip tutorial check
+  };
+
+  const replayTutorial = () => {
+    setGameState('TUTORIAL');
+  };
+
   const handleGameOver = React.useCallback(() => {
     gameRef.current.gameOver = true;
     if (loopRef.current) loopRef.current.stop();
@@ -250,7 +282,7 @@ export default function App() {
     for (let obs of game.obstacles) {
       // Ghost Mode: Phase through all obstacles
       if (game.ghostMode) continue;
-      
+
       // Void Runner: Phase through small obstacles
       if (game.shipType === 'void_runner' && obs.height < 80) continue;
 
@@ -302,7 +334,7 @@ export default function App() {
     // Collectibles
     const currentUpgrades = upgradesRef.current;
     const hasMagnetPowerUp = game.activePowerUps.some(p => p.type === 'MAGNET');
-    
+
     game.collectibles.forEach(col => {
       const dx = p.x - col.x;
       const dy = p.y - col.y;
@@ -328,11 +360,12 @@ export default function App() {
         const amount = 1 * (game.currencyMultiplier || 1);
         setCurrency(c => c + amount);
         game.sessionCurrency = (game.sessionCurrency || 0) + amount; // Track session currency
+        setSessionCurrency(game.sessionCurrency); // Sync with React state
         if (soundRef.current) soundRef.current.playCollect();
         game.floatingTexts.push({
           x: col.x,
           y: col.y,
-          text: `+$${amount}`,
+          text: `+ $${amount} `,
           color: '#00ff99',
           life: 1.0
         });
@@ -371,67 +404,38 @@ export default function App() {
         pRect.y + pRect.h > powerUp.y
       ) {
         powerUp.markedForDeletion = true;
-        
-        // Handle instant effect power-ups
-        if (powerUp.type === 'COIN_RAIN') {
-          // Spawn burst of coins around player
-          const coinCount = Math.floor(Math.random() * 6) + 10; // 10-15 coins
-          for (let i = 0; i < coinCount; i++) {
-            const angle = (Math.PI * 2 * i) / coinCount;
-            const distance = 100 + Math.random() * 100;
-            const coinX = game.player.x + Math.cos(angle) * distance;
-            const coinY = game.player.y + Math.sin(angle) * distance;
-            
-            game.collectibles.push(new Collectible(
-              coinX,
-              coinY,
-              Math.random() < 0.3 ? 'RUBY' : (Math.random() < 0.5 ? 'COIN' : 'GOLD')
-            ));
-          }
-          
-          // Show floating text only (no timer)
-          game.floatingTexts.push({
-            x: powerUp.x,
-            y: powerUp.y,
-            text: '+COIN RAIN!',
-            color: powerUp.color,
-            life: 1.5
-          });
-          
-          if (soundRef.current) soundRef.current.playCollect();
+
+        // Handle all power-ups as timed effects
+        const existingPowerUp = game.activePowerUps.find(p => p.type === powerUp.type);
+        if (existingPowerUp) {
+          // Refresh duration
+          existingPowerUp.remainingTime = powerUp.duration;
+          existingPowerUp.maxDuration = powerUp.duration;
         } else {
-          // Add to active power-ups (timed effects)
-          const existingPowerUp = game.activePowerUps.find(p => p.type === powerUp.type);
-          if (existingPowerUp) {
-            // Refresh duration
-            existingPowerUp.remainingTime = powerUp.duration;
-            existingPowerUp.maxDuration = powerUp.duration;
-          } else {
-            // Add new power-up
-            game.activePowerUps.push({
-              type: powerUp.type,
-              remainingTime: powerUp.duration,
-              maxDuration: powerUp.duration,
-              icon: powerUp.getIcon(),
-              name: powerUp.getName(),
-              color: powerUp.color
-            });
-          }
-
-          // Update React state for HUD
-          setActivePowerUps([...game.activePowerUps]);
-
-          // Show floating text
-          game.floatingTexts.push({
-            x: powerUp.x,
-            y: powerUp.y,
-            text: `+${powerUp.getName()}!`,
-            color: powerUp.color,
-            life: 1.5
+          // Add new power-up
+          game.activePowerUps.push({
+            type: powerUp.type,
+            remainingTime: powerUp.duration,
+            maxDuration: powerUp.duration,
+            icon: powerUp.getIcon(),
+            name: powerUp.getName(),
+            color: powerUp.color
           });
-
-          if (soundRef.current) soundRef.current.playCollect();
         }
+
+        // Update React state for HUD
+        setActivePowerUps([...game.activePowerUps]);
+
+        // Show floating text
+        game.floatingTexts.push({
+          x: powerUp.x,
+          y: powerUp.y,
+          text: `+ ${powerUp.getName()} !`,
+          color: powerUp.color,
+          life: 1.5
+        });
+
+        if (soundRef.current) soundRef.current.playCollect();
       }
     });
 
@@ -439,7 +443,7 @@ export default function App() {
     game.projectiles.forEach(proj => {
       // Ghost Mode: Phase through projectiles
       if (game.ghostMode) return;
-      
+
       if (
         pRect.x < proj.x + proj.radius &&
         pRect.x + pRect.w > proj.x - proj.radius &&
@@ -493,6 +497,7 @@ export default function App() {
             });
             setCurrency(c => c + 50); // Bonus for killing boss
             game.sessionCurrency = (game.sessionCurrency || 0) + 50; // Add boss bonus to session currency
+            setSessionCurrency(game.sessionCurrency); // Sync with React state
           } else {
             if (soundRef.current) soundRef.current.playShoot(); // Hit sound
           }
@@ -594,20 +599,19 @@ export default function App() {
           if (game.villain.type === 'SPEEDSTER') {
             if (game.villain.attackTimer > 2.0) {
               game.villain.attackTimer = 0;
-              // SPREAD SHOT (Shotgun style)
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -600, 0));      // Straight
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -550, -150));   // Up
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y + 20, -550, 150));    // Down
+              // SONIC BLADE WAVE (Fast, crescent projectiles)
+              game.projectiles.push(new SonicBladeProjectile(game.villain.x, game.villain.y + 20, -800, 0));      // Straight
+              game.projectiles.push(new SonicBladeProjectile(game.villain.x, game.villain.y + 20, -750, -200));   // Up-Angled
+              game.projectiles.push(new SonicBladeProjectile(game.villain.x, game.villain.y + 20, -750, 200));    // Down-Angled
               if (soundRef.current) soundRef.current.playShoot();
             }
           } else if (game.villain.type === 'JUGGERNAUT') {
             if (game.villain.attackTimer > 3.5) { // Slower fire rate (was 2.0, now 3.5 seconds)
               game.villain.attackTimer = 0;
-              // HOMING MISSILE
-              game.projectiles.push(new HomingProjectile(
+              // FUSE BOMB (Straight shot, no homing)
+              game.projectiles.push(new FuseProjectile(
                 game.villain.x,
-                game.villain.y,
-                game.player
+                game.villain.y
               ));
               if (soundRef.current) soundRef.current.playShoot();
             }
@@ -682,6 +686,78 @@ export default function App() {
     // Collision Detection
     checkCollisions(game);
 
+    // Neon Blaze Aura Logic
+    if (game.activePowerUps.some(p => p.type === 'NEON_BLAZE')) {
+      const auraRadius = 150;
+      const p = game.player;
+
+      // Destroy Obstacles
+      game.obstacles.forEach(obs => {
+        if (obs.markedForDeletion) return;
+        const dx = (obs.x + obs.width / 2) - p.x;
+        const dy = (obs.y + obs.height / 2) - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < auraRadius) {
+          obs.markedForDeletion = true;
+          if (soundRef.current) soundRef.current.playExplosion();
+          game.floatingTexts.push({
+            x: obs.x,
+            y: obs.y,
+            text: 'BLAZED!',
+            color: '#ff00ff',
+            life: 0.5
+          });
+        }
+      });
+
+      // Destroy Enemy Projectiles
+      game.projectiles.forEach(proj => {
+        if (proj.markedForDeletion) return;
+        const dx = proj.x - p.x;
+        const dy = proj.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < auraRadius) {
+          proj.markedForDeletion = true;
+          // Silent destruction for projectiles
+        }
+      });
+
+      // Damage Villain
+      if (game.villain && !game.villain.markedForDeletion) {
+        const v = game.villain;
+        const dx = (v.x + v.width / 2) - p.x;
+        const dy = (v.y + v.height / 2) - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < auraRadius) {
+          // Apply damage over time (approx 30 DPS)
+          const damage = 30 * deltaTime;
+          const died = v.takeDamage(damage);
+          if (died) {
+            if (soundRef.current) soundRef.current.playExplosion();
+            game.floatingTexts.push({
+              x: v.x,
+              y: v.y,
+              text: 'BOSS DEFEATED!',
+              color: '#ff0000',
+              life: 2.0
+            });
+            game.floatingTexts.push({
+              x: v.x,
+              y: v.y + 30,
+              text: '+$50',
+              color: '#ffd700',
+              life: 2.0
+            });
+            setCurrency(c => c + 50);
+            game.sessionCurrency = (game.sessionCurrency || 0) + 50;
+          }
+        }
+      }
+    }
+
     // Energy Drain if boosting
     if (game.player.isBoosting) {
       game.energy -= deltaTime * 10; // Reduced from 20 to 10 for longer flight
@@ -690,7 +766,7 @@ export default function App() {
         game.player.boost(false);
       }
     }
-    
+
     // Update energy display every frame
     setEnergy(Math.max(0, Math.min(100, (game.energy / game.maxEnergy) * 100)));
   }, [checkCollisions]);
@@ -699,6 +775,14 @@ export default function App() {
     const renderer = rendererRef.current;
     const game = gameRef.current;
     if (!renderer) return;
+
+    if (gameState === 'COUNTDOWN') {
+      // Only render background and player (idle)
+      renderer.clear();
+      renderer.drawBackground(game.speed * 0.1, deltaTime); // Slow background
+      renderer.drawPlayer(game.player, game.shipType);
+      return;
+    }
 
     renderer.clear();
     renderer.drawBackground(game.speed, deltaTime);
@@ -709,7 +793,7 @@ export default function App() {
     renderer.drawVillain(game.villain);
     renderer.drawProjectiles(game.projectiles);
     renderer.drawPlayerProjectiles(game.playerProjectiles);
-    renderer.drawPlayer(game.player, game.shipType, game.ghostMode);
+    renderer.drawPlayer(game.player, game.shipType, game.ghostMode, game.activePowerUps, game.collectibles);
     renderer.drawFloatingTexts(game.floatingTexts);
   }, []);
 
@@ -735,7 +819,7 @@ export default function App() {
 
   const handleShoot = React.useCallback(() => {
     const hasUnlimitedAmmo = gameRef.current.rapidFire;
-    
+
     if (gameState === 'PLAYING' && (gameRef.current.ammo > 0 || hasUnlimitedAmmo)) {
       // Only decrease ammo if not in unlimited mode
       if (!hasUnlimitedAmmo) {
@@ -835,41 +919,50 @@ export default function App() {
     >
       <canvas ref={canvasRef} className="block" style={{ width: '100%', height: '100%' }} />
 
-      {gameState === 'PLAYING' && (
+      {gameState === 'PLAYING' || gameState === 'COUNTDOWN' ? (
         <HUD
           distance={distance}
           currency={currency}
           energy={energy}
           ammo={ammo}
           maxAmmo={10}
+          activePowerUps={activePowerUps}
           health={health}
           maxHealth={maxHealth}
-          activePowerUps={activePowerUps}
           onShoot={handleShoot}
+          countdown={gameState === 'COUNTDOWN' ? countdown : null}
         />
-      )}
+      ) : null}
 
       {gameState === 'MENU' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm">
           <h1 className="text-7xl font-bold mb-12 neon-text-blue italic tracking-wider drop-shadow-[0_0_30px_rgba(0,243,255,0.8)]">NEO GLIDE</h1>
-          <div className="flex gap-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-6">
+              <button
+                onClick={startGame}
+                className="group relative px-12 py-6 border-2 border-cyan-400 rounded-lg font-black text-3xl tracking-widest text-cyan-400 transition-all duration-300 hover:bg-cyan-400 hover:text-black"
+              >
+                <div className="flex items-center gap-4">
+                  <Play className="w-8 h-8 fill-current" />
+                  <span>START</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setGameState('SHOP')}
+                className="group relative px-12 py-6 border-2 border-pink-500 rounded-lg font-black text-3xl tracking-widest text-pink-500 transition-all duration-300 hover:bg-pink-500 hover:text-black"
+              >
+                <div className="flex items-center gap-4">
+                  <ShoppingCart className="w-8 h-8" />
+                  <span>SHOP</span>
+                </div>
+              </button>
+            </div>
             <button
-              onClick={startGame}
-              className="group relative px-12 py-6 border-2 border-cyan-400 rounded-lg font-black text-3xl tracking-widest text-cyan-400 transition-all duration-300 hover:bg-cyan-400 hover:text-black"
+              onClick={replayTutorial}
+              className="px-8 py-3 border border-gray-500 rounded-lg font-bold text-lg tracking-wider text-gray-400 transition-all duration-300 hover:border-gray-300 hover:text-gray-200"
             >
-              <div className="flex items-center gap-4">
-                <Play className="w-8 h-8 fill-current" />
-                <span>START</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setGameState('SHOP')}
-              className="group relative px-12 py-6 border-2 border-pink-500 rounded-lg font-black text-3xl tracking-widest text-pink-500 transition-all duration-300 hover:bg-pink-500 hover:text-black"
-            >
-              <div className="flex items-center gap-4">
-                <ShoppingCart className="w-8 h-8" />
-                <span>SHOP</span>
-              </div>
+              SHOW TUTORIAL
             </button>
           </div>
         </div>
@@ -914,6 +1007,13 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {gameState === 'TUTORIAL' && (
+        <Tutorial
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialSkip}
+        />
       )}
 
       {gameState === 'SHOP' && (

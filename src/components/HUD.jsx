@@ -1,10 +1,10 @@
 import React from 'react';
 import { Zap, Coins } from 'lucide-react';
 
-export default function HUD({ distance, currency, energy, ammo, maxAmmo, health, maxHealth, activePowerUps = [], onShoot }) {
+export default function HUD({ distance, score, currency, energy, ammo, maxAmmo, health, maxHealth, activePowerUps = [], onShoot, countdown }) {
     // Check if unlimited ammo is active
     const hasUnlimitedAmmo = activePowerUps.some(p => p.type === 'RAPID_FIRE');
-    
+
     return (
         <div
             className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between"
@@ -50,10 +50,10 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
             {activePowerUps.length > 0 && (
                 <div className="absolute top-24 right-2 flex flex-col gap-2 pointer-events-none">
                     {activePowerUps.map((powerUp, index) => (
-                        <div 
+                        <div
                             key={index}
                             className="flex items-center gap-2 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 border-2 transition-all"
-                            style={{ 
+                            style={{
                                 borderColor: powerUp.color,
                                 boxShadow: `0 0 10px ${powerUp.color}40`
                             }}
@@ -65,9 +65,9 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                             </div>
                             {/* Timer bar */}
                             <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                                <div 
+                                <div
                                     className="h-full transition-all duration-100 rounded-full"
-                                    style={{ 
+                                    style={{
                                         width: `${Math.max(0, Math.min(100, (powerUp.remainingTime / (powerUp.maxDuration || 10)) * 100))}%`,
                                         backgroundColor: powerUp.color
                                     }}
@@ -94,7 +94,7 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                             {health > 0 && (
                                 <div
                                     className="h-full bg-linear-to-r from-red-600 to-red-500 transition-all duration-200"
-                                    style={{ 
+                                    style={{
                                         width: `${Math.max(0, Math.min(100, (health / maxHealth) * 100))}%`,
                                         borderRadius: (health / maxHealth) * 100 < 5 ? '0' : '9999px'
                                     }}
@@ -104,19 +104,19 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                     </div>
 
                     {/* Energy Bar */}
-                    <div className="bg-black/50 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-pink-500/40">
+                    <div className={`bg-black/50 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border ${Math.floor(energy) > 0 ? 'border-pink-500/40' : 'border-gray-700/40'}`}>
                         <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-pink-400 font-bold">ENERGY</span>
+                            <span className={`text-[10px] font-bold ${Math.floor(energy) > 0 ? 'text-pink-400' : 'text-gray-500'}`}>ENERGY</span>
                             <span className="text-xs text-white font-bold">{Math.floor(energy)}%</span>
                         </div>
                         <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-700">
-                            {energy > 0 && (
+                            {Math.floor(energy) > 0 && (
                                 <div
                                     className={`h-full transition-all duration-200 ${energy < 30
                                         ? 'bg-linear-to-r from-red-600 to-red-500 animate-pulse'
                                         : 'bg-linear-to-r from-pink-600 to-fuchsia-500'
                                         }`}
-                                    style={{ 
+                                    style={{
                                         width: `${Math.max(0, Math.min(100, energy))}%`,
                                         borderRadius: energy < 5 ? '0' : '9999px'
                                     }}
@@ -146,6 +146,24 @@ export default function HUD({ distance, currency, energy, ammo, maxAmmo, health,
                     </button>
                 </div>
             </div>
+            {/* Countdown Overlay */}
+            {countdown && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <div className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-blue-600 drop-shadow-[0_0_50px_rgba(0,255,255,0.8)] animate-bounce">
+                        {countdown}
+                    </div>
+                    {typeof countdown === 'number' && (
+                        <div className="flex flex-col items-center gap-2 mt-8 animate-pulse">
+                            <div className="text-2xl font-bold text-cyan-400 tracking-widest drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                                HOLD SCREEN TO FLY
+                            </div>
+                            <div className="text-xl font-bold text-red-400 tracking-widest drop-shadow-[0_0_10px_rgba(248,113,113,0.8)]">
+                                TAP BUTTON TO FIRE
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

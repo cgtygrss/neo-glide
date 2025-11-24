@@ -9,7 +9,7 @@ export class SoundManager {
 
     init() {
         if (this.initialized) return;
-        
+
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         this.ctx = new AudioContext();
         this.masterGain = this.ctx.createGain();
@@ -86,7 +86,7 @@ export class SoundManager {
         if (this.musicTimeout) clearTimeout(this.musicTimeout);
         // Ensure context is valid
         if (!this.ctx) return;
-        
+
         // Catchier Arcade Melody (Arpeggio)
         // C Minor Pentatonic: C, Eb, F, G, Bb
         const melody = [
@@ -100,7 +100,7 @@ export class SoundManager {
 
         const playNextNote = () => {
             if (!this.isPlayingMusic) return;
-            
+
             // Double check context state
             if (this.ctx.state === 'suspended') {
                 this.ctx.resume().catch(e => console.error(e));
@@ -146,10 +146,10 @@ export class SoundManager {
                 console.error('Failed to resume audio context', e);
             }
         }
-        
+
         // If context is closed, try to recreate it (rare but possible)
         if (this.ctx.state === 'closed') {
-             this.init();
+            this.init();
         }
 
         if (this.isPlayingMusic) return;
@@ -204,14 +204,14 @@ export class SoundManager {
         if (this.musicTimeout) clearTimeout(this.musicTimeout);
         // Ensure context is valid
         if (!this.ctx) return;
-        
+
         // Catchy Menu Theme - Upbeat and energetic
         // Using a mix of bass and melody notes for a full sound
         const bassLine = [
             130.81, 130.81, 146.83, 164.81, // C3, C3, D3, E3
             130.81, 130.81, 146.83, 164.81, // Repeat
         ];
-        
+
         const melody = [
             523.25, 659.25, 783.99, 659.25, // C5, E5, G5, E5
             523.25, 659.25, 783.99, 1046.50, // C5, E5, G5, C6
@@ -221,7 +221,7 @@ export class SoundManager {
 
         const playNextNote = () => {
             if (!this.isPlayingMusic) return;
-            
+
             // Double check context state
             if (this.ctx.state === 'suspended') {
                 this.ctx.resume().catch(e => console.error(e));
@@ -279,14 +279,21 @@ export class SoundManager {
                 console.error('Failed to resume audio context', e);
             }
         }
-        
+
         // If context is closed, try to recreate it
         if (this.ctx.state === 'closed') {
-             this.init();
+            this.init();
         }
 
         if (this.isPlayingMusic) return;
         this.isPlayingMusic = true;
         this.playMenuMusic();
+    }
+
+    cleanup() {
+        this.stopMusic();
+        if (this.ctx && this.ctx.state !== 'closed') {
+            this.ctx.close().catch(e => console.error('Error closing audio context:', e));
+        }
     }
 }

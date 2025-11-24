@@ -1,0 +1,6 @@
+{
+    "version": "1.0.1",
+    "iosUrl": "https://apps.apple.com/app/idYOUR_APP_ID",
+    "androidUrl": "https://play.google.com/store/apps/details?id=com.cgtygrss.neoglide",
+    "forceUpdate": true
+}

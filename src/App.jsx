@@ -100,6 +100,50 @@ export default function App() {
     // Initialize Renderer
     rendererRef.current = new Renderer(canvasRef.current);
 
+    // Start Loop
+    loopRef.current = new GameLoop(update, draw);
+
+    // Version Check
+    const checkVersion = async () => {
+      try {
+        // Replace with your actual GitHub raw URL or hosted JSON URL
+        const response = await fetch('https://raw.githubusercontent.com/cgtygrss/neon-glide/main/public/version.json');
+        const data = await response.json();
+
+        // Current app version (should match package.json)
+        const currentVersion = '1.0.1';
+
+        if (data.forceUpdate && data.version !== currentVersion) {
+          // Simple semantic version check (assumes format x.y.z)
+          const v1 = currentVersion.split('.').map(Number);
+          const v2 = data.version.split('.').map(Number);
+
+          let updateNeeded = false;
+          for (let i = 0; i < 3; i++) {
+            if (v2[i] > v1[i]) {
+              updateNeeded = true;
+              break;
+            } else if (v2[i] < v1[i]) {
+              break;
+            }
+          }
+
+          if (updateNeeded) {
+            setGameState('UPDATE_REQUIRED');
+            // Store store URLs for the modal
+            window.storeUrls = {
+              ios: data.iosUrl,
+              android: data.androidUrl
+            };
+          }
+        }
+      } catch (error) {
+        console.error('Version check failed:', error);
+      }
+    };
+
+    checkVersion();
+
     // Handle Resize
     const handleResize = () => {
       rendererRef.current.resize(window.innerWidth, window.innerHeight);
@@ -124,6 +168,7 @@ export default function App() {
 
     return () => {
       if (loopRef.current) loopRef.current.stop();
+      if (soundRef.current) soundRef.current.cleanup();
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('keydown', handleUserInteraction);
@@ -444,6 +489,9 @@ export default function App() {
       // Ghost Mode: Phase through projectiles
       if (game.ghostMode) return;
 
+      // Shield Power-Up: Block projectiles
+      if (game.activePowerUps.some(p => p.type === 'SHIELD')) return;
+
       if (
         pRect.x < proj.x + proj.radius &&
         pRect.x + pRect.w > proj.x - proj.radius &&
@@ -516,8 +564,14 @@ export default function App() {
     // Update Speed & Distance
     game.speed += deltaTime * 10; // Accelerate over time
     game.distance += game.speed * deltaTime / 10; // 10x faster distance accumulation (approx 30m/s)
-    setDistance(game.distance);
-    setHealth(game.health);
+
+    // Throttle UI updates to ~10fps (every 100ms) to prevent React render overload
+    game.uiTimer = (game.uiTimer || 0) + deltaTime;
+    if (game.uiTimer > 0.1) {
+      setDistance(game.distance);
+      setHealth(game.health);
+      game.uiTimer = 0;
+    }
 
     // Ammo Regeneration
     game.ammoTimer += deltaTime;

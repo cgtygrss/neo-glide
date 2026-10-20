@@ -1,0 +1,10 @@
+Neo Glide gets a fresh look and a more rewarding flight!
+
+- New app icon and launch screen.
+- Six distinctive ships with animated flight previews.
+- A cleaner home screen and visual previews throughout the Garage.
+- Health packs, a health bar and clearer enemy attacks and pickups.
+- Rebalanced coin trails, upgrades and ship progression.
+- A launch sequence that gives you time to take control.
+- Safer top and side screen boundaries: reaching the ceiling no longer ends your flight.
+- Updated music and a dedicated soundtrack for enemy encounters.

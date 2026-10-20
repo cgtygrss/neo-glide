@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./App.css";
 
 :root {
   --neon-blue: #00f3ff;
@@ -9,12 +10,9 @@
 }
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
-  font-family: 'Courier New', Courier, monospace;
-  /* Cyberpunk feel */
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -47,8 +45,7 @@ body {
 
 button {
   cursor: pointer;
-  border: none;
-  outline: none;
+  touch-action: manipulation;
 }
 
 /* Utility classes for neon effects */

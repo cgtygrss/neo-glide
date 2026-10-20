@@ -1,0 +1,54 @@
+{
+  "generatedOn": "2026-10-16",
+  "tool": "built-in image_gen.imagegen",
+  "model": "Not exposed in tool result",
+  "sources": [
+    {
+      "kind": "icon",
+      "generator": "built-in image_gen.imagegen",
+      "generatedOn": "2026-10-16",
+      "originalPath": "/Users/cagataygurses/.codex/generated_images/01a13e99-c2f5-7c23-a368-75e0e6b98dfa/exec-dedad7c7-b183-4ad5-b44a-385573418ced.png",
+      "path": "resources/branding/1.2.0/icon-source.png",
+      "width": 1254,
+      "height": 1254,
+      "format": "png",
+      "hasAlpha": false,
+      "sha256": "42db3abbc788d8196cd95f1e770eb52e27d6cbf4aad39840f5b4fddcf14c3542"
+    },
+    {
+      "kind": "splash",
+      "generator": "built-in image_gen.imagegen",
+      "generatedOn": "2026-10-16",
+      "originalPath": "/Users/cagataygurses/.codex/generated_images/01a13e99-c2f5-7c23-a368-75e0e6b98dfa/exec-57245914-6c2b-4514-a8bb-8aee99a2c920.png",
+      "path": "resources/branding/1.2.0/splash-source.png",
+      "width": 1254,
+      "height": 1254,
+      "format": "png",
+      "hasAlpha": false,
+      "sha256": "3b9ec42acd7f486aecbabe42b0b857c03a6996517373b3b1c62dd128c5e34b6d"
+    }
+  ],
+  "prompts": "imagegen-prompts.txt",
+  "exports": "export-assets.cjs",
+  "processing": [
+    "Resize only: icon 1254 to 1024 square; splash 1254 to 2732 square",
+    "sRGB PNG exports, opaque RGB",
+    "Native launcher round masks and adaptive-icon background are platform delivery exports",
+    "Light and dark splash use the same authored artwork; no tinting or artistic repainting"
+  ],
+  "legacyBackup": "../legacy",
+  "directoryHistory": "Originally prepared under 1.0.2; renamed to 1.2.0 after App Store Connect confirmed published version 1.1.1. Artwork bytes are unchanged.",
+  "releaseCandidate": {
+    "version": "1.2.0",
+    "iosBuild": "3",
+    "bundleIdentifier": "com.cgtygrssgame.neonglide",
+    "status": "Confirmed against App Store Connect; not an assertion of upload or approval",
+    "checkedOn": "2026-10-16",
+    "latestExistingTestFlight": {
+      "version": "1.1.1",
+      "build": "1"
+    },
+    "publishedVersion": "1.1.1",
+    "appStoreId": "6755588297"
+  }
+}

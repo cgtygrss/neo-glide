@@ -1,0 +1,100 @@
+:root {
+  --navigation-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+.panel-tabs > button {
+  position: relative;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.panel-tabs > button::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: #8fe1d4;
+  opacity: 0;
+  transform: scaleX(.4);
+  transition: opacity 160ms ease, transform 220ms var(--navigation-ease);
+}
+.panel-tabs > button[aria-selected='true']::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.garage-tab-content:focus-visible {
+  outline: 2px solid #8fe1d4;
+  outline-offset: -3px;
+}
+.hangar-nav > button,
+.hangar-galaxy,
+.fleet-tile,
+.visual-garage-card {
+  transition: transform 180ms var(--navigation-ease), background-color 180ms ease,
+    border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+/* Animate only mounted UI; flight simulation and button actions stay immediate. */
+@media (prefers-reduced-motion: no-preference) {
+  .panel-screen,
+  .earnings-overlay,
+  .pause-overlay {
+    animation: navigation-fade-in 180ms ease-out;
+  }
+  .arcade-panel,
+  .earnings-board,
+  .pause-board {
+    animation: navigation-panel-in 300ms var(--navigation-ease);
+  }
+  .hangar-header,
+  .hangar-showcase,
+  .hangar-start,
+  .hangar-nav {
+    animation: navigation-content-in 300ms var(--navigation-ease) backwards;
+  }
+  .hangar-showcase { animation-delay: 25ms; }
+  .hangar-start { animation-delay: 50ms; }
+  .hangar-nav { animation-delay: 75ms; }
+  .garage-tab-content > * {
+    animation: navigation-content-in 240ms var(--navigation-ease);
+  }
+  .selection-reveal {
+    animation: navigation-selection-in 200ms var(--navigation-ease);
+  }
+  .hangar-settings[open] {
+    animation: navigation-content-in 220ms var(--navigation-ease);
+  }
+  .hangar-settings::backdrop {
+    animation: navigation-fade-in 180ms ease-out;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hangar-nav > button:hover,
+  .hangar-galaxy:hover,
+  .fleet-tile:hover {
+    transform: translateY(-2px);
+  }
+  .visual-garage-card:hover {
+    border-color: #9fecd54d;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes navigation-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes navigation-panel-in {
+  from { opacity: .4; transform: translateY(14px) scale(.99); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes navigation-content-in {
+  from { opacity: .3; translate: 0 10px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes navigation-selection-in {
+  from { opacity: .35; transform: translateX(7px); }
+  to { opacity: 1; transform: none; }
+}

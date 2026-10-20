@@ -1,0 +1,17 @@
+Tool: built-in image_gen.imagegen (not CLI)
+Date: 2026-10-16
+
+ICON PROMPT
+Use case: logo-brand
+Asset type: final square iOS app icon for the existing space arcade game Neo Glide.
+Reference image: the attached screenshot is a DESIGN REFERENCE ONLY. Use its central cream-and-teal Standard Glider spacecraft as the recognizable subject; ignore all interface, text, statistics and buttons.
+Primary request: Create an exceptionally polished, instantly readable game app icon starring that same friendly compact spacecraft in a dynamic, slightly nose-up flight toward the upper right. Preserve its cream rounded hull, large teal fins and dark teal cockpit. Make the ship fill roughly 75% of the square with a little warm amber engine flame trailing to the lower left. Crisp confident silhouette, elegant stylized game illustration, subtly dimensional but matching the actual game's clean illustrated ship rather than realistic spacecraft.
+Backdrop: deep midnight navy (#0b1725), restrained mint/teal atmospheric glow and two very subtle speed streaks. Strong light/dark separation, appealing at 48px. The ship is the sole hero.
+Constraints: square 1024x1024; fully opaque background; full bleed; no rounded-corner mask; no border; no text, letters, numbers, badges, interface, coins, watermark or other ships. No purple or pink palette, no busy circuitry, no huge neon bloom. Clean premium playful composition.
+
+SPLASH PROMPT
+Use case: logo-brand
+Asset type: production launch/splash screen background for Neo Glide, square composition that must crop safely to both tall iPhone and landscape iPad.
+Reference image: this is the newly designed app icon. Keep the SAME cream-and-teal compact spacecraft, dark cockpit, amber exhaust and clean illustrated style, but create a completely NEW sparse launch composition.
+Primary request: a calm premium midnight navy full-bleed background (#0b1725), almost uniform near all edges. In the exact center a SMALL beautifully rendered matching spacecraft flying gently to upper right, with very restrained mint halo and tiny amber exhaust. Under the ship the exact game title “NEO GLIDE” in clean, nicely spaced bold sans-serif ivory letters, no other words.
+Critical framing: the ENTIRE ship, exhaust, glow and title must fit inside the middle 30% of the image width AND middle 30% of image height. Very large empty navy margins on all four sides are intentional and required so the square can safely be cropped horizontally or vertically on devices. The ship itself should be only 23% of total image width. Overall centered logo lockup. No framed icon tile, no border, no rounded rectangle, no scenery, no big streaks, no other objects, no loading UI, no watermark. No purple or pink. Crisp balanced restrained game identity, fully opaque, square high-resolution output.

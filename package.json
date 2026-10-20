@@ -1,9 +1,9 @@
 {
   "name": "neon-glide",
   "displayName": "Neo Glide",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "An exciting neon-themed gliding game",
-  "author": "Your Name <your.email@example.com>",
+  "author": "Cagatay Gurses",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -11,6 +11,9 @@
     "dev": "vite",
     "host": "vite --host",
     "build": "vite build",
+    "build:ads-test": "vite build --mode production",
+    "build:release": "vite build --mode release",
+    "test": "node --test test/**/*.test.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "cap:sync": "cap sync",
@@ -18,6 +21,7 @@
     "ios:build": "npm run build && cap sync ios && cap open ios"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^7.2.0",
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",

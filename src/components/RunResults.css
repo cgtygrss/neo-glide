@@ -1,0 +1,121 @@
+.earnings-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: max(20px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  color: #e7efee;
+  background: radial-gradient(ellipse at 50% 40%, #17334470, transparent 65%), #0b1725f5;
+}
+.earnings-board {
+  flex-shrink: 0;
+  width: min(820px, 100%);
+  min-width: 0;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 30px;
+  padding: 30px;
+  border: 1px solid #9bbeca35;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #20394c, #142838);
+  box-shadow: 0 20px 70px #0005, 0 0 45px #72cddd08;
+}
+.earnings-summary, .earnings-next-flight { min-width: 0; }
+.earnings-heading { display: flex; align-items: center; gap: 9px; margin: 0; color: #e9c984; font-size: 11px; font-weight: 750; letter-spacing: .12em; line-height: 1.4; }
+.earnings-heading > svg { color: #f9ce71; flex-shrink: 0; }
+.earnings-total { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 10px; margin: 12px 0 19px; }
+.earnings-total strong { max-width: 100%; overflow-wrap: anywhere; color: #ffe1a0; font-size: clamp(45px, 7.5vw, 72px); font-weight: 850; line-height: 1; letter-spacing: -.065em; text-shadow: 0 0 30px #f3c46417; font-variant-numeric: tabular-nums; }
+.earnings-total > span { color: #c7ae88; font-size: 12px; }
+.earnings-breakdown { display: grid; gap: 8px; margin: 0; }
+.earnings-breakdown > div { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; line-height: 1.4; }
+.earnings-breakdown dt { display: inline-flex; align-items: center; gap: 5px; color: #a1b9c4; }
+.earnings-breakdown dd { margin: 0; color: #f1d49e; font-weight: 700; font-variant-numeric: tabular-nums; }
+.earnings-breakdown .earnings-ad-bonus dt { color: #a4d6c5; }
+.earnings-wallet { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 13px; border-top: 1px solid #a2c4cf1b; color: #9db8c4; font-size: 11px; }
+.earnings-wallet strong { display: flex; align-items: center; gap: 6px; color: #f7e6bd; font-size: 15px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.earnings-wallet svg { color: #edc675; }
+.earnings-flight-stats { display: grid; grid-template-columns: 1fr .8fr 1fr; gap: 11px; margin-top: 21px; }
+.earnings-flight-stats > span { min-width: 0; }
+.earnings-flight-stats small { display: flex; align-items: center; gap: 4px; color: #8fadb9; font-size: 9px; line-height: 1.4; }
+.earnings-flight-stats strong { display: block; color: #d0e0e3; font-size: 16px; font-weight: 700; margin-top: 5px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.earnings-flight-stats i { color: #94afba; font-size: 10px; font-style: normal; font-weight: 500; }
+.earnings-next-flight { display: flex; flex-direction: column; justify-content: center; gap: 16px; padding-left: 27px; border-left: 1px solid #a2c4cf1b; }
+.earnings-goal { border: 1px solid #9bbeca25; border-radius: 15px; padding: 15px; background: #9dcad808; }
+.earnings-goal-label { display: flex; align-items: center; gap: 6px; color: #91b5be; font-size: 9px; font-weight: 750; letter-spacing: .09em; }
+.earnings-goal-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin-top: 9px; }
+.earnings-goal h3 { color: #e5edeb; font-size: 15px; font-weight: 750; line-height: 1.3; margin: 0; }
+.earnings-goal-title > span { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #dfc499; font-variant-numeric: tabular-nums; }
+.earnings-goal-track { height: 5px; margin-top: 12px; background: #a2c4cf15; border-radius: 5px; overflow: hidden; }
+.earnings-goal-track > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6baeb7, #97dbc8); }
+.earnings-goal p { display: flex; align-items: center; gap: 4px; margin: 8px 0 0; color: #91adb9; font-size: 10px; line-height: 1.5; }
+.earnings-goal p strong { color: #c7dfde; font-weight: 700; }
+.earnings-fleet h3 { margin-top: 9px; }
+.earnings-main-actions { display: flex; flex-direction: column; gap: 12px; }
+.earnings-button { display: flex; justify-content: center; align-items: center; gap: 9px; min-height: 46px; padding: 11px 14px; border: 1px solid #9bbeca35; border-radius: 13px; color: #d0dfdf; background: #9dcad810; font-family: inherit; font-size: 14px; font-weight: 750; }
+.earnings-play { min-height: 52px; font-size: 18px; color: #17373e; background: #97dbc8; border-color: #b8e6d7; box-shadow: 0 4px 0 #467c73, 0 0 20px #72cddd1a; }
+.earnings-play > svg:last-child { margin-left: auto; }
+.earnings-play > svg:first-child { margin-right: auto; }
+.earnings-play:hover:not(:disabled) { background: #b2e8d7; }
+.earnings-secondary-actions { display: flex; gap: 9px; }
+.earnings-garage { flex: 1; }
+.earnings-home { width: 46px; padding-inline: 0; flex-shrink: 0; }
+.earnings-garage:hover:not(:disabled), .earnings-home:hover:not(:disabled) { background: #a0c6d018; }
+.earnings-ready-dot { width: 5px; height: 5px; border-radius: 50%; background: #f3cf85; box-shadow: 0 0 8px #f3cf8538; }
+.earnings-ad-action { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 49px; padding: 10px 12px; color: #bdd1d7; background: transparent; border: 1px solid #9bbeca25; border-radius: 12px; text-align: left; font-family: inherit; }
+.earnings-ad-action > svg { flex-shrink: 0; color: #93b9c3; }
+.earnings-ad-action > svg:last-child { margin-left: auto; }
+.earnings-ad-action > span { min-width: 0; }
+.earnings-ad-action strong { display: block; font-size: 11px; line-height: 1.4; font-weight: 750; }
+.earnings-ad-action small { display: block; color: #91adb9; font-size: 9px; margin-top: 3px; line-height: 1.4; }
+.earnings-ad-action:hover:not(:disabled) { border-color: #a0c6d056; background: #a0c6d00c; }
+.earnings-double { margin-top: 19px; border-color: #e9c78435; background: #e1b36308; color: #f1d7a3; }
+.earnings-double > svg { color: #dcbd83; }
+.earnings-double small { color: #bca487; }
+.earnings-double:hover:not(:disabled) { border-color: #edcf855c; background: #e1b36310; }
+.earnings-board button:disabled { cursor: default; opacity: .45; box-shadow: none; }
+.earnings-board button:focus-visible { outline: 2px solid #b2e8d7; outline-offset: 3px; }
+.earnings-feedback { margin: 0; color: #f0cf9c; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-height: 540px) and (orientation: landscape) {
+  .earnings-overlay { padding: max(12px, env(safe-area-inset-top)) max(21px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(21px, env(safe-area-inset-left)); }
+  .earnings-board { gap: 24px; padding: 20px 23px; border-radius: 20px; }
+  .earnings-heading { font-size: 10px; }
+  .earnings-total { margin: 9px 0 12px; }
+  .earnings-total strong { font-size: 56px; }
+  .earnings-breakdown { gap: 5px; }
+  .earnings-breakdown > div { font-size: 11px; }
+  .earnings-wallet { margin-top: 10px; padding-top: 9px; }
+  .earnings-flight-stats { margin-top: 13px; }
+  .earnings-flight-stats strong { font-size: 15px; margin-top: 3px; }
+  .earnings-double { margin-top: 13px; }
+  .earnings-next-flight { gap: 12px; padding-left: 23px; }
+  .earnings-goal { padding: 12px; }
+  .earnings-goal-title { margin-top: 7px; }
+  .earnings-goal-track { margin-top: 9px; }
+  .earnings-main-actions { gap: 10px; }
+  .earnings-play { min-height: 48px; font-size: 17px; }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .earnings-overlay { padding: max(15px, env(safe-area-inset-top)) max(15px, env(safe-area-inset-right)) max(15px, env(safe-area-inset-bottom)) max(15px, env(safe-area-inset-left)); }
+  .earnings-board { grid-template-columns: minmax(0, 1fr); padding: 23px; gap: 23px; border-radius: 22px; }
+  .earnings-total strong { font-size: clamp(47px, 16vw, 65px); }
+  .earnings-next-flight { gap: 14px; padding-left: 0; border-left: 0; padding-top: 20px; border-top: 1px solid #a2c4cf1b; }
+  .earnings-flight-stats { margin-top: 18px; }
+  .earnings-double { margin-top: 18px; }
+}
+@media (max-width: 350px) and (orientation: portrait) {
+  .earnings-overlay { padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right)); }
+  .earnings-board { padding: 18px; gap: 19px; }
+  .earnings-heading { font-size: 10px; }
+  .earnings-total strong { font-size: 48px; }
+  .earnings-flight-stats { gap: 7px; }
+  .earnings-flight-stats strong { font-size: 14px; }
+  .earnings-next-flight { padding-top: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .earnings-overlay *, .earnings-overlay *::before, .earnings-overlay *::after { animation: none !important; transition: none !important; }
+}

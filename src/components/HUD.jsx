@@ -1,169 +1,175 @@
-import React from 'react';
-import { Zap, Coins } from 'lucide-react';
+import React from "react";
+import { ArrowUp, ChevronsRight, Coins, Crosshair, Heart, Pause, Zap, RotateCw, Rocket, CircleDot, Shield } from "lucide-react";
+import { TRANSFORMATION_SECONDS } from '../game/TransformationCatalog';
+import './TransformationHUD.css';
 
-export default function HUD({ distance, score, currency, energy, ammo, maxAmmo, health, maxHealth, activePowerUps = [], onShoot, countdown }) {
-    // Check if unlimited ammo is active
-    const hasUnlimitedAmmo = activePowerUps.some(p => p.type === 'RAPID_FIRE');
-
-    return (
-        <div
-            className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between"
-            style={{
-                paddingTop: 'max(32px, calc(env(safe-area-inset-top) + 24px))',
-                paddingBottom: 'max(8px, env(safe-area-inset-bottom))',
-                paddingLeft: 'max(8px, env(safe-area-inset-left))',
-                paddingRight: 'max(8px, env(safe-area-inset-right))'
-            }}
-        >
-
-            {/* Top HUD - Compact Single Bar */}
-            <div className="flex items-center justify-between gap-3 bg-black/40 backdrop-blur-sm rounded-full px-3.5 py-2 border border-cyan-500/30 mt-4">
-
-                {/* Left: Distance */}
-                <div className="flex items-center gap-2 min-w-[85px]">
-                    <div className="w-1.5 h-6 bg-cyan-400 rounded-full shadow-[0_0_6px_rgba(34,211,238,0.6)] ml-2"></div>
-                    <div>
-                        <div className="text-[10px] text-cyan-300 font-bold leading-none">DIST</div>
-                        <div className="text-lg text-white font-bold leading-tight">{Math.floor(distance)}m</div>
-                    </div>
-                </div>
-
-                {/* Center: Credits */}
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/40">
-                    <div className="text-sm text-emerald-300 font-bold">$</div>
-                    <div className="text-base text-white font-bold">{currency}</div>
-                </div>
-
-                {/* Right: Ammo */}
-                <div className="flex items-center gap-2 min-w-[70px] justify-end">
-                    <div className='mr-2'>
-                        <div className="text-[10px] text-yellow-300 font-bold leading-none text-right">AMMO</div>
-                        <div className="text-lg text-white font-bold leading-tight text-right">
-                            {hasUnlimitedAmmo ? '∞' : `${ammo}/${maxAmmo}`}
-                        </div>
-                    </div>
-                    <div className="w-1.5 h-6 bg-yellow-400 rounded-full shadow-[0_0_6px_rgba(250,204,21,0.6)]"></div>
-                </div>
+export default function HUD({
+  distance,
+  currency,
+  energy,
+  ammo,
+  maxAmmo,
+  health,
+  maxHealth,
+  combo = 0,
+  activePowerUps = [],
+  transformation = null,
+  onShoot,
+  onBoostStart,
+  onBoostEnd,
+  onPause,
+  countdown,
+  paused,
+  flightPhase,
+}) {
+  const unlimited = activePowerUps.some((p) => p.type === "RAPID_FIRE");
+  const formReady = transformation?.phase === 'ACTIVE';
+  const fireAvailable = flightPhase === "FLYING" && !paused && !countdown && (transformation ? formReady && transformation.cooldownRemaining <= 0 : ammo > 0 || unlimited);
+  const PrimaryIcon = transformation?.id === 'sphere' ? RotateCw : ['drill', 'aegis', 'striker'].includes(transformation?.id) ? Zap : ArrowUp;
+  const SecondaryIcon = transformation?.id === 'aegis' ? Shield : transformation?.id === 'volt' ? Zap : transformation?.id === 'drill' ? ChevronsRight : transformation?.id === 'striker' ? Rocket : transformation ? CircleDot : Crosshair;
+  const primaryLabel = transformation ? `${transformation.primary} — ${transformation.primaryHint.toLowerCase()}` : 'Boost — hold to rise';
+  const secondaryLabel = transformation ? `${transformation.secondary} — ${transformation.cooldownRemaining > 0 ? `${transformation.cooldownRemaining.toFixed(1)} seconds cooldown` : transformation.secondaryHint.toLowerCase()}` : `Fire — ${unlimited ? 'unlimited' : ammo} ammo`;
+  const energyValue = transformation ? transformation.remaining / TRANSFORMATION_SECONDS * 100 : energy;
+  return (
+    <div className={`flight-hud ${transformation ? 'transformed-hud' : ''}`} style={transformation ? { '--form-accent': transformation.color } : undefined}>
+      <div className="flight-topbar">
+        <div className="flight-vitals">
+          <div className="vital-row">
+            <Heart size={17} />
+            <div
+              className="vital-track hull-track"
+              role="meter"
+              aria-label="Health"
+              aria-valuemin={0}
+              aria-valuemax={maxHealth}
+              aria-valuenow={Math.max(0, health)}
+            >
+              <span
+                style={{
+                  width: `${Math.min(100, Math.max(0, (health / maxHealth) * 100))}%`,
+                }}
+              />
             </div>
-
-            {/* Active Power-Ups Display - Middle Right */}
-            {activePowerUps.length > 0 && (
-                <div className="absolute top-24 right-2 flex flex-col gap-2 pointer-events-none">
-                    {activePowerUps.map((powerUp, index) => (
-                        <div
-                            key={index}
-                            className="flex items-center gap-2 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 border-2 transition-all"
-                            style={{
-                                borderColor: powerUp.color,
-                                boxShadow: `0 0 10px ${powerUp.color}40`
-                            }}
-                        >
-                            <div className="text-2xl">{powerUp.icon}</div>
-                            <div className="flex flex-col">
-                                <div className="text-xs text-white font-bold">{powerUp.name}</div>
-                                <div className="text-[10px] text-gray-300">{Math.ceil(powerUp.remainingTime)}s</div>
-                            </div>
-                            {/* Timer bar */}
-                            <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full transition-all duration-100 rounded-full"
-                                    style={{
-                                        width: `${Math.max(0, Math.min(100, (powerUp.remainingTime / (powerUp.maxDuration || 10)) * 100))}%`,
-                                        backgroundColor: powerUp.color
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Bottom HUD */}
-            <div className="flex items-end justify-between gap-2 pointer-events-auto">
-
-                {/* Bottom Left: Status Bars */}
-                <div className="flex flex-col gap-2 w-32 sm:w-40">
-
-                    {/* Health Bar */}
-                    <div className="bg-black/50 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-red-500/40">
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-red-400 font-bold">HULL</span>
-                            <span className="text-xs text-white font-bold">{Math.ceil(health)}/{maxHealth}</span>
-                        </div>
-                        <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-700">
-                            {health > 0 && (
-                                <div
-                                    className="h-full bg-linear-to-r from-red-600 to-red-500 transition-all duration-200"
-                                    style={{
-                                        width: `${Math.max(0, Math.min(100, (health / maxHealth) * 100))}%`,
-                                        borderRadius: (health / maxHealth) * 100 < 5 ? '0' : '9999px'
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Energy Bar */}
-                    <div className={`bg-black/50 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border ${Math.floor(energy) > 0 ? 'border-pink-500/40' : 'border-gray-700/40'}`}>
-                        <div className="flex items-center justify-between mb-1">
-                            <span className={`text-[10px] font-bold ${Math.floor(energy) > 0 ? 'text-pink-400' : 'text-gray-500'}`}>ENERGY</span>
-                            <span className="text-xs text-white font-bold">{Math.floor(energy)}%</span>
-                        </div>
-                        <div className="h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-700">
-                            {Math.floor(energy) > 0 && (
-                                <div
-                                    className={`h-full transition-all duration-200 ${energy < 30
-                                        ? 'bg-linear-to-r from-red-600 to-red-500 animate-pulse'
-                                        : 'bg-linear-to-r from-pink-600 to-fuchsia-500'
-                                        }`}
-                                    style={{
-                                        width: `${Math.max(0, Math.min(100, energy))}%`,
-                                        borderRadius: energy < 5 ? '0' : '9999px'
-                                    }}
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bottom Right: Fire Button */}
-                <div className="flex items-center justify-center">
-                    <button
-                        className={`relative w-20 h-20 sm:w-20 sm:h-20 rounded-full border-[3px] flex items-center justify-center font-bold transition-all active:scale-90 shadow-2xl ${ammo >= 1
-                            ? 'bg-linear-to-br from-red-500/40 to-orange-600/40 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:shadow-[0_0_30px_rgba(239,68,68,0.7)] active:shadow-[0_0_12px_rgba(239,68,68,0.3)]'
-                            : 'bg-gray-800/30 border-gray-600 opacity-50 cursor-not-allowed'
-                            }`}
-                        onClick={onShoot}
-                        disabled={ammo < 1}
-                    >
-                        <div className="flex flex-col items-center justify-center">
-                            <span className="text-base sm:text-lg text-white font-black tracking-wide drop-shadow-lg">FIRE</span>
-                            <span className="text-xs text-white/80 font-bold mt-0.5">{ammo}/{maxAmmo}</span>
-                        </div>
-                        {ammo >= 1 && (
-                            <div className="absolute inset-0 rounded-full bg-linear-to-tr from-transparent via-red-400/20 to-transparent animate-pulse"></div>
-                        )}
-                    </button>
-                </div>
+            <span>
+              {Math.ceil(health)}/{maxHealth}
+            </span>
+          </div>
+          <div className={`vital-row ${!transformation && energy < 25 ? "low-energy" : ""}`}>
+            <Zap size={17} />
+            <div
+              className="vital-track energy-track"
+              role="meter"
+              aria-label={transformation ? 'Vehicle duration' : 'Boost energy'}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(energyValue)}
+            >
+              <span
+                style={{ width: `${Math.max(0, Math.min(100, energyValue))}%` }}
+              />
             </div>
-            {/* Countdown Overlay */}
-            {countdown && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <div className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-blue-600 drop-shadow-[0_0_50px_rgba(0,255,255,0.8)] animate-bounce">
-                        {countdown}
-                    </div>
-                    {typeof countdown === 'number' && (
-                        <div className="flex flex-col items-center gap-2 mt-8 animate-pulse">
-                            <div className="text-2xl font-bold text-cyan-400 tracking-widest drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
-                                HOLD SCREEN TO FLY
-                            </div>
-                            <div className="text-xl font-bold text-red-400 tracking-widest drop-shadow-[0_0_10px_rgba(248,113,113,0.8)]">
-                                TAP BUTTON TO FIRE
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
+            <span>{transformation ? `${Math.ceil(transformation.remaining)}s` : `${Math.floor(energy)}%`}</span>
+          </div>
         </div>
-    );
+        <div className="flight-distance">
+          <strong>
+            {Math.floor(distance).toLocaleString()}
+            <small>m</small>
+          </strong>
+          <span>DISTANCE</span>
+        </div>
+        <div className="flight-top-actions">
+          <span className="coin-balance">
+            <Coins size={18} />
+            {currency.toLocaleString()}
+          </span>
+          <button
+            className="icon-button"
+            onClick={onPause}
+            disabled={paused}
+            aria-label="Pause flight"
+          >
+            <Pause size={21} />
+          </button>
+        </div>
+      </div>
+      {transformation && <div className="transformation-banner">
+        <strong role="status">{transformation.name}</strong>
+        <span>{transformation.shieldRemaining > 0 ? `BARRIER ACTIVE · ${transformation.shieldRemaining.toFixed(1)}s` : transformation.phase === 'ENTERING' ? `ASSEMBLING · ${Math.round(transformation.transitionProgress * 100)}%` : transformation.phase === 'EXITING' ? 'Releasing modules…' : transformation.hint}</span>
+        {transformation.phase !== 'ACTIVE' && <div className="transformation-progress" role="progressbar" aria-label={transformation.phase === 'ENTERING' ? 'Vehicle assembly' : 'Returning to ship'} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(transformation.transitionProgress * 100)}>
+          <span style={{ width: `${transformation.transitionProgress * 100}%` }} />
+        </div>}
+      </div>}
+      <div className="flight-bonuses">
+        {combo >= 2 && <span className="combo-badge">{combo} streak</span>}
+        {activePowerUps.map((power) => (
+          <span
+            key={power.type}
+            className="power-badge"
+            title={power.name}
+            aria-label={`${power.name}: ${Math.ceil(power.remainingTime)} seconds`}
+          >
+            <span>{power.icon}</span>
+            {Math.ceil(power.remainingTime)}s
+          </span>
+        ))}
+      </div>
+      <div className="flight-controls">
+        <button
+          className="flight-pedal boost-pedal"
+          aria-label={primaryLabel}
+          onPointerDown={onBoostStart}
+          onPointerUp={onBoostEnd}
+          onPointerCancel={onBoostEnd}
+          onLostPointerCapture={onBoostEnd}
+          onKeyDown={(e) => {
+            if ((e.key === " " || e.key === "Enter") && !e.repeat) {
+              e.preventDefault();
+              onBoostStart(e);
+            }
+          }}
+          onKeyUp={(e) => {
+            if (e.key === " " || e.key === "Enter") {
+              e.preventDefault();
+              onBoostEnd(e);
+            }
+          }}
+          aria-disabled={Boolean(transformation && !formReady) || undefined}
+          disabled={paused || Boolean(countdown)}
+        >
+          <PrimaryIcon size={29} strokeWidth={3} />
+          <strong>{transformation?.primary || 'BOOST'}</strong>
+          <small>{transformation?.primaryHint || 'HOLD TO RISE'}</small>
+        </button>
+        <span className="keyboard-hint">
+          {transformation ? `SPACE / ↑ ${transformation.primary} · SHIFT ${transformation.secondary}` : 'SPACE / ↑ to boost · SHIFT to fire'}
+        </span>
+        <button
+          className="flight-pedal fire-pedal"
+          aria-label={secondaryLabel}
+          onPointerDown={(e) => {
+            if (e.button === 0) {
+              e.preventDefault();
+              onShoot();
+            }
+          }}
+          onClick={(e) => {
+            if (e.detail === 0) onShoot();
+          }}
+          disabled={!fireAvailable}
+        >
+          <SecondaryIcon size={28} />
+          <strong>{transformation?.secondary || 'FIRE'}</strong>
+          <small>{transformation ? transformation.cooldownRemaining > 0 ? `READY IN ${transformation.cooldownRemaining.toFixed(1)}s` : transformation.secondaryHint : unlimited ? '∞ AMMO' : `${ammo} / ${maxAmmo}`}</small>
+        </button>
+      </div>
+      {countdown && (
+        <div className="countdown-overlay">
+          <span>Back to your flight in</span>
+          <strong>{countdown}</strong>
+          <span>Get ready to boost</span>
+        </div>
+      )}
+    </div>
+  );
 }

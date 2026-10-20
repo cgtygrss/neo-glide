@@ -1,0 +1,7 @@
+No account or sign-in is required to play.
+
+Tap Play, then hold BOOST to rise and release it to descend. FIRE shoots at enemy ships. Garage previews are available without unlocking an item.
+
+The game uses optional rewarded ads for an additional flight-credit reward or one continue. Cancelling an ad does not grant a reward.
+
+Purchase and restore flows must be verified against the App Store Sandbox before submission. Do not submit this draft note until that verification is complete.

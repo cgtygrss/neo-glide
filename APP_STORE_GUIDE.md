@@ -31,7 +31,7 @@ Edit `package.json` and replace:
 with your actual name and email.
 
 #### App Bundle Identifier
-Your app ID is: `com.neonglide.game`
+Your app ID is: `com.cgtygrss.neoglide`
 - This must be unique in the App Store
 - If needed, change it in `capacitor.config.json`
 
@@ -71,7 +71,7 @@ Add privacy descriptions in `Info.plist` if your app uses:
    - **Platform**: iOS
    - **Name**: Neon Glide
    - **Primary Language**: English
-   - **Bundle ID**: com.neonglide.game
+   - **Bundle ID**: com.cgtygrss.neoglide
    - **SKU**: NEONGLIDE001 (or your choice)
 
 ### 9. Prepare App Store Information

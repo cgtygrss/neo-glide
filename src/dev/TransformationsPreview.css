@@ -1,0 +1,23 @@
+.vehicle-playground { height:100dvh; display:flex; flex-direction:column; background:#0b1725; color:#e5f4f1; font-family:inherit; }
+.vehicle-playground > header { flex:none; min-height:116px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:9px 18px; padding:12px 20px; border-bottom:1px solid #7de5ce44; }
+.vehicle-playground > header > div { display:flex; flex-direction:column; gap:3px; }
+.vehicle-playground > header strong { font-size:12px; letter-spacing:.08em; }
+.vehicle-playground > header span { font-size:10px; color:#9eb6c5; }
+.vehicle-playground nav { display:flex; flex-wrap:wrap; gap:6px; }
+.vehicle-playground nav button { border:1px solid #88b9bb55; border-radius:8px; padding:8px; min-height:36px; font-size:11px; background:#183245; }
+.vehicle-playground nav button[aria-pressed='true'] { border-color:#88ead3; background:#24584e; }
+.vehicle-playground label { font-size:11px; }
+.vehicle-playground select { border:1px solid #88b9bb55; padding:6px; border-radius:7px; color:#e5f4f1; background:#142838; }
+.vehicle-playground-scene { position:relative; flex:1; min-height:0; overflow:hidden; }
+.vehicle-playground-scene > canvas { width:100%; height:100%; display:block; touch-action:none; }
+.vehicle-playground-finished { position:absolute; left:50%; top:40%; translate:-50% 0; width:min(90%,380px); padding:14px; color:#e5f4f1; background:#10283cef; border-radius:12px; text-align:center; pointer-events:none; }
+@media(max-width:600px){.vehicle-playground > header{padding:8px 12px;gap:5px;}.vehicle-playground > header > div{width:100%;}.vehicle-playground nav button{font-size:10px;padding:6px;}.vehicle-playground > header label{font-size:10px;}.vehicle-playground select{max-width:125px;}}
+
+.vehicle-playground > header > .assembly-preview-controls { flex-direction:row; width:100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+.assembly-preview-controls button { border:1px solid #88b9bb55; border-radius:7px; background:#183245; padding:7px 10px; font-size:11px; min-height:34px; }
+.assembly-preview-controls label { display:flex; align-items:center; gap:6px; }
+.assembly-preview-controls input[type='range'] { width:140px; accent-color:#88ead3; }
+.assembly-preview-controls input[type='checkbox'] { accent-color:#88ead3; }
+.assembly-preview-controls output { font:11px monospace; min-width:40px; }
+.assembly-preview-controls select { max-width:140px; }
+@media(max-width:600px){.assembly-preview-controls{gap:5px 10px;}.assembly-preview-controls input[type='range']{width:100px;}.assembly-preview-controls select{max-width:100px;}}

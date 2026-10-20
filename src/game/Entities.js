@@ -1,3 +1,20 @@
+import { COIN_VALUES } from './Economy.js';
+
+export class HealthPickup {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 32;
+        this.height = 32;
+        this.markedForDeletion = false;
+    }
+
+    update(deltaTime, speed) {
+        this.x -= speed * deltaTime;
+        if (this.x + this.width < 0) this.markedForDeletion = true;
+    }
+}
+
 export class Player {
     constructor(thrusterLevel = 1) {
         this.x = 100;
@@ -54,22 +71,18 @@ export class Obstacle {
 }
 
 export class Collectible {
-    constructor(x, y) {
+    constructor(x, y, value = 50) {
         this.x = x;
         this.y = y;
-        this.radius = 10;
+        this.value = COIN_VALUES.includes(value) ? value : 50;
+        this.radius = this.value === 10000 ? 18 : 16;
         this.markedForDeletion = false;
-        this.oscillation = Math.random() * Math.PI * 2;
     }
 
     update(deltaTime, speed) {
         this.x -= speed * deltaTime;
-        this.oscillation += deltaTime * 5;
-        this.y += Math.sin(this.oscillation) * 0.5; // Floating effect
-
-        if (this.x + this.radius < 0) {
-            this.markedForDeletion = true;
-        }
+        // Keep authored rows/arcs intact; attraction may still move either coordinate.
+        if (this.x + this.radius < 0) this.markedForDeletion = true;
     }
 }
 
@@ -82,10 +95,8 @@ export class Fuel {
         this.markedForDeletion = false;
         this.oscillation = Math.random() * Math.PI * 2;
 
-        // Varied Fuel Types
-        this.type = Math.random() > 0.9 ? 'LARGE' : 'SMALL'; // 10% chance for large (Rare)
-        this.value = this.type === 'LARGE' ? 50 : 25;
-        this.color = this.type === 'LARGE' ? '#0088ff' : '#ffff00'; // Blue vs Yellow
+        this.color = '#ffff00';
+
     }
 
     update(deltaTime, speed) {
@@ -234,12 +245,14 @@ export class Projectile {
 }
 
 export class PlayerProjectile {
-    constructor(x, y, type = 'default') {
+    constructor(x, y, type = 'default', cosmeticId = '') {
         this.x = x;
         this.y = y;
         this.radius = 5;
         this.markedForDeletion = false;
         this.type = type;
+        this.cosmeticId = cosmeticId;
+        this.visualAge = 0;
 
         // Weapon Stats
         switch (type) {
@@ -273,6 +286,7 @@ export class PlayerProjectile {
     }
 
     update(deltaTime) {
+        this.visualAge += Math.max(0, deltaTime);
         this.x += this.speed * deltaTime;
         if (this.x > window.innerWidth) {
             this.markedForDeletion = true;

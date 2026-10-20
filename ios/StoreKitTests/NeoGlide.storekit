@@ -1,0 +1,84 @@
+{
+  "identifier": "B87DD569-17BD-48C4-BAB2-A922F4637B58",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "2.99", "familyShareable": false, "internalID": "10000001",
+      "localizations": [{ "description": "Permanent removal of forced ads. Optional rewarded ads remain available.", "displayName": "Ad-Free Flight", "locale": "en_US" }],
+      "productID": "remove_ads", "referenceName": "Ad-Free Flight", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99", "familyShareable": false, "internalID": "10000002",
+      "localizations": [{ "description": "200000 credits, Interceptor and Solar Blaster.", "displayName": "Starter Pack", "locale": "en_US" }],
+      "productID": "starter_pack", "referenceName": "Starter Pack", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.99", "familyShareable": false, "internalID": "10000003",
+      "localizations": [{ "description": "100000 credits for the Garage.", "displayName": "100000 Credits", "locale": "en_US" }],
+      "productID": "credits_1000", "referenceName": "100000 Credits", "type": "Consumable"
+    },
+    {
+      "displayPrice": "3.99", "familyShareable": false, "internalID": "10000004",
+      "localizations": [{ "description": "550000 credits for the Garage.", "displayName": "550000 Credits", "locale": "en_US" }],
+      "productID": "credits_5500", "referenceName": "550000 Credits", "type": "Consumable"
+    },
+    {
+      "displayPrice": "7.99", "familyShareable": false, "internalID": "10000005",
+      "localizations": [{ "description": "1500000 credits for the Garage.", "displayName": "1500000 Credits", "locale": "en_US" }],
+      "productID": "credits_15000", "referenceName": "1500000 Credits", "type": "Consumable"
+    },
+    {
+      "displayPrice": "7.99", "familyShareable": false, "internalID": "10000006",
+      "localizations": [{ "description": "Black and violet hull theme with a lavender trail.", "displayName": "Void Pilot", "locale": "en_US" }],
+      "productID": "cosmetic_void_pilot", "referenceName": "Void Pilot", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "5.99", "familyShareable": false, "internalID": "10000007",
+      "localizations": [{ "description": "Anthracite, gold and orange hull theme.", "displayName": "Solar Forge", "locale": "en_US" }],
+      "productID": "cosmetic_solar_forge", "referenceName": "Solar Forge", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.49", "familyShareable": false, "internalID": "10000008",
+      "localizations": [{ "description": "White and ice-blue hull theme.", "displayName": "Arctic Pulse", "locale": "en_US" }],
+      "productID": "cosmetic_arctic_pulse", "referenceName": "Arctic Pulse", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.99", "familyShareable": false, "internalID": "10000009",
+      "localizations": [{ "description": "Navy and cyan hull theme.", "displayName": "Cyber Current", "locale": "en_US" }],
+      "productID": "cosmetic_cyber_current", "referenceName": "Cyber Current", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99", "familyShareable": false, "internalID": "10000010",
+      "localizations": [{ "description": "Pink and silver circuit hull theme.", "displayName": "Rose Circuit", "locale": "en_US" }],
+      "productID": "cosmetic_rose_circuit", "referenceName": "Rose Circuit", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.49", "familyShareable": false, "internalID": "10000011",
+      "localizations": [{ "description": "Jade and copper hull theme.", "displayName": "Jade Drift", "locale": "en_US" }],
+      "productID": "cosmetic_jade_drift", "referenceName": "Jade Drift", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "6.99", "familyShareable": false, "internalID": "10000012",
+      "localizations": [{ "description": "Pearl and champagne hull theme.", "displayName": "Pearl Comet", "locale": "en_US" }],
+      "productID": "cosmetic_pearl_comet", "referenceName": "Pearl Comet", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "8.99", "familyShareable": false, "internalID": "10000013",
+      "localizations": [{ "description": "Graphite and cobalt hull theme.", "displayName": "Cobalt Storm", "locale": "en_US" }],
+      "productID": "cosmetic_cobalt_storm", "referenceName": "Cobalt Storm", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.99", "familyShareable": false, "internalID": "10000014",
+      "localizations": [{ "description": "Copper and cream hull theme.", "displayName": "Copper Horizon", "locale": "en_US" }],
+      "productID": "cosmetic_copper_horizon", "referenceName": "Copper Horizon", "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "9.99", "familyShareable": false, "internalID": "10000015",
+      "localizations": [{ "description": "Violet, cyan and pink hull theme.", "displayName": "Prism Voyager", "locale": "en_US" }],
+      "productID": "cosmetic_prism_voyager", "referenceName": "Prism Voyager", "type": "NonConsumable"
+    }
+  ],
+  "settings": { "_failTransactionsEnabled": false, "_locale": "en_US", "_storefront": "USA" },
+  "subscriptionGroups": [],
+  "version": { "major": 3, "minor": 0 }
+}

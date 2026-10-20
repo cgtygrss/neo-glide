@@ -1,0 +1,172 @@
+{
+  "capturedOn": "2026-10-16",
+  "app": {
+    "bundleIdentifier": "com.cgtygrssgame.neonglide",
+    "installedSnapshotVersion": "1.0.1",
+    "installedSnapshotBuild": "2",
+    "context": "Supplied pre-release Debug snapshot with current non-Store UI; final release candidate is 1.2.0 (3). Premium Store screens deliberately excluded."
+  },
+  "temporaryHarness": "/tmp/neo-glide-native-capture",
+  "finalXCTestRuns": [
+    {
+      "device": "iPhone 18 Pro Max",
+      "result": "passed",
+      "xcresult": "/tmp/neo-glide-native-capture/results/iphone-6.9-v4.xcresult"
+    },
+    {
+      "device": "iPad Pro 13-inch (M5)",
+      "result": "passed",
+      "xcresult": "/tmp/neo-glide-native-capture/results/ipad-13-v4.xcresult"
+    },
+    {
+      "device": "iPad Pro 13-inch (M5)",
+      "scope": "Tesla Arc selection verification and corrected screenshot",
+      "result": "passed",
+      "xcresult": "/tmp/neo-glide-native-capture/results/ipad-13-v5.xcresult"
+    }
+  ],
+  "processing": "Only fully-opaque alpha channel removed for App Store delivery. No crop, resize, retouch, overlay, scene injection or RGB pixel changes in delivered device-folder PNGs.",
+  "screenshots": [
+    {
+      "path": "iphone-6.9/01-home.png",
+      "device": "iPhone 18 Pro Max",
+      "uuid": "ADA2064F-969D-4682-89B4-2C634F3733CA",
+      "width": 2868,
+      "height": 1320,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/iphone-6.9/01-home.png",
+      "rawSha256": "5f4bbd65975d2a5bb9711f42572b2eaef85e0371f5f7e6e67ac1b1bf25c4efb5",
+      "sha256": "4236cf04611bfe0d19b8e7c1d12cd7678812c488280912a9321f45214f730c06",
+      "decodedRgbSha256": "1b78c2c57b17b13a12d255613b0acb6fa18e743a949c726cc5739394f0c138b7",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "iphone-6.9/02-ships-plasma-breaker.png",
+      "device": "iPhone 18 Pro Max",
+      "uuid": "ADA2064F-969D-4682-89B4-2C634F3733CA",
+      "width": 2868,
+      "height": 1320,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/iphone-6.9/02-ships-plasma-breaker.png",
+      "rawSha256": "5aa9cf1a60c6a841c183d9c00a6d1e0b0b58146475a4a0a91c8461a8172992dd",
+      "sha256": "296c6940486bb51d4e2c16be4b360fc3b6119345edd85d3ed73d19bf48f4f2d7",
+      "decodedRgbSha256": "59c87c8574761b5c697ab9107d89cbf49effa1f3b627f836c99856de9147b0b0",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "iphone-6.9/03-weapons-tesla-arc.png",
+      "device": "iPhone 18 Pro Max",
+      "uuid": "ADA2064F-969D-4682-89B4-2C634F3733CA",
+      "width": 2868,
+      "height": 1320,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/iphone-6.9/03-weapons-tesla-arc.png",
+      "rawSha256": "5ab8b97b8cd2d4521eb9e2addc7fb88169d8451993312e1f9c613a4e7a47abc4",
+      "sha256": "ccc19a6b792bc02a33c1f8687ce9418b9bb2b4652799588ecfb97b8c2b055a3f",
+      "decodedRgbSha256": "261c29648194af52add75e1a5732d39bb97cfd5ed6f3cb1ef5d12f82cf1d3897",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "iphone-6.9/04-upgrades.png",
+      "device": "iPhone 18 Pro Max",
+      "uuid": "ADA2064F-969D-4682-89B4-2C634F3733CA",
+      "width": 2868,
+      "height": 1320,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/iphone-6.9/04-upgrades.png",
+      "rawSha256": "788e7ace28ae162d0071db668ff01e30a9dc9f151f826fb95672f5173046089d",
+      "sha256": "3fab6df99e97602dfd91fc15fe080229333b56dee48ba8bfd47b0560868068f2",
+      "decodedRgbSha256": "79f7910ee18ec8a80890bd74b2dd25541470b4ac28f300f1e1d1b61a9bda9eca",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "iphone-6.9/05-flight.png",
+      "device": "iPhone 18 Pro Max",
+      "uuid": "ADA2064F-969D-4682-89B4-2C634F3733CA",
+      "width": 2868,
+      "height": 1320,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/iphone-6.9/05-flight-early-3.png",
+      "rawSha256": "fe3fdd42b4069d1295473573c2da2186daac80aeb2d4a12a1da7757c38fe865e",
+      "sha256": "9e427ba6e3550b32a4f349fd0cf5c446c2238a41a99b5a85e378168ce258eed2",
+      "decodedRgbSha256": "176da06a9741269001bc94477b7d5ccc5e21d9f485aedd9fb964e106ee185a48",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "ipad-13/01-home.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "uuid": "E9C17B9D-7076-4572-A607-B297BD090F41",
+      "width": 2752,
+      "height": 2064,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/ipad-13/01-home.png",
+      "rawSha256": "b579277652d39be91a635f0ac114076559c7e82f652aec766e90afe07514e888",
+      "sha256": "097b5a63e9e52665dcd3401151226b00b856c0b6968a3cfbd445fcc57c327b9e",
+      "decodedRgbSha256": "66ce9fe7fb00be244e5c065b09ce8a8dc2b137311562fd15c430cecc96f4777e",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "ipad-13/02-ships-plasma-breaker.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "uuid": "E9C17B9D-7076-4572-A607-B297BD090F41",
+      "width": 2752,
+      "height": 2064,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/ipad-13/02-ships-plasma-breaker.png",
+      "rawSha256": "4a50ecdcb85ab41705eb63d042fda3340d0709e9373c431b41e7b91f882cddd4",
+      "sha256": "2206e29adb8ba9c51ff6fa2944ae34f09d5eecce5350d734e1db40cf5961fb7c",
+      "decodedRgbSha256": "cd9938342911e7f722621f081b5f9c64e4b6d7f6b90b145e57f08eb3ed2076bc",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "ipad-13/03-weapons-tesla-arc.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "uuid": "E9C17B9D-7076-4572-A607-B297BD090F41",
+      "width": 2752,
+      "height": 2064,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/ipad-13/03-weapons-tesla-arc.png",
+      "rawSha256": "432856c3a709d91461a06b845bbc77c92b901559deea1a7186dc77b564467380",
+      "sha256": "ac8bd5da13ee2e1c9bf1ac983b59ce58bc999423828f6ba3d97fd1f7c1224a40",
+      "decodedRgbSha256": "e7af7c85a959d43d219d97d022301351b15fc49efc34948ebd848fac684407b6",
+      "decodedRgbUnchanged": true,
+      "selectedPreviewVerified": "Tesla Arc preview details accessibility region asserted by XCTest"
+    },
+    {
+      "path": "ipad-13/04-upgrades.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "uuid": "E9C17B9D-7076-4572-A607-B297BD090F41",
+      "width": 2752,
+      "height": 2064,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/ipad-13/04-upgrades.png",
+      "rawSha256": "e64f3c22ea1854747876319e56e7e97bab0352329ae02011c4dbb31180aa9e8c",
+      "sha256": "f9e8fef3b3ee87d99310afd9cb27d50ee1180e5064e1a168573ee2597d1f7ca2",
+      "decodedRgbSha256": "6b9a0b1f97bd3c1e7f1f146f76a93f5acfb2f641499f81697465457f1118681c",
+      "decodedRgbUnchanged": true
+    },
+    {
+      "path": "ipad-13/05-flight.png",
+      "device": "iPad Pro 13-inch (M5)",
+      "uuid": "E9C17B9D-7076-4572-A607-B297BD090F41",
+      "width": 2752,
+      "height": 2064,
+      "hasAlpha": false,
+      "captureMethod": "xcrun simctl io screenshot, synchronized with actual XCTest UI input",
+      "rawSource": "/tmp/neo-glide-native-capture/raw/ipad-13/05-flight-early-3.png",
+      "rawSha256": "23deb06715981bc2797884b9b2237101ab2bf99f4dc90d32531abdce404927fa",
+      "sha256": "ab67333e9fec38c48f54ca91b8e9fd58a077a0bb43fd5d8ef81453873f2cece4",
+      "decodedRgbSha256": "6d986a629362976be4d15317a84a07f820ed507340b6cd20b0e40f0dc89d6e35",
+      "decodedRgbUnchanged": true
+    }
+  ]
+}

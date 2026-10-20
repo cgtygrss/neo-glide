@@ -1,307 +1,128 @@
-import React, { useState } from 'react';
-import { Zap, Magnet, Rocket, Shield, ArrowLeft, Crosshair, Anchor, EyeOff, Star, Activity, ShoppingCart, Circle, Minus } from 'lucide-react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { Zap, Magnet, Rocket, Shield, ArrowLeft, Crosshair, Star, Activity, Circle, Minus, BadgeDollarSign, Coins, Check, Eye, ArrowRight, Sparkles } from 'lucide-react';
+import StageBrowser from './StageBrowser';
+import RealMoneyStore from './RealMoneyStore';
+import FleetBrowser from './FleetBrowser';
+import ShopPreviewCanvas from './ShopPreviewCanvas';
+import { UPGRADES, WEAPONS, upgradeOffer, weaponDetails } from '../game/ShopCatalog';
+import ShipPreview from './ShipPreview';
+import { getStorePlatform, getStoreProducts, refreshStoreProducts, subscribeStore } from '../services/MonetizationService';
+import { canRetryPendingPurchase } from '../services/StorePolicy';
 
-const UPGRADES = [
-    { id: 'battery', name: 'Battery Capacity', icon: Zap, cost: 100, desc: 'Boost for longer duration.' },
-    { id: 'thruster', name: 'Thruster Power', icon: Rocket, cost: 150, desc: 'Climb faster and higher.' },
-    { id: 'magnet', name: 'Magnet Range', icon: Magnet, cost: 200, desc: 'Attract data from further away.' },
-    { id: 'hull', name: 'Hull Strength', icon: Shield, cost: 500, desc: 'Survive one collision.' },
-    { id: 'multiplier', name: 'Data Multiplier', icon: Star, cost: 1000, desc: 'Earn 2x currency per pickup.' },
-    { id: 'shield_gen', name: 'Shield Generator', icon: Activity, cost: 2000, desc: 'Regenerate hull over time.' },
-];
+const ICONS = { battery: Zap, thruster: Rocket, magnet: Magnet, hull: Shield, multiplier: Star, shield_gen: Activity, default: Zap, blaster: Crosshair, cannon: Circle, beam: Minus, wave: Activity, shock: Zap };
+function BuyItem({ item, kind, cost, owned, equipped, currency, onBuy, onEquip, maxed = false }) {
+  return <button type="button" className={`arcade-button ${equipped || (!owned && currency < cost) ? 'secondary' : 'primary'}`}
+    disabled={maxed || equipped || (!owned && currency < cost)}
+    onClick={()=>owned ? onEquip(item.id,'weapon') : onBuy(item.id,cost,kind)}>
+    {maxed ? <><Check size={16}/>Maximum · 2×</> : equipped ? <><Check size={16}/>Equipped</> : owned ? 'Use this weapon' : <><span>{kind==='upgrade'?'Upgrade':'Unlock'}</span><Coins size={15}/>{cost.toLocaleString()}</>}
+  </button>;
+}
 
-const SHIPS = [
-    { id: 'default', name: 'Standard Glider', icon: Rocket, cost: 0, desc: 'Reliable and balanced.' },
-    { id: 'interceptor', name: 'Interceptor', icon: Crosshair, cost: 1000, desc: 'Aerodynamic combat design.' },
-    { id: 'cruiser', name: 'Heavy Cruiser', icon: Anchor, cost: 2500, desc: 'Robust industrial frame.' },
-    { id: 'stealth', name: 'Stealth Wing', icon: EyeOff, cost: 5000, desc: 'Advanced prototype tech.' },
-    { id: 'void_runner', name: 'Void Runner', icon: Zap, cost: 10000, desc: 'Phases through small obstacles.' },
-    { id: 'plasma_breaker', name: 'Plasma Breaker', icon: Shield, cost: 20000, desc: 'Destroys obstacles on impact.' },
-];
+function CosmeticsBrowser({ cosmetics, ownedCosmetics, equippedCosmetic, pendingProducts, currency, ship, busyProduct, purchaseMessage, onBuy, onEquip, onPurchase, onRestore }) {
+  const storeProducts = useSyncExternalStore(subscribeStore, getStoreProducts);
+  const [selectedId, setSelectedId] = useState(equippedCosmetic || cosmetics[0]?.id);
+  const selected = cosmetics.find(item => item.id === selectedId) || cosmetics[0];
+  useEffect(() => { void refreshStoreProducts().catch(() => {}); }, []);
+  if (!selected) return null;
+  const owned = Boolean(ownedCosmetics[selected.id]);
+  const equipped = selected.id === equippedCosmetic;
+  const pending = pendingProducts.includes(selected.productId);
+  const selectedStoreProduct = storeProducts.find(item => item.id === selected.productId);
+  return <div className="shop-item-browser cosmetic-browser">
+    <section className="shop-spotlight cosmetic-spotlight-layout" aria-label={`${selected.name} cosmetic preview`}>
+      <div className="shop-spotlight-stage cosmetic-spotlight" style={{ '--cosmetic-accent': selected.colors.accent }}><ShopPreviewCanvas kind="cosmetic" itemId={selected.id} ship={ship}/></div>
+      <div key={selected.id} className="shop-spotlight-details selection-reveal"><div className="cosmetic-meta"><span className="cosmetic-tier">{selected.tier}</span><span>{String(selected.rank).padStart(2, '0')} / {String(cosmetics.length).padStart(2, '0')}</span></div><h3>{selected.name}</h3><p>{selected.description}</p>
+        {pending ? canRetryPendingPurchase({ platform: getStorePlatform(), isPending: true, isOwned: owned })
+          ? <button className="arcade-button secondary" disabled={Boolean(busyProduct)} onClick={() => onPurchase(selected.productId)}>Check / retry purchase</button>
+          : <button className="arcade-button secondary" disabled>Approval pending</button>
+          : equipped ? <button className="arcade-button secondary" disabled><Check size={16}/>Active</button>
+          : owned ? <button className="arcade-button primary" onClick={() => onEquip(selected.id, 'cosmetic')}>Equip cosmetic</button>
+          : <div className={`cosmetic-actions ${selectedStoreProduct?.available ? '' : 'single'}`} aria-label="Purchase options"><button type="button" className="cosmetic-action credit" aria-label={`Unlock ${selected.name} for ${selected.creditPrice.toLocaleString()} credits`} disabled={currency < selected.creditPrice || Boolean(busyProduct)} onClick={() => onBuy(selected.id, selected.creditPrice, 'cosmetic')}><span>Unlock <Coins size={15}/></span><strong>{selected.creditPrice.toLocaleString()}</strong><small>credits</small></button>{selectedStoreProduct?.available && <button type="button" className="cosmetic-action cash" aria-label={`Buy ${selected.name} for ${selectedStoreProduct.price}, one-time purchase`} disabled={Boolean(busyProduct)} onClick={() => onPurchase(selected.productId)}><span>Buy</span><strong>{selectedStoreProduct.price}</strong><small>one-time</small></button>}</div>}
+        {equippedCosmetic && <button className="cosmetic-reset" type="button" onClick={() => onEquip('', 'cosmetic')}>Use default colors</button>}
+        <button type="button" className="cosmetic-reset" onClick={onRestore} disabled={Boolean(busyProduct)}>Restore purchases</button>
+        {purchaseMessage && <p className="premium-message" role="status">{purchaseMessage}</p>}
+      </div>
+    </section>
+    <div className="shop-selection-heading"><span>Theme library</span><span>{cosmetics.length} permanent cosmetics</span></div>
+    <div className="garage-grid cosmetic-grid">{cosmetics.map(item => {
+      const itemOwned = Boolean(ownedCosmetics[item.id]), itemEquipped = item.id === equippedCosmetic, itemPending = pendingProducts.includes(item.productId);
+      return <article key={item.id} className={`garage-card visual-garage-card ${item.id === selected.id ? 'preview-selected' : ''} ${itemEquipped ? 'equipped' : ''}`} style={{ '--cosmetic-accent': item.colors.accent }}>
+        <div className="garage-card-top"><span className="garage-item-icon"><Sparkles size={18}/></span><span className="item-level">{itemEquipped ? 'Active' : itemOwned ? 'Owned' : itemPending ? 'Pending' : 'Locked'}</span></div>
+        <button type="button" className="garage-preview-choice cosmetic-choice" aria-label={`Preview ${item.name}`} onClick={() => setSelectedId(item.id)}><ShipPreview ship={ship} cosmeticId={item.id} boosting/><span><Eye size={13}/>Preview</span></button>
+        <h3>{item.name}</h3><p className="cosmetic-card-meta">{item.tier} · {String(item.rank).padStart(2, '0')} / {String(cosmetics.length).padStart(2, '0')}</p><p>{item.creditPrice.toLocaleString()} credits</p>
+      </article>;
+    })}</div>
+  </div>;
+}
 
-const WEAPONS = [
-    { id: 'default', name: 'Pulse Laser', icon: Zap, cost: 0, desc: 'Standard rapid-fire energy bolts.' },
-    { id: 'blaster', name: 'Solar Blaster', icon: Crosshair, cost: 1500, desc: 'High-velocity orange plasma.' },
-    { id: 'cannon', name: 'Magma Cannon', icon: Circle, cost: 3000, desc: 'Heavy red energy spheres.' },
-    { id: 'beam', name: 'Ion Beam', icon: Minus, cost: 6000, desc: 'Precise blue laser stream.' },
-    { id: 'wave', name: 'Void Wave', icon: Activity, cost: 12000, desc: 'Oscillating purple energy.' },
-    { id: 'shock', name: 'Tesla Arc', icon: Zap, cost: 25000, desc: 'Unstable green lightning.' },
-];
-
-export default function Shop({ currency, upgrades, ownedShips = [], equippedShip = 'default', ownedWeapons = [], equippedWeapon = 'default', onBuy, onEquip, onClose }) {
-    const [activeTab, setActiveTab] = useState('upgrades'); // 'upgrades', 'ships', 'weapons'
-
-    return (
-        <div className="absolute inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-50 animate-fade-in">
-            {/* Background Grid Effect */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-size-[40px_40px] pointer-events-none"></div>
-
-            <div className="relative w-full max-w-2xl h-[60vh] flex flex-col bg-gray-900/80 border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden">
-
-                {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-white/10 bg-black/40">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-neon-blue/20 rounded-lg border border-neon-blue/50 shadow-[0_0_15px_rgba(0,243,255,0.3)]">
-                            <ShoppingCart className="w-6 h-6 text-neon-blue" />
-                        </div>
-                        <div>
-                            <h2 className="text-3xl font-black text-white tracking-tighter italic">
-                                CYBER<span className="text-neon-blue">MARKET</span>
-                            </h2>
-                            <p className="text-xs text-gray-400 tracking-widest uppercase">Black Market Upgrades</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <div className="flex flex-col items-end">
-                            <span className="text-xs text-gray-400 font-bold tracking-widest">AVAILABLE CREDITS</span>
-                            <div className="text-2xl font-mono font-bold text-neon-green drop-shadow-[0_0_8px_rgba(0,255,153,0.6)]">
-                                ${currency.toLocaleString()}
-                            </div>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="p-3 hover:bg-white/10 rounded-full transition-all hover:rotate-90 active:scale-90 group"
-                        >
-                            <ArrowLeft className="w-6 h-6 text-gray-400 group-hover:text-white" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex border-b border-white/10 bg-black/20">
-                    <button
-                        onClick={() => setActiveTab('upgrades')}
-                        className={`flex-1 py-4 text-sm font-bold tracking-widest transition-all relative overflow-hidden group ${activeTab === 'upgrades' ? 'text-neon-blue bg-neon-blue/5' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-                            }`}
-                    >
-                        <div className="flex items-center justify-center gap-2">
-                            <Zap className={`w-4 h-4 ${activeTab === 'upgrades' ? 'animate-pulse' : ''}`} />
-                            SYSTEM UPGRADES
-                        </div>
-                        {activeTab === 'upgrades' && (
-                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neon-blue shadow-[0_0_10px_#00f3ff]" />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('ships')}
-                        className={`flex-1 py-4 text-sm font-bold tracking-widest transition-all relative overflow-hidden group ${activeTab === 'ships' ? 'text-neon-pink bg-neon-pink/5' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-                            }`}
-                    >
-                        <div className="flex items-center justify-center gap-2">
-                            <Rocket className={`w-4 h-4 ${activeTab === 'ships' ? 'animate-pulse' : ''}`} />
-                            FLIGHT CHASSIS
-                        </div>
-                        {activeTab === 'ships' && (
-                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neon-pink shadow-[0_0_10px_#ff00ff]" />
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('weapons')}
-                        className={`flex-1 py-4 text-sm font-bold tracking-widest transition-all relative overflow-hidden group ${activeTab === 'weapons' ? 'text-neon-green bg-neon-green/5' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-                            }`}
-                    >
-                        <div className="flex items-center justify-center gap-2">
-                            <Crosshair className={`w-4 h-4 ${activeTab === 'weapons' ? 'animate-pulse' : ''}`} />
-                            WEAPONRY
-                        </div>
-                        {activeTab === 'weapons' && (
-                            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-neon-green shadow-[0_0_10px_#00ff99]" />
-                        )}
-                    </button>
-                </div>
-
-                {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                    {activeTab === 'upgrades' ? (
-                        <div className="flex flex-wrap justify-center content-center gap-6 min-h-full">
-                            {UPGRADES.map((item) => {
-                                const level = upgrades[item.id] || 1;
-                                const currentCost = Math.floor(item.cost * Math.pow(1.5, level - 1));
-                                const canAfford = currency >= currentCost;
-
-                                return (
-                                    <div key={item.id} className="group relative bg-black/40 border border-white/10 rounded-xl p-5 hover:border-neon-blue/50 transition-all hover:shadow-[0_0_20px_rgba(0,243,255,0.15)] hover:-translate-y-1 min-w-[280px] max-w-[400px]">
-                                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                            <item.icon className="w-24 h-24 text-neon-blue" />
-                                        </div>
-
-                                        <div className="relative z-10">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-3 bg-gray-800 rounded-lg border border-gray-700 group-hover:border-neon-blue/30 transition-colors">
-                                                    <item.icon className="w-6 h-6 text-neon-blue" />
-                                                </div>
-                                                <span className="px-2 py-1 bg-neon-blue/10 text-neon-blue text-[10px] font-bold rounded border border-neon-blue/20">
-                                                    LVL {level}
-                                                </span>
-                                            </div>
-
-                                            <h3 className="text-lg font-bold text-white mb-1 group-hover:text-neon-blue transition-colors">{item.name}</h3>
-                                            <p className="text-sm text-gray-400 mb-6 h-10 leading-tight">{item.desc}</p>
-
-                                            <button
-                                                onClick={() => onBuy(item.id, currentCost, 'upgrade')}
-                                                disabled={!canAfford}
-                                                className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${canAfford
-                                                    ? 'bg-neon-blue hover:bg-blue-500 text-black shadow-[0_0_15px_rgba(0,243,255,0.4)] hover:shadow-[0_0_25px_rgba(0,243,255,0.6)]'
-                                                    : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'
-                                                    }`}
-                                            >
-                                                {canAfford ? (
-                                                    <>
-                                                        <span>UPGRADE</span>
-                                                        <span className="bg-black/20 px-2 py-0.5 rounded text-xs">${currentCost}</span>
-                                                    </>
-                                                ) : (
-                                                    <span>MISSING ${currentCost - currency}</span>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : activeTab === 'ships' ? (
-                        <div className="flex flex-wrap justify-center content-center gap-6 min-h-full">
-                            {SHIPS.map((item) => {
-                                const isOwned = ownedShips.includes(item.id);
-                                const isEquipped = equippedShip === item.id;
-                                const canAfford = currency >= item.cost;
-
-                                return (
-                                    <div key={item.id} className={`group relative bg-black/40 border rounded-xl p-5 transition-all hover:-translate-y-1 min-w-[280px] max-w-[400px] ${isEquipped
-                                        ? 'border-neon-pink shadow-[0_0_20px_rgba(236,72,153,0.2)]'
-                                        : 'border-white/10 hover:border-neon-pink/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]'
-                                        }`}>
-                                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                            <item.icon className="w-24 h-24 text-neon-pink" />
-                                        </div>
-
-                                        <div className="relative z-10">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className={`p-3 rounded-lg border transition-colors ${isEquipped ? 'bg-neon-pink/20 border-neon-pink/50' : 'bg-gray-800 border-gray-700 group-hover:border-neon-pink/30'
-                                                    }`}>
-                                                    <item.icon className={`w-6 h-6 ${isEquipped ? 'text-neon-pink' : 'text-gray-400 group-hover:text-neon-pink'}`} />
-                                                </div>
-                                                {isEquipped && (
-                                                    <span className="px-2 py-1 bg-neon-pink/10 text-neon-pink text-[10px] font-bold rounded border border-neon-pink/20 animate-pulse">
-                                                        ACTIVE
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <h3 className={`text-lg font-bold mb-1 transition-colors ${isEquipped ? 'text-neon-pink' : 'text-white group-hover:text-neon-pink'}`}>
-                                                {item.name}
-                                            </h3>
-                                            <p className="text-sm text-gray-400 mb-6 h-10 leading-tight">{item.desc}</p>
-
-                                            {isOwned ? (
-                                                <button
-                                                    onClick={() => onEquip(item.id)}
-                                                    disabled={isEquipped}
-                                                    className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all ${isEquipped
-                                                        ? 'bg-gray-800 text-neon-pink border border-neon-pink/30 cursor-default'
-                                                        : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.3)]'
-                                                        }`}
-                                                >
-                                                    {isEquipped ? 'EQUIPPED' : 'EQUIP CHASSIS'}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => onBuy(item.id, item.cost, 'ship')}
-                                                    disabled={!canAfford}
-                                                    className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${canAfford
-                                                        ? 'bg-neon-pink hover:bg-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)] hover:shadow-[0_0_25px_rgba(236,72,153,0.6)]'
-                                                        : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'
-                                                        }`}
-                                                >
-                                                    {canAfford ? (
-                                                        <>
-                                                            <span>PURCHASE</span>
-                                                            <span className="bg-black/20 px-2 py-0.5 rounded text-xs">${item.cost.toLocaleString()}</span>
-                                                        </>
-                                                    ) : (
-                                                        <span>MISSING ${item.cost - currency}</span>
-                                                    )}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="flex flex-wrap justify-center content-center gap-6 min-h-full">
-                            {WEAPONS.map((item) => {
-                                const isOwned = ownedWeapons.includes(item.id);
-                                const isEquipped = equippedWeapon === item.id;
-                                const canAfford = currency >= item.cost;
-
-                                return (
-                                    <div key={item.id} className={`group relative bg-black/40 border rounded-xl p-5 transition-all hover:-translate-y-1 min-w-[280px] max-w-[400px] ${isEquipped
-                                        ? 'border-neon-green shadow-[0_0_20px_rgba(0,255,153,0.2)]'
-                                        : 'border-white/10 hover:border-neon-green/50 hover:shadow-[0_0_20px_rgba(0,255,153,0.15)]'
-                                        }`}>
-                                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                            <item.icon className="w-24 h-24 text-neon-green" />
-                                        </div>
-
-                                        <div className="relative z-10">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className={`p-3 rounded-lg border transition-colors ${isEquipped ? 'bg-neon-green/20 border-neon-green/50' : 'bg-gray-800 border-gray-700 group-hover:border-neon-green/30'
-                                                    }`}>
-                                                    <item.icon className={`w-6 h-6 ${isEquipped ? 'text-neon-green' : 'text-gray-400 group-hover:text-neon-green'}`} />
-                                                </div>
-                                                {isEquipped && (
-                                                    <span className="px-2 py-1 bg-neon-green/10 text-neon-green text-[10px] font-bold rounded border border-neon-green/20 animate-pulse">
-                                                        ACTIVE
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <h3 className={`text-lg font-bold mb-1 transition-colors ${isEquipped ? 'text-neon-green' : 'text-white group-hover:text-neon-green'}`}>
-                                                {item.name}
-                                            </h3>
-                                            <p className="text-sm text-gray-400 mb-6 h-10 leading-tight">{item.desc}</p>
-
-                                            {isOwned ? (
-                                                <button
-                                                    onClick={() => onEquip(item.id, 'weapon')}
-                                                    disabled={isEquipped}
-                                                    className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all ${isEquipped
-                                                        ? 'bg-gray-800 text-neon-green border border-neon-green/30 cursor-default'
-                                                        : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.3)]'
-                                                        }`}
-                                                >
-                                                    {isEquipped ? 'EQUIPPED' : 'EQUIP WEAPON'}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => onBuy(item.id, item.cost, 'weapon')}
-                                                    disabled={!canAfford}
-                                                    className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${canAfford
-                                                        ? 'bg-neon-green hover:bg-green-500 text-black shadow-[0_0_15px_rgba(0,255,153,0.4)] hover:shadow-[0_0_25px_rgba(0,255,153,0.6)]'
-                                                        : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'
-                                                        }`}
-                                                >
-                                                    {canAfford ? (
-                                                        <>
-                                                            <span>PURCHASE</span>
-                                                            <span className="bg-black/20 px-2 py-0.5 rounded text-xs">${item.cost.toLocaleString()}</span>
-                                                        </>
-                                                    ) : (
-                                                        <span>MISSING ${item.cost - currency}</span>
-                                                    )}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            </div>
+export default function Shop({ initialTab = 'upgrades', equippedStage = 'default', stageOwnership = {}, onStageUnlock, onStageEquip, currency, upgrades, pilotLevel = 1, ownedShips = [], equippedShip = 'default', ownedWeapons = [], equippedWeapon = 'default', cosmetics = [], ownedCosmetics = {}, equippedCosmetic = '', pendingProducts = [], purchases = {}, busyProduct, purchaseMessage, onBuy, onEquip, onPurchase, onRestore, onClose }) {
+  const [activeTab,setActiveTab] = useState(initialTab);
+  const [upgradeId,setUpgradeId] = useState('battery');
+  const [weaponId,setWeaponId] = useState(equippedWeapon);
+  const tabs=[{id:'upgrades',name:'Upgrades',icon:Zap},{id:'ships',name:'Ships',icon:Rocket},{id:'weapons',name:'Weapons',icon:Crosshair},{id:'cosmetics',name:'Cosmetics',icon:Sparkles},{id:'stages',name:'Galaxies',icon:Star},{id:'premium',name:'Store',icon:BadgeDollarSign}];
+  const isUpgrade=activeTab==='upgrades';
+  const kind=isUpgrade?'upgrade':'weapon';
+  const items=isUpgrade?UPGRADES:WEAPONS;
+  const selected=isUpgrade?upgradeOffer(upgradeId,upgrades,equippedShip,pilotLevel):weaponDetails(weaponId);
+  const owned=!isUpgrade&&ownedWeapons.includes(selected.id);
+  const equipped=!isUpgrade&&selected.id===equippedWeapon;
+  const selectTab = (id, button) => {
+    setActiveTab(id);
+    button?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
+  const handleTabKeyDown = event => {
+    const current = tabs.findIndex(tab => tab.id === activeTab);
+    const next = event.key === 'ArrowRight' ? (current + 1) % tabs.length
+      : event.key === 'ArrowLeft' ? (current - 1 + tabs.length) % tabs.length
+      : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : null;
+    if (next === null) return;
+    event.preventDefault();
+    const button = event.currentTarget.querySelectorAll('[role="tab"]')[next];
+    button?.focus({ preventScroll: true });
+    selectTab(tabs[next].id, button);
+  };
+  return <section className="panel-screen" aria-label="Garage"><div className="arcade-panel">
+    <header className="panel-header">
+      <button className="icon-button" onClick={onClose} aria-label="Back to home"><ArrowLeft size={21}/></button>
+      <div><h2>Garage</h2><p>See it. Try it. Find your next favorite.</p></div>
+      <span className="coin-balance"><Coins size={20}/>{currency.toLocaleString()}</span>
+    </header>
+    <nav className="panel-tabs" role="tablist" aria-label="Garage categories" onKeyDown={handleTabKeyDown}>{tabs.map(tab=><button key={tab.id} type="button" role="tab" id={`garage-tab-${tab.id}`} aria-controls="garage-tab-panel" tabIndex={activeTab===tab.id?0:-1} onClick={event=>selectTab(tab.id,event.currentTarget)} className={activeTab===tab.id?'active':''} aria-selected={activeTab===tab.id}><tab.icon size={17}/>{tab.name}</button>)}</nav>
+    <div key={activeTab} id="garage-tab-panel" role="tabpanel" aria-labelledby={`garage-tab-${activeTab}`} tabIndex={0} className="panel-body custom-scrollbar garage-tab-content">
+      {activeTab==='premium'?<RealMoneyStore purchases={purchases} pendingProducts={pendingProducts} busyProduct={busyProduct} message={purchaseMessage} onPurchase={onPurchase} onRestore={onRestore}/>
+      :activeTab==='stages'?<StageBrowser currency={currency} equippedStage={equippedStage} ownership={stageOwnership} onUnlock={onStageUnlock} onEquip={onStageEquip}/>
+      :activeTab==='ships'?<FleetBrowser currency={currency} ownedShips={ownedShips} equippedShip={equippedShip} cosmeticId={equippedCosmetic} upgrades={upgrades} onBuy={onBuy} onEquip={onEquip}/>
+      :activeTab==='cosmetics'?<CosmeticsBrowser cosmetics={cosmetics} ownedCosmetics={ownedCosmetics} equippedCosmetic={equippedCosmetic} pendingProducts={pendingProducts} currency={currency} ship={equippedShip} busyProduct={busyProduct} purchaseMessage={purchaseMessage} onBuy={onBuy} onEquip={onEquip} onPurchase={onPurchase} onRestore={onRestore}/>
+      :<div className="shop-item-browser">
+        <section className="shop-spotlight" aria-label={`${selected.name} preview details`}>
+          <div className="shop-spotlight-stage"><ShopPreviewCanvas key={`${kind}:${selected.id}:${selected.level||0}:${equippedCosmetic}`} kind={kind} itemId={selected.id} ship={equippedShip} cosmeticId={equippedCosmetic} upgrades={upgrades} pilotLevel={pilotLevel}/></div>
+          <div key={selected.id} className="shop-spotlight-details selection-reveal">
+            <span className="eyebrow">{isUpgrade?'FEEL THE DIFFERENCE':'YOUR NEXT SHOT'}</span>
+            <h3>{selected.name}</h3><p>{selected.desc}</p>
+            {isUpgrade?<div className="upgrade-comparison"><span>{selected.metric}</span><div><span><small>Current</small><strong>{selected.beforeLabel}</strong></span><ArrowRight size={17}/><span><small>Next upgrade</small><strong>{selected.afterLabel}</strong></span></div>{selected.startingSpeed&&<small>Starting pace: {selected.startingSpeed.join(' → ')}</small>}</div>
+            :<div className="weapon-metrics"><span><small>Damage</small><strong>{selected.damage}</strong></span><span><small>Shot speed</small><strong>{selected.speed}</strong></span><span><small>Ammo / shot</small><strong>1</strong></span></div>}
+            <BuyItem item={selected} kind={kind} cost={selected.cost} maxed={selected.maxed} owned={owned} equipped={equipped} currency={currency} onBuy={onBuy} onEquip={onEquip}/>
+            <span className="shop-preview-note">Preview any item, including locked ones.</span>
+          </div>
+        </section>
+        <div className="shop-selection-heading"><span>Take a closer look</span><span>{items.length} {isUpgrade?'upgrades':'weapons'}</span></div>
+        <div className="garage-grid">
+          {items.map(item=>{
+            const offer=isUpgrade?upgradeOffer(item.id,upgrades,equippedShip,pilotLevel):weaponDetails(item.id);
+            const isOwned=!isUpgrade&&ownedWeapons.includes(item.id), isEquipped=!isUpgrade&&item.id===equippedWeapon;
+            const Icon=ICONS[item.id];
+            return <article key={item.id} className={`garage-card visual-garage-card ${selected.id===item.id?'preview-selected':''} ${isEquipped?'equipped':''}`}>
+              <div className="garage-card-top"><span className="garage-item-icon"><Icon size={18}/></span><span className="item-level">{isUpgrade?`Level ${offer.level}`:isEquipped?'Equipped':isOwned?'Owned':'Locked'}</span></div>
+              <button type="button" className="garage-preview-choice" aria-label={`Preview ${item.name}`} aria-pressed={selected.id===item.id} onClick={()=>isUpgrade?setUpgradeId(item.id):setWeaponId(item.id)}>
+                <ShopPreviewCanvas compact kind={kind} itemId={item.id} ship={equippedShip} cosmeticId={equippedCosmetic} upgrades={upgrades} pilotLevel={pilotLevel}/>
+                <span><Eye size={13}/>Preview</span>
+              </button>
+              <h3>{item.name}</h3><p>{isUpgrade?`${offer.beforeLabel} → ${offer.afterLabel}`:`${offer.damage} damage · ${offer.speed} speed`}</p>
+              <BuyItem item={item} kind={kind} cost={offer.cost} maxed={offer.maxed} owned={isOwned} equipped={isEquipped} currency={currency} onBuy={onBuy} onEquip={onEquip}/>
+            </article>;
+          })}
         </div>
-    );
+      </div>}
+    </div>
+  </div></section>;
 }

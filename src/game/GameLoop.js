@@ -5,6 +5,7 @@ export class GameLoop {
         this.lastTime = 0;
         this.isRunning = false;
         this.animationFrameId = null;
+        this.frameInterval = 1000 / 60;
     }
 
     start() {
@@ -24,7 +25,19 @@ export class GameLoop {
     loop = (timestamp) => {
         if (!this.isRunning) return;
 
-        let deltaTime = (timestamp - this.lastTime) / 1000; // Convert to seconds
+        if (document.hidden) {
+            this.lastTime = timestamp;
+            this.animationFrameId = requestAnimationFrame(this.loop);
+            return;
+        }
+
+        const elapsed = timestamp - this.lastTime;
+        if (elapsed < this.frameInterval - 1) {
+            this.animationFrameId = requestAnimationFrame(this.loop);
+            return;
+        }
+
+        let deltaTime = elapsed / 1000; // Convert to seconds
         this.lastTime = timestamp;
 
         // Cap deltaTime to prevent physics explosions (max 0.1s = 10fps)

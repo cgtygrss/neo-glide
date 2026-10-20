@@ -28,3 +28,9 @@ dist-ssr
 *.keystore
 keystore.properties
 android/keystore.properties
+android/billing.properties
+android/signing/upload_certificate.pem
+
+# Release binaries are retained locally; release notes and screenshots remain tracked.
+release/**/*.ipa
+release/**/*.aab

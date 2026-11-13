@@ -21,12 +21,8 @@ mkdir -p "$harness/CaptureHost" "$harness/CaptureTests"
 cp scripts/ios-screenshots/App.swift "$harness/CaptureHost/App.swift"
 python3 - <<'PY'
 import pathlib,json
-source=pathlib.Path('scripts/ios-screenshots/ReleaseSmoke130.swift').read_text()
-source=source.replace('v1.3.0', 'v'+json.loads(pathlib.Path('package.json').read_text())['version'])
-source=source.replace('app.launch()','''app.launch()
-  let family = app.buttons.matching(NSPredicate(format: "label == %@", "Under 13")).firstMatch
-  XCTAssertTrue(family.waitForExistence(timeout: 40), app.debugDescription)
-  family.tap()''')
+source=pathlib.Path('scripts/ios-screenshots/CISmoke.swift').read_text()
+source=source.replace('__NEO_GLIDE_VERSION__', json.loads(pathlib.Path('package.json').read_text())['version'])
 pathlib.Path('ci-output/smoke-harness/CaptureTests/Capture.swift').write_text(source)
 PY
 bundle exec ruby scripts/ios-screenshots/generate.rb "$harness"

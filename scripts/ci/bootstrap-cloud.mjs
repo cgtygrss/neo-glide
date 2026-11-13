@@ -51,10 +51,10 @@ async function addBindings(getUrl, setUrl, additions, method = 'POST') {
 }
 for (const email of [publisher, deployer]) {
   const base = `https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${email}`;
-  await addBindings(`${base}:getIamPolicy`, `${base}:setIamPolicy`, [{ role: 'roles/iam.workloadIdentityUser', member: `principalSet://iam.googleapis.com/${pool}/attribute.repository_id/1100314457` }], 'GET');
+  await addBindings(`${base}:getIamPolicy`, `${base}:setIamPolicy`, [{ role: 'roles/iam.workloadIdentityUser', member: `principalSet://iam.googleapis.com/${pool}/attribute.repository_id/1100314457` }]);
 }
 await addBindings(`https://cloudresourcemanager.googleapis.com/v1/projects/${project}:getIamPolicy`, `https://cloudresourcemanager.googleapis.com/v1/projects/${project}:setIamPolicy`, roles.map(role => ({ role, member: `serviceAccount:${deployer}` })));
 const runtime = `https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${number}-compute@developer.gserviceaccount.com`;
-await addBindings(`${runtime}:getIamPolicy`, `${runtime}:setIamPolicy`, [{ role: 'roles/iam.serviceAccountUser', member: `serviceAccount:${deployer}` }], 'GET');
+await addBindings(`${runtime}:getIamPolicy`, `${runtime}:setIamPolicy`, [{ role: 'roles/iam.serviceAccountUser', member: `serviceAccount:${deployer}` }]);
 for (const [name, value] of Object.entries({ GCP_WORKLOAD_IDENTITY_PROVIDER: provider, PLAY_PUBLISH_SERVICE_ACCOUNT: publisher, FIREBASE_DEPLOY_SERVICE_ACCOUNT: deployer })) execFileSync('gh', ['variable', 'set', name, '--env', 'store-release', '--repo', 'cgtygrss/neo-glide', '--body', value]);
 console.log('Cloud trust and CI service accounts configured. Play Console app-scoped release permission must be granted separately.');

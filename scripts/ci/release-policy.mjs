@@ -18,3 +18,12 @@ export function resumeAction(record, candidate) {
   for (const field of ['commit', 'build', 'version', 'sha256']) if (record[field] !== candidate[field]) throw new Error('Stored artifact identity does not match this retry.');
   return record.submitted ? 'skip' : 'resume';
 }
+
+export function compareVersions(a, b) {
+  const left = a.split('.').map(Number), right = b.split('.').map(Number);
+  for (let index = 0; index < Math.max(left.length, right.length); index++) {
+    const difference = (left[index] || 0) - (right[index] || 0);
+    if (difference) return Math.sign(difference);
+  }
+  return 0;
+}

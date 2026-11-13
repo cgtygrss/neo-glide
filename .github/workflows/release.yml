@@ -150,7 +150,7 @@ jobs:
           BUILD_NUMBER: ${{ needs.identity.outputs.build }}
           APP_VERSION: ${{ needs.identity.outputs.version }}
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -destination 'generic/platform=iOS' -archivePath ci-output/App.xcarchive archive CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$APP_VERSION" PROVISIONING_PROFILE_SPECIFIER="$IOS_PROFILE_NAME" CODE_SIGN_STYLE=Manual
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -destination 'generic/platform=iOS' -onlyUsePackageVersionsFromResolvedFile -disableAutomaticPackageResolution -archivePath ci-output/App.xcarchive archive CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$APP_VERSION" PROVISIONING_PROFILE_SPECIFIER="$IOS_PROFILE_NAME" CODE_SIGN_STYLE=Manual
           xcodebuild -exportArchive -archivePath ci-output/App.xcarchive -exportOptionsPlist "$RUNNER_TEMP/neo-glide-signing/ExportOptions.plist" -exportPath ci-output/export
           cp ci-output/export/App.ipa ci-output/NeoGlide.ipa
       - run: node scripts/ci/verify-artifact.mjs ios ci-output/NeoGlide.ipa

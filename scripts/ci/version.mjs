@@ -11,6 +11,7 @@ export function releaseIdentity(version, runNumber = 1, offset = 100) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const pkg = JSON.parse(readFileSync('package.json'));
   const config = JSON.parse(readFileSync('ci/release.json'));
+  if (!['alpha', 'production'].includes(config.androidTrack)) throw new Error('Unsupported release track.');
   const identity = releaseIdentity(pkg.version, process.env.GITHUB_RUN_NUMBER || 1, config.buildNumberOffset);
   const publicVersion = JSON.parse(readFileSync('public/version.json'));
   publicVersion.version = identity.version;

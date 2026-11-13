@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createPrivateKey, sign } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { APPLE_PENDING, validateCandidate } from './release-policy.mjs';
+import { APPLE_PENDING, validateCandidate, compareVersions } from './release-policy.mjs';
 const require = createRequire(new URL('../../backend/package.json', import.meta.url));
 const { GoogleAuth } = require('google-auth-library');
 const config = JSON.parse(readFileSync('ci/release.json'));
@@ -30,6 +30,11 @@ async function apple(path) {
 const versions = await apple(`apps/${config.appleAppId}/appStoreVersions?filter[platform]=IOS&limit=200`);
 const builds = await apple(`builds?filter[app]=${config.appleAppId}&limit=200`);
 const iosExists = builds.some(b => b.attributes.version === identity.build);
+for (const version of versions) {
+  const order = compareVersions(version.attributes.versionString, identity.version);
+  if (order > 0) throw new Error('App Store already has a higher marketing version; update package.json before release.');
+  if (order === 0 && ['READY_FOR_SALE', 'READY_FOR_DISTRIBUTION', 'PREORDER_READY_FOR_SALE'].includes(version.attributes.appStoreState) && !(iosExists && process.env.IOS_ARTIFACT_RESUME === 'true')) throw new Error('This marketing version is already released; prepare a new version and release notes on Dev.');
+}
 // Exact run/artifact equality is established by the ledger before this script runs.
 const pending = versions.filter(v => APPLE_PENDING.has(v.attributes.appStoreState));
 for (const version of pending) {

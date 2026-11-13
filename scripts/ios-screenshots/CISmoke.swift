@@ -48,23 +48,25 @@ final class Capture: XCTestCase {
   capture("05-pause")
   tap("Keep flying")
   wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:boost)],timeout:10)
-  // Verify lifecycle while paused; do not race XCTest IPC against a live flight.
-  tap("Pause flight")
-  XCTAssertTrue(app.staticTexts["Flight paused"].waitForExistence(timeout:10), app.debugDescription)
-  XCUIDevice.shared.press(.home)
-  app.activate()
-  XCTAssertTrue(app.staticTexts["Flight paused"].waitForExistence(timeout:15), app.debugDescription)
-  capture("06-background-preserves-pause")
-  XCUIDevice.shared.orientation = .landscapeRight
-  XCTAssertTrue(app.staticTexts["Flight paused"].waitForExistence(timeout:10), app.debugDescription)
-  capture("07-rotation-preserves-pause")
-  tap("Keep flying")
-  wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:boost)],timeout:15)
   boost.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:0.6)
-  // Real controls, real physics and a natural loss; no injected progress or grants.
+  // Let a real flight end naturally instead of racing a second XCTest command.
   XCTAssertTrue(button("Play again").waitForExistence(timeout:60), app.debugDescription)
   let distance = app.staticTexts.matching(NSPredicate(format:"label MATCHES %@", "^[1-9][0-9, .]* m$")).firstMatch
   XCTAssertTrue(distance.waitForExistence(timeout:10), app.debugDescription)
-  capture("08-flight-results")
+  capture("06-flight-results")
+  tap("Back to home")
+  tap("Play")
+  XCTAssertTrue(boost.waitForExistence(timeout:20), app.debugDescription)
+  wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:boost)],timeout:15)
+  tap("Pause flight")
+  XCTAssertTrue(app.staticTexts["Flight paused"].waitForExistence(timeout:10), app.debugDescription)
+  // Lifecycle checks end the test, avoiding stale WebKit AX objects after rotation.
+  XCUIDevice.shared.press(.home)
+  app.activate()
+  XCTAssertTrue(app.staticTexts["Flight paused"].waitForExistence(timeout:15), app.debugDescription)
+  capture("07-background-preserves-pause")
+  XCUIDevice.shared.orientation = .landscapeRight
+  XCTAssertTrue(app.staticTexts["Flight paused"].waitForExistence(timeout:10), app.debugDescription)
+  capture("08-rotation-preserves-pause")
  }
 }

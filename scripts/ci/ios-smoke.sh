@@ -28,4 +28,6 @@ PY
 bundle exec ruby scripts/ios-screenshots/generate.rb "$harness"
 xcodebuild -project "$harness/NativeCapture.xcodeproj" -scheme NativeCapture \
   -destination "platform=iOS Simulator,id=$device_id" -derivedDataPath ci-output/harness-build \
-  -resultBundlePath "ci-output/smoke-$(date +%Y%m%d%H%M%S).xcresult" test CODE_SIGNING_ALLOWED=NO
+  -resultBundlePath "ci-output/smoke-$(date +%Y%m%d%H%M%S).xcresult" \
+  -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 300 \
+  test CODE_SIGNING_ALLOWED=NO

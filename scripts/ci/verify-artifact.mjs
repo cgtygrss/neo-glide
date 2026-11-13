@@ -21,6 +21,7 @@ if (platform === 'android') {
   const units = new Set(scripts.flatMap(name => execFileSync('unzip', ['-p', file, name], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).match(/ca-app-pub-\d+\/\d+/g) || []));
   assert.ok(units.size, 'Compiled Android ad inventory is missing');
   if (config.androidTrack === 'production') {
+    assert.ok(manifest.includes(process.env.ANDROID_ADMOB_APP_ID), 'Unexpected native Android AdMob app ID');
     for (const format of ['REWARDED', 'INTERSTITIAL', 'REWARDED_INTERSTITIAL']) assert.ok(units.has(process.env[`VITE_ADMOB_${format}_ANDROID`]), `Compiled Android ${format} ad unit is missing`);
     assert.ok([...units].every(unit => !unit.startsWith('ca-app-pub-3940256099942544/')), 'Demo ads in production Android package');
   } else {

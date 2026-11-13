@@ -13,9 +13,9 @@ temporary="$(mktemp -d)"
 trap 'rm -rf "$temporary"; unset NEO_UPLOAD_STORE_PASS NEO_UPLOAD_KEY_PASS NEO_EXPORT_PASS' EXIT
 if [ ! -t 0 ]; then echo 'Run this script interactively in your own Terminal.' >&2; exit 1; fi
 printf 'Existing Android upload keystore password: '
-read -rs NEO_UPLOAD_STORE_PASS
+IFS= read -rs NEO_UPLOAD_STORE_PASS
 printf '\nKey password (Enter = same password): '
-read -rs NEO_UPLOAD_KEY_PASS
+IFS= read -rs NEO_UPLOAD_KEY_PASS
 printf '\n'
 NEO_UPLOAD_KEY_PASS="${NEO_UPLOAD_KEY_PASS:-$NEO_UPLOAD_STORE_PASS}"
 export NEO_UPLOAD_STORE_PASS NEO_UPLOAD_KEY_PASS

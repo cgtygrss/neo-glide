@@ -58,6 +58,9 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          accept-android-sdk-licenses: false
       - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - run: npm ci && npm run version:sync && npm run build && npx --no-install cap sync android
       - name: Native tests, lint and unsigned release compilation
@@ -82,9 +85,9 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
-      - uses: ruby/setup-ruby@8d27f39a5e7ad39aebbcbd1324f7af020229645c
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
         with:
-          ruby-version: '3.4.10'
+          ruby-version: '3.4.12'
           bundler-cache: true
       - run: npm ci && npm run version:sync && npm run build && bundle exec npx --no-install cap sync ios
       - name: Compile native Release for simulator

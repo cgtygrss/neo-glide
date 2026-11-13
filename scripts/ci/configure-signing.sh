@@ -4,6 +4,10 @@ set -euo pipefail
 umask 077
 cd "$(dirname "$0")/../.."
 repo=cgtygrss/neo-glide
+if [ -z "${JAVA_HOME:-}" ] && [ -x /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin/keytool ]; then
+  export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
 gh auth status >/dev/null
 temporary="$(mktemp -d)"
 trap 'rm -rf "$temporary"; unset NEO_UPLOAD_STORE_PASS NEO_UPLOAD_KEY_PASS NEO_EXPORT_PASS' EXIT

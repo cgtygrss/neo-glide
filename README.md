@@ -291,3 +291,10 @@ The existing galaxy, obstacles, enemies, coin trails, speed progression, ammo re
 Each pickup plays a 1.6-second assembly: a feature-specific outer capsule closes around the selected spaceship while equipment locks onto it in close-up, then the enclosed ship returns to its flight position. Star Striker adds wings and missile pods, Volt Ray adds electrical wings and coils, Comet Drill adds turbines and a nose drill, Storm Sphere adds an open electrical field, and Aegis Orb adds perimeter armour and shield satellites. The original ship is tucked inside the capsule so each ability’s armour, weapons and energy effects take visual priority. Opening the capsule during module removal reveals the selected ship again; cosmetic colours remain supported. The world and its resource clocks run at 20% speed during assembly (composed with Time Slow), while the cinematic uses real time. Assembly and the first 0.35 seconds of control are protected; the full 12-second ability begins after assembly. Exit takes 0.3 seconds, with sparks on a collision. Reduced motion fades equipment in locally over 0.25 seconds while the capsule closes around the ship.
 
 With Vite running, [the local vehicle playground](http://127.0.0.1:5173/dev/transformations.html) offers replay, pause, an assembly timeline, timeout/collision exits, ship and cosmetic selection, reduced motion, low power and galaxy previews using the same simulation, artwork and HUD, without touching the wallet or save. This separate development entry is not included in the production build. Native release artifacts must be rebuilt to include the vehicle feature.
+# Development and releases
+
+Work on **Dev**. Release changes through a **Dev → main** pull request; main
+requires passing CI and runs the guarded iOS, Android and Firebase release flow.
+See [CI/CD operation and setup](docs/CI_CD.md) for signing, release notes,
+review gates and first activation.
+

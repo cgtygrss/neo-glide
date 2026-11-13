@@ -1,6 +1,8 @@
 import React from "react";
 import { getShip, getEngineFlame } from "../game/ShipCatalog";
 import { getCosmeticPalette } from "../game/CosmeticsCatalog";
+import CosmeticAdornment from './CosmeticAdornment';
+import CosmeticSurface from './CosmeticSurface';
 
 export default function ShipPreview({
   ship = "default",
@@ -43,6 +45,7 @@ export default function ShipPreview({
             />
           </g>
         ))}
+        <CosmeticAdornment cosmeticId={cosmeticId} palette={palette} layer="back" boosting={boosting}/>
         {model.parts.map((part, i) => (
           <path
             key={i}
@@ -59,6 +62,8 @@ export default function ShipPreview({
             opacity={part.opacity ?? 1}
           />
         ))}
+        <CosmeticSurface cosmeticId={cosmeticId} palette={palette} ship={model}/>
+        <CosmeticAdornment cosmeticId={cosmeticId} palette={palette} layer="front" boosting={boosting}/>
       </g>
     </svg>
   );

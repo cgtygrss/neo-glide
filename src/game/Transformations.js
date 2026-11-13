@@ -1,15 +1,19 @@
 import { VoltBolt } from './VoltBolt.js';
 import { StrikerMissile } from './StrikerMissile.js';
+import { nearestBeamPoint } from './ScoutAttack.js';
+import { FIRST_CAPSULE_SECONDS, supportDropPace } from './SupportDrops.js';
+import { flightScrollSpeed, flightHomeX } from './FlightViewport.js';
+import { MAX_PLAYER_PROJECTILES } from './Combat.js';
 import { getTransformation, TRANSFORMATIONS, TRANSFORMATION_SECONDS, ENTRY_PROTECTION_SECONDS, transformationEntryCues, transformationTransitionDuration, transformationProgress, transformationWorldDelta } from './TransformationCatalog.js';
 
-export const createTransformationDirector = () => ({ normalTime: 0, nextAt: 15, capsule: null, bag: [], lastId: null });
+export const createTransformationDirector = () => ({ normalTime: 0, nextAt: FIRST_CAPSULE_SECONDS, capsule: null, bag: [], lastId: null });
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 export function transformationArena(width, height) {
   // These are movement bounds inside the existing flight, not a separate arena.
   const top = Math.min(8, height * .02);
   const bottom = Math.max(top + 60, height - Math.min(80, height * .2));
   const span = bottom - top;
-  return { width, height, top, bottom, span, x: Math.min(112, width * .23) };
+  return { width, height, top, bottom, span, x: Math.min(flightHomeX(width) + 12, width * .23) };
 }
 function shuffled(items, random) {
   const result = [...items];
@@ -34,7 +38,7 @@ export function beginTransformation(game, id, width, height) {
   game.transformationDirector ||= createTransformationDirector();
   game.transformationDirector.capsule = null;
   game.transformation = {
-    id, phase: 'ENTERING', transitionTime: 0, remaining: TRANSFORMATION_SECONDS, elapsed: 0,
+    id, phase: 'ENTERING', transitionTime: 0, remaining: TRANSFORMATION_SECONDS, duration: TRANSFORMATION_SECONDS, elapsed: 0,
     reducedMotion: Boolean(game.launch?.reducedMotion), entryProtection: 0, cueIndex: 0,
     speed: game.speed,
     arena, origin: { x: game.player.x, y: game.player.y, rotation: game.player.rotation }, x: game.player.x + 20, y: game.player.y, vy: 0,
@@ -59,8 +63,8 @@ export function advanceTransformationCapsule(game, dt, width, height, random = M
   const capsule = director.capsule;
   if (!capsule) return false;
   capsule.age += dt;
-  capsule.x -= game.speed * dt;
-  if (capsule.x < -capsule.radius) { director.capsule = null; director.nextAt = director.normalTime + 12; return false; }
+  capsule.x -= flightScrollSpeed(game) * dt;
+  if (capsule.x < -capsule.radius) { director.capsule = null; director.nextAt = director.normalTime + supportDropPace(game.flightTime).capsuleRetry; return false; }
   if (Math.hypot(capsule.x - (game.player.x + 16), capsule.y - game.player.y) <= capsule.radius + 22) {
     return beginTransformation(game, nextVehicle(director, random), width, height);
   }
@@ -78,6 +82,8 @@ export function transformationPrimary(game) {
 export function transformationSecondary(game) {
   const form = game.transformation;
   if (game.phase !== 'FLYING' || form?.phase !== 'ACTIVE' || form.cooldown > 0) return false;
+  const needed = form.id === 'striker' ? 3 : form.id === 'volt' ? 1 : 0;
+  if ((game.playerProjectiles?.filter(shot => !shot.markedForDeletion).length || 0) + needed > MAX_PLAYER_PROJECTILES) return false;
   form.cooldown = getTransformation(form.id).cooldown;
   form.pulse = .32;
   if (form.id === 'striker') {
@@ -100,8 +106,9 @@ function clearTransformationHazards(game) {
   // Act on the same hazards the normal ship encounters, without creating rewards.
   for (const hazard of [...game.obstacles, ...game.projectiles]) {
     if (hazard.markedForDeletion) continue;
-    const nearestX = clamp(form.x, hazard.x - (hazard.radius || 0), hazard.x + (hazard.width || hazard.radius || 0));
-    const nearestY = clamp(form.y, hazard.y - (hazard.radius || 0), hazard.y + (hazard.height || hazard.radius || 0));
+    const point = hazard.type === 'SCOUT_BEAM' ? nearestBeamPoint(hazard, form.x, form.y) : null;
+    const nearestX = point?.x ?? clamp(form.x, hazard.x - (hazard.radius || 0), hazard.x + (hazard.width || hazard.radius || 0));
+    const nearestY = point?.y ?? clamp(form.y, hazard.y - (hazard.radius || 0), hazard.y + (hazard.height || hazard.radius || 0));
     const dx = nearestX - form.x, dy = nearestY - form.y;
     if (form.id === 'aegis' ? Math.hypot(dx, dy) < 65 : form.id === 'drill' ? dx >= -32 && dx <= 95 && Math.abs(dy) < 34 : Math.hypot(dx, dy) < 150) hazard.markedForDeletion = true;
   }
@@ -123,7 +130,7 @@ function finishTransformation(game, width, height, held) {
   game.player.boost(Boolean(held && game.energy > 0));
   game.hitProtection = Math.max(game.hitProtection || 0, 1);
   game.transformationSafety = 1;
-  game.transformationDirector.nextAt = game.transformationDirector.normalTime + 30;
+  game.transformationDirector.nextAt = game.transformationDirector.normalTime + supportDropPace(game.flightTime).capsuleCooldown;
   game.visualRevision = (game.visualRevision || 0) + 1;
 }
 export function resetTransformations(game, fresh = false) {
@@ -132,7 +139,7 @@ export function resetTransformations(game, fresh = false) {
   game.transformationUiTimer = 0;
   game.worldTimeScale = 1;
   if (fresh || !game.transformationDirector) game.transformationDirector = createTransformationDirector();
-  else { game.transformationDirector.capsule = null; game.transformationDirector.nextAt = game.transformationDirector.normalTime + 30; }
+  else { game.transformationDirector.capsule = null; game.transformationDirector.nextAt = game.transformationDirector.normalTime + supportDropPace(game.flightTime).capsuleCooldown; }
   game.visualRevision = (game.visualRevision || 0) + 1;
 }
 export function resizeTransformation(game, width, height) {
@@ -194,7 +201,7 @@ export function advanceTransformation(game, dt, width, height, held = false) {
       continue;
     }
     form.entryProtection = Math.max(0, form.entryProtection - step);
-    form.elapsed += step; form.remaining = Math.max(0, TRANSFORMATION_SECONDS - form.elapsed);
+    form.elapsed += step; form.remaining = Math.max(0, (form.duration ?? TRANSFORMATION_SECONDS) - form.elapsed);
     form.cooldown = Math.max(0, form.cooldown - step); form.pulse = Math.max(0, form.pulse - step);
     form.shieldRemaining = Math.max(0, form.shieldRemaining - step);
     if (form.shieldRemaining < 1e-8) form.shieldRemaining = 0;
@@ -248,7 +255,7 @@ export function advanceTransformation(game, dt, width, height, held = false) {
     form.travel += form.speed * step;
     syncPlayer(game);
     if (!form.trail.length || form.elapsed - form.trail.at(-1).time > .035) form.trail.push({ x: form.x, y: form.y, time: form.elapsed });
-    for (const point of form.trail) point.x -= form.speed * step;
+    for (const point of form.trail) point.x -= form.speed * (game.viewport?.paceScale ?? 1) * step;
     form.trail = form.trail.filter(point => form.elapsed - point.time < .5).slice(-16);
     if (form.remaining <= 1e-8) requestTransformationExit(game, 'timeout');
   }
@@ -257,5 +264,5 @@ export function advanceTransformation(game, dt, width, height, held = false) {
 }
 export function transformationHud(game) {
   const form = game.transformation;
-  return form ? { ...getTransformation(form.id), phase: form.phase, transitionProgress: transformationProgress(form), transitionDuration: transformationTransitionDuration(form), remaining: form.remaining, cooldownRemaining: form.cooldown, shieldRemaining: form.shieldRemaining } : null;
+  return form ? { ...getTransformation(form.id), phase: form.phase, duration: form.duration ?? TRANSFORMATION_SECONDS, transitionProgress: transformationProgress(form), transitionDuration: transformationTransitionDuration(form), remaining: form.remaining, cooldownRemaining: form.cooldown, shieldRemaining: form.shieldRemaining } : null;
 }

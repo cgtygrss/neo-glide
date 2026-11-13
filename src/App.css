@@ -29,6 +29,14 @@
   height: 100%;
   touch-action: none;
 }
+.flight-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  background: #081728;
+}
+.game-shell { background: radial-gradient(ellipse at center, #17314a, #06121f 78%); }
 button {
   transition:
     background 0.16s,
@@ -520,13 +528,15 @@ button:not(:disabled):active {
 }
 .flight-vitals {
   width: 170px;
+  min-width: max-content;
   padding: 11px 13px;
   background: #0e253be6;
   border-radius: 16px;
   border: 1px solid #b1d5df26;
 }
 .vital-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 17px minmax(18px, 1fr) max-content;
   align-items: center;
   gap: 9px;
   color: #ffa68c;
@@ -538,10 +548,13 @@ button:not(:disabled):active {
   color: #8fe2c6;
 }
 .vital-row > span {
-  width: 29px;
+  min-width: 4ch;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 .vital-track {
+  min-width: 0;
   height: 6px;
   background: #ffffff16;
   border-radius: 8px;
@@ -887,8 +900,10 @@ button:not(:disabled):active {
   font-size: 14px;
 }
 .pause-board {
-  padding: 30px;
-  width: 360px;
+  padding: 24px;
+  width: min(540px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
   background: #1b354c;
   border: 1px solid #ffffff20;
   border-radius: 25px;
@@ -897,6 +912,15 @@ button:not(:disabled):active {
   flex-direction: column;
   gap: 16px;
 }
+.pause-audio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; text-align: left; }
+.pause-audio > [data-audio-channel='music'] { grid-column: 1; }
+.pause-audio > [data-audio-channel='sfx'] { grid-column: 2; }
+.pause-audio > .hangar-setting-switch { grid-row: 1; gap: 8px; min-height: 56px; }
+.pause-audio .settings-row-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
+.pause-audio .settings-row-copy small { display: none; }
+.pause-audio .hangar-toggle { flex-shrink: 0; }
+.pause-audio > .settings-volume-control { grid-row: 2; padding: 8px 0 0; }
+.pause-actions { display: flex; flex-direction: column; gap: 12px; }
 .pause-board h2 {
   font-size: 30px;
   font-weight: 850;
@@ -908,6 +932,13 @@ button:not(:disabled):active {
 .pause-board .secondary {
   min-height: 44px;
   font-size: 14px;
+}
+@media (max-height: 480px) and (min-width: 500px) {
+  .pause-board { padding: 16px 22px; gap: 10px; }
+  .pause-board h2 { font-size: 24px; }
+  .pause-board > p { display: none; }
+  .pause-actions { flex-direction: row; }
+  .pause-actions > button { flex: 1; min-height: 48px; font-size: 14px; padding: 10px; }
 }
 .panel-screen {
   position: absolute;
@@ -2145,6 +2176,7 @@ button:not(:disabled):active {
 
 .stage-preview { width: 100%; height: 100%; position: relative; background: #071022; overflow: hidden; }
 .stage-preview canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+.stage-preview > .preview-play { min-height: 44px; }
 .stage-spotlight { aspect-ratio: 520 / 230; height: auto; min-height: 0; }
 .panel-tabs { overflow-x: auto; overscroll-behavior-inline: contain; }
 .panel-tabs > button { flex-shrink: 0; }

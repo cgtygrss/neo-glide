@@ -3,37 +3,57 @@ import assert from 'node:assert/strict';
 import { Villain, SpeedsterVillain, JuggernautVillain } from '../src/game/Entities.js';
 import { flightMusicTrack, syncEncounterMusic } from '../src/game/EncounterMusic.js';
 
-test('every enemy type changes music on entry and death or departure, with no repeated entrance on resume', () => {
+function audio() {
+  const calls = [];
+  const sound = { desiredTrack: 'flight',
+    playBossMusic() { calls.push('boss'); this.desiredTrack = 'boss'; },
+    playNormalMusic() { calls.push('flight'); this.desiredTrack = 'flight'; },
+  };
+  return { sound, calls };
+}
+
+test('each enemy selects a separate looping encounter theme and returns to flight on departure', () => {
   for (const Enemy of [Villain, SpeedsterVillain, JuggernautVillain]) {
-    const calls = [];
-    const sound = { desiredTrack: 'flight',
-      playBossMusic(options) { calls.push({track:'boss', ...options}); this.desiredTrack = 'boss'; },
-      playNormalMusic() { calls.push({track:'flight'}); this.desiredTrack = 'flight'; },
-    };
+    const { sound, calls } = audio();
     const game = { phase: 'FLYING', villain: new Enemy(800, 200) };
-    syncEncounterMusic(game, sound);
-    assert.deepEqual(calls, [{track:'boss',entrance:true}]);
-    syncEncounterMusic(game, sound);
-    assert.equal(calls.length, 1);
-    game.phase = 'PAUSED'; sound.desiredTrack = null;
-    syncEncounterMusic(game, sound);
-    assert.equal(calls.length, 1);
-    // Both normal resume and rewarded revival hand control back in READY.
-    game.phase = 'READY';
-    syncEncounterMusic(game, sound, {allowEntrance:false});
-    assert.deepEqual(calls.at(-1), {track:'boss',entrance:false});
+    assert.equal(flightMusicTrack(game), 'boss');
+    syncEncounterMusic(game, sound); syncEncounterMusic(game, sound);
+    assert.deepEqual(calls, ['boss']);
     game.villain.markedForDeletion = true;
-    syncEncounterMusic(game, sound);
-    assert.deepEqual(calls.at(-1), {track:'flight'});
-    game.villain = null;
-    syncEncounterMusic(game, sound);
-    assert.equal(calls.length, 3);
-    game.villain = new Enemy(800,200);
-    syncEncounterMusic(game, sound);
-    game.villain = null; // Survived the encounter until the enemy leaves.
-    syncEncounterMusic(game,sound);
-    assert.equal(calls.at(-1).track, 'flight');
-    game.gameOver = true;
-    assert.equal(flightMusicTrack(game), null);
+    syncEncounterMusic(game, sound); syncEncounterMusic(game, sound);
+    assert.deepEqual(calls, ['boss', 'flight']);
+    game.villain = new Enemy(800, 200); syncEncounterMusic(game, sound);
+    assert.deepEqual(calls, ['boss', 'flight', 'boss']);
+    game.gameOver = true; assert.equal(flightMusicTrack(game), null);
   }
+});
+
+test('reinforcements and the first death in a paired encounter never restart combat music', () => {
+  const { sound, calls } = audio();
+  const game = { phase: 'FLYING', enemies: [new Villain(800, 150)] };
+  syncEncounterMusic(game, sound);
+  game.enemies.push(new SpeedsterVillain(800, 450)); syncEncounterMusic(game, sound);
+  game.enemies[0].markedForDeletion = true; syncEncounterMusic(game, sound);
+  assert.deepEqual(calls, ['boss']);
+  game.enemies[1].markedForDeletion = true; syncEncounterMusic(game, sound);
+  assert.deepEqual(calls, ['boss', 'flight']);
+});
+
+test('pause and resume restore the encounter theme when an enemy is still alive', () => {
+  const { sound, calls } = audio();
+  const game = { phase: 'PAUSED', villain: new Villain(800, 150) };
+  sound.desiredTrack = null;
+  syncEncounterMusic(game, sound); assert.deepEqual(calls, []);
+  game.phase = 'READY'; syncEncounterMusic(game, sound);
+  assert.deepEqual(calls, ['boss']);
+  game.enemies = []; syncEncounterMusic(game, sound);
+  assert.deepEqual(calls, ['boss', 'flight']);
+});
+
+test('inactive phases and ended flights never select a theme', () => {
+  const { sound, calls } = audio();
+  for (const phase of ['PAUSED', 'COUNTDOWN', 'ENDED']) syncEncounterMusic({ phase }, sound);
+  syncEncounterMusic({ phase: 'FLYING', gameOver: true }, sound);
+  syncEncounterMusic({ phase: 'FLYING' }, null);
+  assert.deepEqual(calls, []);
 });

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:drawable="@drawable/startup_mark" android:insetLeft="84dp" android:insetRight="84dp" android:insetTop="95.5dp" android:insetBottom="95.5dp"/>

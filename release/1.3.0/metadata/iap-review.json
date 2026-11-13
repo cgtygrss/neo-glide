@@ -1,0 +1,278 @@
+[
+  {
+    "appleId": "6824532867",
+    "productId": "cosmetic_copper_horizon",
+    "name": "Copper Horizon",
+    "price": "$2.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Copper Horizon. A hand-built star machine, alive with turning brass and copper instruments. Unlock once with 2,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_copper_horizon.jpg"
+  },
+  {
+    "appleId": "6824532851",
+    "productId": "cosmetic_arctic_pulse",
+    "name": "Arctic Pulse",
+    "price": "$3.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Arctic Pulse. A glacier in flight. Faceted ice fins split the light while tiny snow crystals orbit the hull. Unlock once with 2,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_arctic_pulse.jpg"
+  },
+  {
+    "appleId": "6824532780",
+    "productId": "cosmetic_cyber_current",
+    "name": "Cyber Current",
+    "price": "$3.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Cyber Current. Detached circuit panels follow your hull, linked by a live cyan data lattice. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_cyber_current.jpg"
+  },
+  {
+    "appleId": "6824532930",
+    "productId": "cosmetic_jade_drift",
+    "name": "Jade Drift",
+    "price": "$4.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Jade Drift. Jade leaves unfurl into a living canopy. A little piece of a lost garden, carried between stars. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_jade_drift.jpg"
+  },
+  {
+    "appleId": "6824532524",
+    "productId": "cosmetic_rose_circuit",
+    "name": "Rose Circuit",
+    "price": "$4.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Rose Circuit. A rose-pink fairy garden in flight, with translucent petal wings and a tiny flower crown. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_rose_circuit.jpg"
+  },
+  {
+    "appleId": "6824532910",
+    "productId": "cosmetic_solar_forge",
+    "name": "Solar Forge",
+    "price": "$5.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Solar Forge. An exposed turbine and layered heat vanes turn your ship into a miniature solar engine. Unlock once with 2,500,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_solar_forge.jpg"
+  },
+  {
+    "appleId": "6824532939",
+    "productId": "cosmetic_pearl_comet",
+    "name": "Pearl Comet",
+    "price": "$6.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Pearl Comet. An ivory butterfly carriage with rose-glass wings, a pearl tiara and trailing moon ribbons. Its wings open wide when you boost. Unlock once with 2,750,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_pearl_comet.jpg"
+  },
+  {
+    "appleId": "6824531841",
+    "productId": "cosmetic_void_pilot",
+    "name": "Void Pilot",
+    "price": "$7.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Void Pilot. An obsidian space dragon unfurls enormous violet membrane wings. A horned crest, eclipse ring and coiling comet tail complete the transformation. Unlock once with 3,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_void_pilot.jpg"
+  },
+  {
+    "appleId": "6824532897",
+    "productId": "cosmetic_cobalt_storm",
+    "name": "Cobalt Storm",
+    "price": "$8.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Cobalt Storm. Royal mecha armor, twin hovering sentries and a luminous knight crest turn the hull into a cobalt sky guardian. Its plated wings deploy on boost. Unlock once with 3,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_cobalt_storm.jpg"
+  },
+  {
+    "appleId": "6824532974",
+    "productId": "cosmetic_prism_voyager",
+    "name": "Prism Voyager",
+    "price": "$9.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Prism Voyager. A rainbow butterfly spectacle: four stained-glass wings, a floating jewel crown and a constellation of fairy stars. Boost opens the full royal silhouette. Unlock once with 3,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_prism_voyager.jpg"
+  },
+  {
+    "productId": "cosmetic_mint_condition",
+    "name": "Mint Condition",
+    "price": "$1.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Mint Condition. A miniature terrarium in orbit, with translucent seed pods and gently opening fronds. Unlock once with 1,750,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233342",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_mint_condition.jpg"
+  },
+  {
+    "productId": "cosmetic_scarlet_comet",
+    "name": "Scarlet Comet",
+    "price": "$2.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Scarlet Comet. Swept flame feathers rise behind a ruby phoenix crest. Unlock once with 2,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233799",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_scarlet_comet.jpg"
+  },
+  {
+    "productId": "cosmetic_amber_signal",
+    "name": "Amber Signal",
+    "price": "$2.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Amber Signal. An amber navigation array opens its honeycomb wings and broadcasts concentric signal rings. Unlock once with 1,750,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233803",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_amber_signal.jpg"
+  },
+  {
+    "productId": "cosmetic_lunar_silver",
+    "name": "Lunar Silver",
+    "price": "$2.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Lunar Silver. Silver crescent sails and a moonstone brooch drift in a quiet orbital dance. Unlock once with 2,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233956",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_lunar_silver.jpg"
+  },
+  {
+    "productId": "cosmetic_ocean_depth",
+    "name": "Ocean Depth",
+    "price": "$3.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Ocean Depth. A bioluminescent manta wears luminous gill fans and a flowing deep-sea crest. Unlock once with 2,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233792",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_ocean_depth.jpg"
+  },
+  {
+    "productId": "cosmetic_lavender_dream",
+    "name": "Lavender Dream",
+    "price": "$3.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Lavender Dream. Soft lilac butterfly wings open around a moonstone brooch, with tiny dream stars floating nearby. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233928",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_lavender_dream.jpg"
+  },
+  {
+    "productId": "cosmetic_toxic_bloom",
+    "name": "Toxic Bloom",
+    "price": "$3.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Toxic Bloom. Thorned living armor surrounds a bright, unstable botanical core. Unlock once with 2,000,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234076",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_toxic_bloom.jpg"
+  },
+  {
+    "productId": "cosmetic_desert_mirage",
+    "name": "Desert Mirage",
+    "price": "$3.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Desert Mirage. Bronze sail spars hold wind-carved fabric above the hull, with a compass rose at the prow. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233933",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_desert_mirage.jpg"
+  },
+  {
+    "productId": "cosmetic_ruby_eclipse",
+    "name": "Ruby Eclipse",
+    "price": "$4.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Ruby Eclipse. A red eclipse, royal blade wings and a suspended ruby seal form a dark celestial crown. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234086",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_ruby_eclipse.jpg"
+  },
+  {
+    "productId": "cosmetic_glacier_blue",
+    "name": "Glacier Blue",
+    "price": "$4.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Glacier Blue. Stacked ice blades float on either side of a frost-cut star medallion. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234132",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_glacier_blue.jpg"
+  },
+  {
+    "productId": "cosmetic_saffron_sky",
+    "name": "Saffron Sky",
+    "price": "$4.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Saffron Sky. A fan of golden sun feathers unfolds into a warm, radiant star sail. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234088",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_saffron_sky.jpg"
+  },
+  {
+    "productId": "cosmetic_midnight_gold",
+    "name": "Midnight Gold",
+    "price": "$5.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Midnight Gold. Gilded architectural fins frame a miniature royal observatory. Unlock once with 2,500,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826233946",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_midnight_gold.jpg"
+  },
+  {
+    "productId": "cosmetic_coral_reef",
+    "name": "Coral Reef",
+    "price": "$4.49",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Coral Reef. Sculpted coral antlers and a luminous sea-pearl bring a little reef into deep space. Unlock once with 2,250,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234211",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_coral_reef.jpg"
+  },
+  {
+    "productId": "cosmetic_ultraviolet",
+    "name": "Ultraviolet",
+    "price": "$5.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Ultraviolet. Detached spectral frames and an ultraviolet lens turn your hull into an impossible light sculpture. Unlock once with 2,500,000 earned credits or a native store purchase. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234212",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_ultraviolet.jpg"
+  },
+  {
+    "productId": "cosmetic_nebula_circuit",
+    "name": "Nebula Circuit",
+    "price": "$4.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Nebula Circuit. A hard-earned navigational crown charts a tiny constellation around your ship. Unlock once with 2,250,000 earned credits or a native store purchase. Also earnable from Events. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234093",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_nebula_circuit.jpg"
+  },
+  {
+    "productId": "cosmetic_aurora_pathfinder",
+    "name": "Aurora Pathfinder",
+    "price": "$5.99",
+    "reviewNotes": "Permanent cosmetic visual kit. Open Garage > Cosmetics > Aurora Pathfinder. Sweeping auroral sails carry a luminous expedition compass across the frontier. Unlock once with 2,500,000 earned credits or a native store purchase. Also earnable from Events. Applies across all ships without changing flight stats. Restore purchases is available in Garage > Store.",
+    "appleId": "6826234282",
+    "reviewScreenshot": "screenshots/build6/iap-review/cosmetic_aurora_pathfinder.jpg"
+  },
+  {
+    "productId": "credits_50000",
+    "name": "50,000 Credits",
+    "type": "consumable",
+    "credits": 50000,
+    "appleId": "6833014899",
+    "description": "50,000 credits to spend in the Garage.",
+    "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 50,000 Credits. Each verified purchase delivers exactly 50,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent.",
+    "price": "$0.49"
+  },
+  {
+    "productId": "credits_1000",
+    "name": "100,000 Credits",
+    "type": "consumable",
+    "credits": 100000,
+    "appleId": "6823598792",
+    "description": "100,000 credits to spend in the Garage.",
+    "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 100,000 Credits. Each verified purchase delivers exactly 100,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent.",
+    "price": "$0.79"
+  },
+  {
+    "productId": "credits_250000",
+    "name": "250,000 Credits",
+    "type": "consumable",
+    "credits": 250000,
+    "appleId": "6833015788",
+    "description": "250,000 credits to spend in the Garage.",
+    "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 250,000 Credits. Each verified purchase delivers exactly 250,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent.",
+    "price": "$1.49"
+  },
+  {
+    "productId": "credits_5500",
+    "name": "550,000 Credits",
+    "type": "consumable",
+    "credits": 550000,
+    "appleId": "6825324927",
+    "description": "550,000 credits to spend in the Garage.",
+    "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 550,000 Credits. Each verified purchase delivers exactly 550,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent.",
+    "price": "$2.99"
+  },
+  {
+    "productId": "credits_1000000",
+    "name": "1,000,000 Credits",
+    "type": "consumable",
+    "credits": 1000000,
+    "appleId": "6833058947",
+    "description": "1,000,000 credits to spend in the Garage.",
+    "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 1,000,000 Credits. Each verified purchase delivers exactly 1,000,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent.",
+    "price": "$4.49"
+  },
+  {
+    "productId": "credits_15000",
+    "name": "1,500,000 Credits",
+    "type": "consumable",
+    "credits": 1500000,
+    "appleId": "6825326785",
+    "description": "1,500,000 credits to spend in the Garage.",
+    "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 1,500,000 Credits. Each verified purchase delivers exactly 1,500,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent.",
+    "price": "$5.99"
+  },
+  {
+    "name": "Starter Pack",
+    "appleId": "6823595331",
+    "productId": "starter_pack",
+    "reviewNotes": "Non-consumable Starter Pack. Garage > Store > Starter Pack. Includes the Interceptor ship, Solar Blaster weapon and a one-time grant of 200,000 credits. Ships and weapons can also be earned through normal gameplay. A cancelled or pending purchase grants nothing. Restore purchases restores the non-consumable entitlement and does not repeatedly grant the credit bonus. Rewarded ads remain optional.",
+    "reviewScreenshot": "screenshots/build6/iap-review/starter_pack.jpg",
+    "price": "$4.99"
+  }
+]

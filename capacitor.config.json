@@ -2,8 +2,9 @@
   "appId": "com.cgtygrssgame.neonglide",
   "appName": "Neo Glide",
   "webDir": "dist",
+  "backgroundColor": "#0b1725",
   "server": {
-    "cleartext": true
+    "cleartext": false
   },
   "ios": {
     "contentInset": "never",
@@ -11,14 +12,6 @@
     "backgroundColor": "#0b1725"
   },
   "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 2000,
-      "backgroundColor": "#0b1725",
-      "showSpinner": false,
-      "androidSpinnerStyle": "large",
-      "iosSpinnerStyle": "small",
-      "spinnerColor": "#00ffff"
-    },
     "StatusBar": {
       "style": "dark",
       "backgroundColor": "#0b1725"

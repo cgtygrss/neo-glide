@@ -1,18 +1,21 @@
+import { CREDIT_PACKS, STARTER_CREDITS } from '../../backend/shared/store-catalog.js';
+export { CREDIT_PACKS, STARTER_CREDITS };
+import { profileStorage, ownerId, activeOwnerId } from '../account/ProfileStorage.js';
 export const CREDIT_SCALE = 100;
 export const COIN_VALUES = [50, 100, 250, 500, 10000];
-export const BOSS_REWARD = 10000;
+export const ENEMY_REWARD = 5000;
+export const BOSS_REWARD = 25000;
 export const LEVEL_REWARD = 10000;
 export const MULTIPLIER_MAX_LEVEL = 5;
 export const coinMultiplier = (level = 1) => Math.min(2, 1 + .25 * (Math.max(1, Number(level) || 1) - 1));
-export const STARTER_CREDITS = 200000;
-export const CREDIT_PACKS = { credits_1000: 100000, credits_5500: 550000, credits_15000: 1500000 };
-export const SHIP_PRICES = { default: 0, interceptor: 60000, cruiser: 180000, stealth: 400000, void_runner: 900000, plasma_breaker: 1800000 };
-export const UPGRADE_PRICES = { battery: 5000, thruster: 7500, magnet: 10000, hull: 25000, multiplier: 50000, shield_gen: 100000 };
-export const WEAPON_PRICES = { default: 0, blaster: 75000, cannon: 150000, beam: 300000, wave: 600000, shock: 1250000 };
+export const SHIP_PRICES = { default: 0, interceptor: 60000, cruiser: 180000, stealth: 400000, void_runner: 900000, plasma_breaker: 1800000, kestrel: 95000, manta: 140000, bulwark: 260000, firefly: 340000, lancer: 520000, nomad: 680000, mender: 850000, corsair: 1100000, wisp: 1400000, sentinel: 1650000 };
+export const UPGRADE_PRICES = { battery: 5000, thruster: 7500, magnet: 10000, hull: 25000, multiplier: 50000, shield_gen: 100000, ammo_capacity: 18000, ammo_regen: 22000, boost_efficiency: 15000, energy_recovery: 45000, medical: 12000, armor: 35000, hit_guard: 28000, power_duration: 32000, tractor_speed: 16000, repair_amplifier: 60000 };
+export const WEAPON_PRICES = { default: 0, blaster: 75000, cannon: 150000, beam: 300000, wave: 600000, shock: 1250000, needle: 35000, frost: 110000, ember: 220000, rail: 450000, photon: 260000, vortex: 780000, sonic: 540000, shard: 950000, nova: 1550000, antimatter: 2000000 };
 export const WALLET_KEY = 'neon_glide_currency_v2';
 export const ACCOUNT_KEY = 'neon_glide_wallet_v3';
 import { STAGES } from './StageCatalog.js';
-import { COSMETIC_IDS, COSMETIC_PRODUCT_IDS, getCosmetic } from './CosmeticsCatalog.js';
+import { COSMETIC_IDS, ALL_COSMETICS, SKINS, COSMETIC_PRODUCT_IDS, getCosmetic } from './CosmeticsCatalog.js';
+import { cosmeticCreditOffer } from './GarageOffers.js';
 
 const wholeCredits = value => Number.isFinite(Number(value)) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(Number(value)))) : 0;
 const walletListeners = new Set();
@@ -20,11 +23,11 @@ const cosmeticPurchaseLocks = new Set();
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const hasOwn = (record, key) => Object.prototype.hasOwnProperty.call(record, key);
 const readLegacyPurchases = () => {
-  try { const value = JSON.parse(localStorage.getItem('neon_glide_purchases')); return isRecord(value) ? value : {}; } catch { return {}; }
+  try { const value = JSON.parse(profileStorage.getItem('neon_glide_purchases')); return isRecord(value) ? value : {}; } catch { return {}; }
 };
 
 function readAccount() {
-  const saved = localStorage.getItem(ACCOUNT_KEY);
+  const saved = profileStorage.getItem(ACCOUNT_KEY);
   if (saved !== null) {
     const account = JSON.parse(saved);
     if (account.version !== 3 || !Number.isSafeInteger(account.balance) || account.balance < 0
@@ -37,18 +40,18 @@ function readAccount() {
     // cosmetics are intentionally separate from store entitlements.
     return { ...account, creditCosmetics: account.creditCosmetics || {}, pendingCosmetics: account.pendingCosmetics || {}, creditStages: account.creditStages || {}, equippedStage: account.equippedStage || 'default' };
   }
-  const current = localStorage.getItem(WALLET_KEY);
+  const current = profileStorage.getItem(WALLET_KEY);
   return {
     version: 3,
-    balance: current !== null ? wholeCredits(current) : wholeCredits(wholeCredits(localStorage.getItem('neon_glide_currency')) * CREDIT_SCALE),
+    balance: current !== null ? wholeCredits(current) : wholeCredits(wholeCredits(profileStorage.getItem('neon_glide_currency')) * CREDIT_SCALE),
     transactions: {}, entitlements: {}, creditCosmetics: {}, pendingCosmetics: {}, creditStages: {}, equippedStage: 'default', legacyPurchases: readLegacyPurchases(), starterCreditsGranted: Boolean(readLegacyPurchases().starter_pack),
   };
 }
 
 function writeAccount(account) {
   // Balance and transaction IDs must commit together, before StoreKit.finish().
-  localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
-  for (const listener of walletListeners) listener();
+  profileStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
+  if (ownerId() === activeOwnerId()) for (const listener of walletListeners) listener();
   return account.balance;
 }
 
@@ -76,18 +79,22 @@ export function updateWallet(update) {
 
 export function getPurchaseFlags() {
   const account = readAccount();
-  const flags = { ...account.legacyPurchases, ...account.entitlements };
+  const flags = { ...account.legacyPurchases, ...account.entitlements, ...account.cloudEntitlements };
   if (flags.starter_pack) flags.remove_ads = true;
   return flags;
 }
 
+function cosmeticOwnership(account) {
+  const sets = Object.fromEntries(ALL_COSMETICS.map(cosmetic => {
+    const id = cosmetic.id, productId = cosmetic.productId;
+    return [id, Boolean(account.eventCosmetics?.[id] || account.creditCosmetics[id] || account.cloudEntitlements?.[productId] || account.entitlements[productId] || account.legacyPurchases[productId])];
+  }));
+  return { ...sets, ...Object.fromEntries(SKINS.map(skin => [skin.id, Boolean(sets[skin.setId] || account.creditCosmetics[skin.id])])) };
+}
+
 export function getCosmeticOwnership() {
   try {
-    const account = readAccount();
-    return Object.fromEntries(COSMETIC_IDS.map(id => {
-      const productId = `cosmetic_${id}`;
-      return [id, Boolean(account.creditCosmetics[id] || account.entitlements[productId] || account.legacyPurchases[productId])];
-    }));
+    return cosmeticOwnership(readAccount());
   } catch { return {}; }
 }
 
@@ -136,7 +143,7 @@ export function markCosmeticPending(productId) {
   if (!validCosmeticProduct(productId)) throw new Error('Unknown cosmetic.');
   const account = readAccount();
   const cosmeticId = productId.replace('cosmetic_', '');
-  if (account.creditCosmetics[cosmeticId] || account.entitlements[productId] || account.legacyPurchases[productId]) return false;
+  if (account.eventCosmetics?.[cosmeticId] || account.cloudEntitlements?.[productId] || account.creditCosmetics[cosmeticId] || account.entitlements[productId] || account.legacyPurchases[productId]) return false;
   if (account.pendingCosmetics[productId]) return false;
   account.pendingCosmetics[productId] = true;
   writeAccount(account);
@@ -153,7 +160,7 @@ export function reconcilePendingCosmetics(productIds) {
   const account = readAccount();
   account.pendingCosmetics = Object.fromEntries(productIds.filter(productId => {
     const cosmeticId = productId.replace('cosmetic_', '');
-    return !account.creditCosmetics[cosmeticId] && !account.entitlements[productId] && !account.legacyPurchases[productId];
+    return !account.eventCosmetics?.[cosmeticId] && !account.cloudEntitlements?.[productId] && !account.creditCosmetics[cosmeticId] && !account.entitlements[productId] && !account.legacyPurchases[productId];
   }).map(productId => [productId, true]));
   writeAccount(account);
   return productIds;
@@ -161,16 +168,19 @@ export function reconcilePendingCosmetics(productIds) {
 
 // Debit and unlock in one committed account record. Repeating an already-owned
 // selection is harmless and can never charge credits twice.
-export function unlockCreditCosmetic(cosmeticId) {
+export function unlockCreditCosmetic(cosmeticId, { expectedPrice } = {}) {
   const cosmetic = getCosmetic(cosmeticId);
   if (!cosmetic) throw new Error('Unknown cosmetic.');
   const account = readAccount();
-  const storeOwned = Boolean(account.entitlements[cosmetic.productId] || account.legacyPurchases[cosmetic.productId]);
-  if (storeOwned || account.creditCosmetics[cosmeticId]) return { unlocked: false, balance: account.balance };
-  if (cosmeticPurchaseLocks.has(cosmetic.productId)) throw new Error('This cosmetic purchase is in progress.');
-  if (account.pendingCosmetics[cosmetic.productId]) throw new Error('This cosmetic purchase is awaiting approval.');
-  if (account.balance < cosmetic.creditPrice) throw new Error('Not enough credits.');
-  account.balance -= cosmetic.creditPrice;
+  const ownership = cosmeticOwnership(account);
+  if (ownership[cosmeticId]) return { unlocked: false, balance: account.balance };
+  const productId = cosmetic.kind === 'skin' ? getCosmetic(cosmetic.setId).productId : cosmetic.productId;
+  if (cosmeticPurchaseLocks.has(productId)) throw new Error('This cosmetic purchase is in progress.');
+  if (account.pendingCosmetics[productId]) throw new Error('This cosmetic purchase is awaiting approval.');
+  const { price } = cosmeticCreditOffer(cosmetic, Date.now(), ownership);
+  if (expectedPrice !== undefined && expectedPrice !== price) throw new Error('This offer has changed. Review the current price and try again.');
+  if (account.balance < price) throw new Error('Not enough credits.');
+  account.balance -= price;
   account.creditCosmetics[cosmeticId] = true;
   writeAccount(account);
   return { unlocked: true, balance: account.balance };
@@ -192,7 +202,7 @@ export function syncStoreSnapshot(productIds, pendingProductIds = undefined) {
   if (pendingProductIds !== undefined) {
     account.pendingCosmetics = Object.fromEntries(pendingProductIds.filter(productId => {
       const cosmeticId = productId.replace('cosmetic_', '');
-      return !account.creditCosmetics[cosmeticId] && !account.entitlements[productId] && !account.legacyPurchases[productId];
+      return !account.eventCosmetics?.[cosmeticId] && !account.cloudEntitlements?.[productId] && !account.creditCosmetics[cosmeticId] && !account.entitlements[productId] && !account.legacyPurchases[productId];
     }).map(productId => [productId, true]));
   }
   writeAccount(account);
@@ -234,10 +244,19 @@ export function grantStoreTransaction(transaction) {
 export const runXp = ({ distance = 0, coins = 0, bosses = 0 }) =>
   Math.floor(Math.max(0, distance) / 8) + Math.floor(Math.max(0, coins) * 2 / (CREDIT_SCALE * 10)) + Math.max(0, bosses) * 125;
 
+// Use the same completed meters shown on the results screen; this ad reward is
+// independent of pickup multipliers, ordinary distance credits and level rewards.
+export function distanceAdReward(distance) {
+  if (!Number.isFinite(distance) || distance <= 0) return 0;
+  const bonus = Math.floor(distance) * 2;
+  return Number.isSafeInteger(bonus) ? bonus : 0;
+}
+
 // This is a separate wallet bonus. Never feed it back into earned credits or progression.
-export function claimEarningsBonus(game, snapshot) {
-  if (game.phase !== 'ENDED' || !game.gameOver || game.earningsBonusClaimed || snapshot <= 0) return 0;
-  const bonus = Math.min(wholeCredits(snapshot), wholeCredits(game.sessionCurrency));
+export function claimDistanceAdBonus(game, snapshotDistance) {
+  if (!game || game.phase !== 'ENDED' || !game.gameOver || game.earningsBonusClaimed) return 0;
+  if (!Number.isFinite(snapshotDistance) || !Number.isFinite(game.distance)) return 0;
+  const bonus = distanceAdReward(Math.min(snapshotDistance, game.distance));
   if (!bonus) return 0;
   game.earningsBonusClaimed = true;
   game.earningsBonus = bonus;
@@ -261,3 +280,5 @@ export function flightEarningsBreakdown(coins = 0, distanceBonus = 0, levelBonus
   const flight = wholeCredits(coins), distance = Math.min(flight, wholeCredits(distanceBonus));
   return { collected: flight - distance, distance, total: flight + wholeCredits(levelBonus) + wholeCredits(earningsBonus) };
 }
+
+export function notifyWalletChanged() { for (const listener of walletListeners) listener(); }

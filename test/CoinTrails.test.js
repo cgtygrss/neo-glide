@@ -49,6 +49,20 @@ test('small coin trails reserve a single 10000-credit prize for every twelfth tr
   assert.deepEqual([...new Set(firstForty.flat())].sort((a,b) => a-b), [50, 100, 250, 500, 10000]);
 });
 
+test('long flights have about 20% fewer pickups while retaining five-coin trails and the initial reward', () => {
+  const state = createCoinTrailState();
+  let count = 0;
+  for (let distance = 1; distance <= 100000; distance++) {
+    const coins = advanceCoinTrails(state, 1, 844, 390);
+    if (!coins.length) continue;
+    if (!count) assert.equal(distance, 300);
+    assert.equal(coins.length, 5);
+    count += coins.length;
+  }
+  assert.equal(count, 310);
+  assert.ok(count / 385 >= .79 && count / 385 <= .81, 'Previous cadence produced 385 coins over the same distance');
+});
+
 test('patterns stay clear of maximum edge obstacles and defer a blocked corridor', () => {
   for (const [width, height] of [[844, 390], [640, 280], [390, 844], [1280, 720]]) {
     for (let i = 0; i < 40; i++) {
@@ -66,6 +80,24 @@ test('patterns stay clear of maximum edge obstacles and defer a blocked corridor
   assert.deepEqual(advanceCoinTrails(state, 300, 844, 390, blocked), []);
   assert.equal(state.index, 0);
   assert.equal(advanceCoinTrails(state, 80, 844, 390).length, 5);
+});
+
+test('later trails alternate heights while the first reward and small-screen escape corridor remain safe', () => {
+  for (const height of [240, 280, 390, 844]) {
+    const trails = Array.from({ length: 20 }, (_, i) => buildCoinTrail(i, 844, height));
+    assert.ok(trails[0].every(coin => coin.y === height / 2));
+    for (const coins of trails) for (const coin of coins) {
+      const maxEdge = Math.min(100, height * .22);
+      assert.ok(coin.y - coin.radius - 20 > maxEdge);
+      assert.ok(coin.y + coin.radius + 20 < height - maxEdge);
+    }
+    if (height >= 390) {
+      const mean = coins => coins.reduce((sum, coin) => sum + coin.y, 0) / coins.length;
+      assert.ok(mean(trails[1]) < height / 2 - 25);
+      assert.ok(mean(trails[2]) > height / 2 + 20);
+      assert.ok(Math.max(...trails.flat().map(coin => coin.y)) - Math.min(...trails.flat().map(coin => coin.y)) > 80);
+    }
+  }
 });
 
 test('face value, purchased multiplier and combo are paid exactly once', () => {

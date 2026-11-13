@@ -1,0 +1,350 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and verify signed packages without deploying or submitting
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neo-glide-release
+  cancel-in-progress: false
+  queue: max
+
+env:
+  FASTLANE_SKIP_UPDATE_CHECK: 'true'
+  FASTLANE_HIDE_CHANGELOG: 'true'
+  FASTLANE_OPT_OUT_USAGE: 'true'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  identity:
+    needs: verify
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.identity.outputs.version }}
+      build: ${{ steps.identity.outputs.build }}
+      track: ${{ steps.identity.outputs.track }}
+      dry_run: ${{ steps.mode.outputs.dry_run }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Require main for signing and distribution
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+      - id: identity
+        run: node scripts/ci/version.mjs
+      - id: mode
+        env:
+          ENABLED: ${{ vars.AUTO_PUBLISH_ENABLED }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$ENABLED" = true ] && { [ "$GITHUB_EVENT_NAME" = push ] || [ "$MANUAL_DRY_RUN" = false ]; }; then
+            echo 'dry_run=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'dry_run=true' >> "$GITHUB_OUTPUT"
+          fi
+
+  android:
+    needs: identity
+    runs-on: ubuntu-24.04
+    environment: store-release
+    timeout-minutes: 35
+    env:
+      ANDROID_TRACK: ${{ needs.identity.outputs.track }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ vars.ANDROID_KEY_ALIAS }}
+      NEO_GLIDE_PLAY_BILLING_PUBLIC_KEY: ${{ secrets.NEO_GLIDE_PLAY_BILLING_PUBLIC_KEY }}
+      ANDROID_ADMOB_APP_ID: ${{ vars.ANDROID_ADMOB_APP_ID }}
+      VITE_ADMOB_REWARDED_ANDROID: ${{ vars.VITE_ADMOB_REWARDED_ANDROID }}
+      VITE_ADMOB_INTERSTITIAL_ANDROID: ${{ vars.VITE_ADMOB_INTERSTITIAL_ANDROID }}
+      VITE_ADMOB_REWARDED_INTERSTITIAL_ANDROID: ${{ vars.VITE_ADMOB_REWARDED_INTERSTITIAL_ANDROID }}
+      NEO_GLIDE_PLAY_GAMES_APP_ID: ${{ vars.NEO_GLIDE_PLAY_GAMES_APP_ID }}
+      NEO_GLIDE_CI_SIGNED_RELEASE: 'true'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          accept-android-sdk-licenses: false
+      - run: node scripts/ci/validate-config.mjs android
+      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - run: npm ci && npm run version:sync && node scripts/ci/prepare-ads.mjs android && npm run build:release && npx --no-install cap sync android
+      - run: node scripts/ci/sign-android.mjs
+      - name: Build signed App Bundle
+        working-directory: android
+        env:
+          BUILD_NUMBER: ${{ needs.identity.outputs.build }}
+        run: ./gradlew --no-daemon bundleRelease -PNEO_GLIDE_BUILD_NUMBER="$BUILD_NUMBER"
+      - name: Verify bundletool download
+        run: |
+          curl --fail --location --retry 3 https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar -o ci-output/bundletool.jar
+          echo 'a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29  ci-output/bundletool.jar' | sha256sum --check
+      - run: cp android/app/build/outputs/bundle/release/app-release.aab ci-output/NeoGlide.aab && node scripts/ci/verify-artifact.mjs android ci-output/NeoGlide.aab
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: signed-android-${{ github.run_id }}
+          path: |
+            ci-output/NeoGlide.aab
+            ci-output/android.json
+            ci-output/identity.json
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true
+      - name: Remove signing material
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/neo-glide-signing" android/keystore.properties .env.release.local
+
+  ios:
+    needs: identity
+    runs-on: xcode-27
+    environment: store-release
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+      IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+      IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+      IOS_PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_PRIVATE_KEY_BASE64: ${{ secrets.ASC_PRIVATE_KEY_BASE64 }}
+      IOS_ADMOB_APP_ID: ${{ vars.IOS_ADMOB_APP_ID }}
+      VITE_ADMOB_REWARDED_IOS: ${{ vars.VITE_ADMOB_REWARDED_IOS }}
+      VITE_ADMOB_INTERSTITIAL_IOS: ${{ vars.VITE_ADMOB_INTERSTITIAL_IOS }}
+      VITE_ADMOB_REWARDED_INTERSTITIAL_IOS: ${{ vars.VITE_ADMOB_REWARDED_INTERSTITIAL_IOS }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+        with:
+          ruby-version: '3.4.12'
+          bundler-cache: true
+      - run: node scripts/ci/validate-config.mjs ios
+      - run: npm ci && npm run version:sync && node scripts/ci/prepare-ads.mjs ios && npm run build:release && bundle exec npx --no-install cap sync ios
+      - run: bash scripts/ci/sign-ios.sh
+      - name: Archive and export App Store package
+        env:
+          BUILD_NUMBER: ${{ needs.identity.outputs.build }}
+          APP_VERSION: ${{ needs.identity.outputs.version }}
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -destination 'generic/platform=iOS' -onlyUsePackageVersionsFromResolvedFile -disableAutomaticPackageResolution -archivePath ci-output/App.xcarchive archive CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$APP_VERSION" PROVISIONING_PROFILE_SPECIFIER="$IOS_PROFILE_NAME" CODE_SIGN_STYLE=Manual
+          xcodebuild -exportArchive -archivePath ci-output/App.xcarchive -exportOptionsPlist "$RUNNER_TEMP/neo-glide-signing/ExportOptions.plist" -exportPath ci-output/export
+          cp ci-output/export/App.ipa ci-output/NeoGlide.ipa
+      - run: node scripts/ci/verify-artifact.mjs ios ci-output/NeoGlide.ipa
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: signed-ios-${{ github.run_id }}
+          path: |
+            ci-output/NeoGlide.ipa
+            ci-output/ios.json
+            ci-output/identity.json
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true
+      - name: Remove signing material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/neo-glide-signing/build.keychain-db" || true
+          rm -rf "$RUNNER_TEMP/neo-glide-signing" "$HOME/Library/MobileDevice/Provisioning Profiles" .env.release.local
+
+  preflight:
+    needs: [identity, android, ios]
+    runs-on: ubuntu-24.04
+    environment: store-release
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --prefix backend
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: signed-*-${{ github.run_id }}
+          merge-multiple: true
+          path: ci-output
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.PLAY_PUBLISH_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+      - name: Verify artifact hashes and outstanding release ledger
+        id: ledger
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci/check-hashes.mjs && node scripts/ci/store-state.mjs check
+      - name: Verify store versions and review state
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY_BASE64: ${{ secrets.ASC_PRIVATE_KEY_BASE64 }}
+          IOS_ARTIFACT_RESUME: ${{ steps.ledger.outputs.ios_resume }}
+          ANDROID_ARTIFACT_RESUME: ${{ steps.ledger.outputs.android_resume }}
+        run: node scripts/ci/store-preflight.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: store-preflight-${{ github.run_id }}
+          path: ci-output/store-snapshot.json
+          overwrite: true
+      - name: Report signed dry run
+        if: needs.identity.outputs.dry_run == 'true'
+        run: echo 'Signed packages and store preflight verified. Dry run — no Firebase deployment or store submission.' >> "$GITHUB_STEP_SUMMARY"
+
+  firebase:
+    needs: [identity, preflight]
+    if: needs.identity.outputs.dry_run == 'false'
+    runs-on: ubuntu-24.04
+    environment: store-release
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      deployments: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            tools/ci/package-lock.json
+      - run: npm ci && npm ci --prefix backend && npm ci --prefix tools/ci
+      - run: npm run legal:build && npm run build:admin
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.FIREBASE_DEPLOY_SERVICE_ACCOUNT }}
+      - run: node scripts/ci/firebase-deploy.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FIREBASE_FUNCTIONS_ENV: ${{ secrets.FIREBASE_FUNCTIONS_ENV }}
+
+  publish:
+    needs: [identity, firebase]
+    if: needs.identity.outputs.dry_run == 'false'
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        store: [ios, android]
+    runs-on: xcode-27
+    environment: store-release
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      deployments: write
+      id-token: write
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+      GH_TOKEN: ${{ github.token }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_PRIVATE_KEY_BASE64: ${{ secrets.ASC_PRIVATE_KEY_BASE64 }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+        with:
+          ruby-version: '3.4.12'
+          bundler-cache: true
+      - run: npm ci --prefix backend
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: signed-*-${{ github.run_id }}
+          merge-multiple: true
+          path: ci-output
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: store-preflight-${{ github.run_id }}
+          path: ci-output
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.PLAY_PUBLISH_SERVICE_ACCOUNT }}
+      - run: node scripts/ci/check-hashes.mjs
+      - name: Open or resume this exact store submission
+        id: ledger
+        env:
+          STORE: ${{ matrix.store }}
+        run: node scripts/ci/store-state.mjs begin "$STORE"
+      - name: Prepare release notes
+        env:
+          VERSION: ${{ needs.identity.outputs.version }}
+          BUILD: ${{ needs.identity.outputs.build }}
+        run: |
+          mkdir -p ci-output/apple-metadata/en-GB ci-output/play-metadata/en-GB/changelogs
+          cp "ci/changes/$VERSION/en-GB.txt" ci-output/apple-metadata/en-GB/release_notes.txt
+          cp "ci/changes/$VERSION/en-GB.txt" "ci-output/play-metadata/en-GB/changelogs/$BUILD.txt"
+      - name: Refresh store state for an interrupted submission
+        id: refreshed_ledger
+        run: node scripts/ci/store-state.mjs check
+      - name: Recheck uploaded build identities before resuming
+        if: steps.ledger.outputs.submitted != 'true'
+        env:
+          IOS_ARTIFACT_RESUME: ${{ steps.refreshed_ledger.outputs.ios_resume }}
+          ANDROID_ARTIFACT_RESUME: ${{ steps.refreshed_ledger.outputs.android_resume }}
+        run: node scripts/ci/store-preflight.mjs
+      - name: Submit and enable release after approval
+        if: steps.ledger.outputs.submitted != 'true'
+        env:
+          STORE: ${{ matrix.store }}
+        run: bundle exec fastlane "publish_$STORE"
+      - name: Record submitted status
+        env:
+          DEPLOYMENT_ID: ${{ steps.ledger.outputs.deployment }}
+          STORE: ${{ matrix.store }}
+        run: node scripts/ci/store-state.mjs submitted "$STORE"
+
+  summary:
+    needs: [verify, identity, android, ios, preflight, firebase, publish]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Release report
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          VERSION: ${{ needs.identity.outputs.version }}
+          BUILD: ${{ needs.identity.outputs.build }}
+          DRY_RUN: ${{ needs.identity.outputs.dry_run }}
+          TRACK: ${{ needs.identity.outputs.track }}
+        run: |
+          python3 - <<'PY'
+          import os,json
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+            f.write(f"## Neo Glide {os.environ['VERSION']} ({os.environ['BUILD']})\n\nCommit: `{os.environ['GITHUB_SHA']}`\n\nDry run: `{os.environ['DRY_RUN']}`; Android track: `{os.environ['TRACK']}`\n\n")
+            for name,job in json.loads(os.environ['RESULTS']).items(): f.write(f"- {name}: {job['result']}\n")
+            f.write('\nStore submission success means submitted for review, not confirmed live. See store consoles for approval and availability.\n')
+          PY

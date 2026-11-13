@@ -1,11 +1,18 @@
+import { WEAPON_STATS, drawCatalogProjectile } from './WeaponCatalog.js';
+import { flightEnemies } from './FlightDifficulty.js';
 import { drawCosmeticMuzzle, drawCosmeticShot } from './CosmeticEffects.js';
 import { StageBackground } from './StageBackground.js';
 import { drawVoltLightning, drawTransformationCapsule, drawTransformationVehicle, drawTransformationCinematic } from './TransformationArt.js';
 import { drawShipArt } from './ShipArt.js';
 import { transformationWorldDelta } from './TransformationCatalog.js';
-import { getCosmetic, getCosmeticPalette } from './CosmeticsCatalog.js';
+import { getCosmeticEffects, getCosmeticPalette } from './CosmeticsCatalog.js';
 import { getShip } from './ShipCatalog.js';
 import { advanceCosmeticTrail, createCosmeticTrailState, drawCosmeticTrail, resetCosmeticTrail } from './CosmeticTrails.js';
+import { resizeCanvas } from './CanvasResolution.js';
+import { drawScoutAim, drawScoutBeam } from './ScoutAttack.js';
+import { drawEnemyArt } from './EnemyArt.js';
+import { flightScrollSpeed } from './FlightViewport.js';
+import { drawBossArt, drawBossWarnings, drawBossArrival } from './BossArt.js';
 
 const INK = '#06121f';
 const DANGER = '#ff627d';
@@ -35,6 +42,7 @@ export class Renderer {
         this.ctx = canvas.getContext('2d');
         this.width = canvas.width;
         this.height = canvas.height;
+        Object.assign(this, resizeCanvas(canvas, this.ctx, this.width, this.height));
 
         // Initialize Starfield
         this.stars = [];
@@ -55,6 +63,7 @@ export class Renderer {
 
     drawScene(game, deltaTime) {
     if (this.width <= 0 || this.height <= 0) return;
+    this.reducedMotion = Boolean(game.launch?.reducedMotion);
     this.clear();
     const transformation = game.transformation;
     const realDelta = Math.max(0, Math.min(.1, deltaTime || 0));
@@ -70,19 +79,20 @@ export class Renderer {
     if (game.phase === 'FLYING' || game.phase === 'LAUNCH') this.cosmeticEffectTime += Math.max(0, Math.min(.1, deltaTime || 0));
     const launching = game.phase === 'LAUNCH' || (game.phase === 'PAUSED' && game.pausedPhase === 'LAUNCH');
     const cosmeticDelta = game.launch?.reducedMotion && game.phase !== 'FLYING' ? 0 : deltaTime;
-    if (game.stageId && game.stageId !== 'default') {
+    if (game.stageId) {
         if (!this.stageBackground) this.stageBackground = new StageBackground();
         if (this.stageRun !== game) { this.stageRun = game; this.stageTime = 0; this.stageBackground.reset(); }
         if ((game.phase === 'FLYING' || game.phase === 'LAUNCH') && !game.launch?.reducedMotion) this.stageTime += Math.max(0, Math.min(.1, deltaTime || 0));
         this.stageBackground.draw(this.ctx, game.stageId, this.width, this.height, this.stageTime, game.launch?.reducedMotion ? 0 : (game.distance || 0), this.lowPowerMode);
-    } else this.drawBackground(game.speed, cosmeticDelta);
-    if (game.phase === 'FLYING') this.drawSpeedLines(game.speed, deltaTime);
+    } else this.drawBackground(flightScrollSpeed(game), cosmeticDelta);
+    if (game.phase === 'FLYING' && !this.reducedMotion) this.drawSpeedLines(game.speed, deltaTime);
     if (!transformation && (launching || game.phase === 'READY')) this.drawLaunchBay(game.launch, game.phase === 'READY');
     // Atmospheric effects stay behind every collectible and threat.
     this.drawEffects(deltaTime);
+    drawBossArrival(this.ctx, game, { reducedMotion: this.reducedMotion || game.launch?.reducedMotion, lowPower: this.lowPowerMode });
     if (!transformation) this.drawCosmeticTrail(game, deltaTime);
     this.drawObstacles(game.obstacles);
-    this.drawVillain(game.villain);
+    flightEnemies(game).forEach(enemy => { if (!enemy.markedForDeletion) this.drawVillain(enemy); });
     this.drawCollectibles(game.collectibles);
     this.drawFuels(game.fuels);
     this.drawHealthPickups(game.healthPickups || []);
@@ -93,21 +103,26 @@ export class Renderer {
         if (transformation.phase !== 'ENTERING' || transformation.reducedMotion) {
             drawTransformationVehicle(this.ctx, transformation, game.cosmeticId, this.lowPowerMode, transformation.reducedMotion, game.shipType);
         }
-    } else this.drawPlayer(game.player, game.shipType, game.ghostMode, game.activePowerUps, launching, game.hitProtection, game.cosmeticId);
+    } else this.drawPlayer(game.player, game.shipType, game.ghostMode, game.activePowerUps, launching, game.hitProtection, game.cosmeticId, game.launch?.reducedMotion);
     this.drawFloatingTexts(game.floatingTexts);
+    for (const enemy of flightEnemies(game)) drawScoutAim(this.ctx, enemy);
+    drawBossWarnings(this.ctx, game);
     // Incoming fire must survive overlapping auras, pickups and reward labels.
     this.drawProjectiles(game.projectiles);
     // The protected assembly is a foreground presentation, beneath the React HUD.
     drawTransformationCinematic(this.ctx, game, this.width, this.height, this.lowPowerMode);
     }
 
-    resize(width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
+    resize(width, height, resolutionOptions) {
+        const resolution = resizeCanvas(this.canvas, this.ctx, width, height, resolutionOptions);
+        if (!resolution.changed && this.width === width && this.height === height) return;
+        Object.assign(this, resolution);
+        this.displayScale = resolutionOptions?.displayScale || 1;
         this.width = width;
         this.height = height;
         // Re-init stars on resize to fill new space
         this.stars = [];
+        this.fxParticles = [];
         resetCosmeticTrail(this.cosmeticTrail);
         this.stageBackground?.reset();
         this.initBackground();
@@ -115,7 +130,7 @@ export class Renderer {
 
     drawCosmeticTrail(game, deltaTime) {
         if (!this.cosmeticTrail) this.cosmeticTrail = createCosmeticTrailState();
-        const cosmetic = getCosmetic(game.cosmeticId);
+        const cosmetic = getCosmeticEffects(game.cosmeticId);
         const points = advanceCosmeticTrail(this.cosmeticTrail, { game, cosmetic, deltaTime });
         if (cosmetic) drawCosmeticTrail(this.ctx, points, cosmetic, getCosmeticPalette(getShip(game.shipType).palette, cosmetic.id), this.lowPowerMode);
     }
@@ -129,13 +144,13 @@ export class Renderer {
     emitBurst(x, y, color = '#00ffff', count = 16, force = 220) {
         const available = Math.max(0, 32 - this.fxParticles.length);
         const density = this.lowPowerMode ? 0.16 : 0.24;
-        const particleCount = Math.min(Math.max(3, Math.ceil(count * density)), available);
+        const particleCount = Math.min(this.reducedMotion ? 2 : Math.max(3, Math.ceil(count * density)), available);
         for (let i = 0; i < particleCount; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = force * (0.35 + Math.random() * 0.65);
             this.fxParticles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 0.25 + Math.random() * 0.2, maxLife: 0.45, size: 1 + Math.random() * 1.5, color });
         }
-        this.flash = Math.max(this.flash, 0.045);
+        this.flash = this.reducedMotion ? 0 : Math.max(this.flash, 0.045);
     }
 
     drawSpeedLines(speed, deltaTime) {
@@ -184,15 +199,16 @@ export class Renderer {
             this.flash = Math.max(0, this.flash - deltaTime);
         }
 
-        if (this.vignetteCanvas) this.ctx.drawImage(this.vignetteCanvas, 0, 0);
+        if (this.vignetteCanvas) this.ctx.drawImage(this.vignetteCanvas, 0, 0, this.width, this.height);
         this.ctx.restore();
     }
 
     buildStaticLayers() {
         this.backgroundCanvas = document.createElement('canvas');
-        this.backgroundCanvas.width = this.width;
-        this.backgroundCanvas.height = this.height;
+        this.backgroundCanvas.width = this.canvas.width;
+        this.backgroundCanvas.height = this.canvas.height;
         const backgroundContext = this.backgroundCanvas.getContext('2d');
+        backgroundContext.setTransform(this.scaleX, 0, 0, this.scaleY, 0, 0);
         const backgroundGradient = backgroundContext.createLinearGradient(0, 0, 0, this.height);
         backgroundGradient.addColorStop(0, '#02030a');
         backgroundGradient.addColorStop(0.55, '#040617');
@@ -201,9 +217,10 @@ export class Renderer {
         backgroundContext.fillRect(0, 0, this.width, this.height);
 
         this.vignetteCanvas = document.createElement('canvas');
-        this.vignetteCanvas.width = this.width;
-        this.vignetteCanvas.height = this.height;
+        this.vignetteCanvas.width = this.canvas.width;
+        this.vignetteCanvas.height = this.canvas.height;
         const vignetteContext = this.vignetteCanvas.getContext('2d');
+        vignetteContext.setTransform(this.scaleX, 0, 0, this.scaleY, 0, 0);
         const vignette = vignetteContext.createRadialGradient(this.width / 2, this.height / 2, this.height * 0.22, this.width / 2, this.height / 2, this.width * 0.68);
         vignette.addColorStop(0, 'rgba(0,0,0,0)');
         vignette.addColorStop(1, 'rgba(0,0,10,0.22)');
@@ -212,7 +229,7 @@ export class Renderer {
     }
 
     initBackground() {
-        const pixelLoad = this.width * this.height;
+        const pixelLoad = this.width * this.height * (this.displayScale || 1) ** 2;
         this.lowPowerMode = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) || pixelLoad > 1800000;
         this.buildStaticLayers();
 
@@ -252,7 +269,7 @@ export class Renderer {
     }
 
     drawBackground(speed, deltaTime) {
-        this.ctx.drawImage(this.backgroundCanvas, 0, 0);
+        this.ctx.drawImage(this.backgroundCanvas, 0, 0, this.width, this.height);
 
         // Draw Stars (Parallax)
         this.ctx.fillStyle = '#a6bccd';
@@ -406,7 +423,7 @@ export class Renderer {
         });
     }
 
-    drawPlayer(player, shipType = 'default', ghostMode = false, activePowerUps = [], launchEngines = false, hitProtection = 0, cosmeticId = null) {
+    drawPlayer(player, shipType = 'default', ghostMode = false, activePowerUps = [], launchEngines = false, hitProtection = 0, cosmeticId = null, reducedMotion = false) {
         this.ctx.save();
         this.ctx.translate(player.x, player.y);
         this.ctx.rotate(player.rotation * Math.PI / 180);
@@ -489,6 +506,7 @@ export class Renderer {
             time,
             cosmeticId,
             lowPower: this.lowPowerMode,
+            reducedMotion,
         });
         this.ctx.restore();
 
@@ -681,151 +699,45 @@ export class Renderer {
         if (!villain) return;
 
         this.ctx.save();
+        this.ctx.globalAlpha = 1;
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.shadowBlur = 0;
         this.ctx.translate(villain.x, villain.y);
 
-        if (villain.type === 'SPEEDSTER') {
-            // SPEEDSTER: Aggressive Racer
-            this.ctx.shadowBlur = 3;
-            this.ctx.shadowColor = '#ff0000';
+        if (villain.isEliteBoss || villain.isBossDrone) {
+            drawBossArt(this.ctx, villain, { reducedMotion: this.reducedMotion });
+            this.ctx.restore(); return;
+        }
+        drawEnemyArt(this.ctx, villain, { lowPower: this.lowPowerMode });
 
-            // Engine Trail
-            this.ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+        // A compact, steady charge marker stays readable without a full-screen
+        // flash, extra particles, or blocking the open flight corridor.
+        if (villain.attackWarning > 0) {
+            const charge = villain.attackWarning;
+            this.ctx.shadowBlur = 0;
+            this.ctx.strokeStyle = '#ffe39a';
+            this.ctx.fillStyle = '#ffe39a';
+            this.ctx.lineWidth = 3;
             this.ctx.beginPath();
-            this.ctx.moveTo(40, 0);
-            this.ctx.lineTo(80 + Math.sin((this.cosmeticEffectTime || 0) * 28) * 10, 0);
-            this.ctx.lineTo(40, 5);
-            this.ctx.fill();
-
-            // Main Body (Sharp, Jagged)
-            const grad = this.ctx.createLinearGradient(-20, 0, 20, 0);
-            grad.addColorStop(0, '#ff0000');
-            grad.addColorStop(1, '#440000');
-            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : grad;
-
-            this.ctx.beginPath();
-            this.ctx.moveTo(-30, 0); // Nose
-            this.ctx.lineTo(20, 15);
-            this.ctx.lineTo(10, 0);
-            this.ctx.lineTo(20, -15);
-            this.ctx.closePath();
-            outlinedShape(this.ctx, this.ctx.fillStyle, '#f3a0af');
-
-            // Wings (Forward Swept)
-            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : '#aa0000';
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, 0);
-            this.ctx.lineTo(10, 25);
-            this.ctx.lineTo(-10, 10);
-            this.ctx.lineTo(-10, -10);
-            this.ctx.lineTo(10, -25);
-            this.ctx.closePath();
-            this.ctx.fill();
-
-            // Cockpit/Eye
-            this.ctx.fillStyle = '#ffff00';
-            this.ctx.shadowColor = '#ffff00';
-            this.ctx.beginPath();
-            this.ctx.moveTo(-10, 0);
-            this.ctx.lineTo(-5, 3);
-            this.ctx.lineTo(-5, -3);
-            this.ctx.fill();
-
-        } else if (villain.type === 'JUGGERNAUT') {
-            // JUGGERNAUT: Flying Fortress
-            this.ctx.shadowBlur = 3;
-            this.ctx.shadowColor = '#ff8800';
-
-            // Main Hull (Massive Block)
-            const grad = this.ctx.createLinearGradient(-40, 0, 40, 0);
-            grad.addColorStop(0, '#332200');
-            grad.addColorStop(1, '#664400');
-            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : grad;
-
-            this.ctx.beginPath();
-            this.ctx.moveTo(-50, -20);
-            this.ctx.lineTo(30, -30);
-            this.ctx.lineTo(50, -10);
-            this.ctx.lineTo(50, 10);
-            this.ctx.lineTo(30, 30);
-            this.ctx.lineTo(-50, 20);
-            this.ctx.closePath();
-            outlinedShape(this.ctx, this.ctx.fillStyle, '#e6a09e');
-
-            // Heavy Armor Plates
-            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : '#885500';
-            this.ctx.fillRect(-40, -25, 60, 8); // Top
-            this.ctx.fillRect(-40, 17, 60, 8);  // Bottom
-            this.ctx.fillRect(-55, -15, 15, 30); // Front Shield
-
-            // Turrets
-            this.ctx.fillStyle = '#aa6600';
-            this.ctx.beginPath();
-            this.ctx.arc(0, -20, 8, 0, Math.PI * 2);
-            this.ctx.arc(0, 20, 8, 0, Math.PI * 2);
-            this.ctx.fill();
-
-            // Barrels
-            this.ctx.strokeStyle = '#ffaa00';
-            this.ctx.lineWidth = 4;
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, -20);
-            this.ctx.lineTo(-20, -25);
-            this.ctx.moveTo(0, 20);
-            this.ctx.lineTo(-20, 25);
+            this.ctx.moveTo(-villain.width / 2 - 12, -9);
+            this.ctx.lineTo(-villain.width / 2 - 22, 0);
+            this.ctx.lineTo(-villain.width / 2 - 12, 9);
             this.ctx.stroke();
-
-            // Core (Glowing)
-            this.ctx.fillStyle = '#ff4400';
-            this.ctx.shadowColor = '#ff4400';
-            this.ctx.beginPath();
-            this.ctx.arc(10, 0, 6, 0, Math.PI * 2);
-            this.ctx.fill();
-        } else {
-            // Default Villain: Crimson Striker
-            this.ctx.shadowBlur = 3;
-            this.ctx.shadowColor = '#ff0000';
-
-            // Main Body - Aggressive Angular Shape
-            const grad = this.ctx.createLinearGradient(20, 0, -20, 0);
-            grad.addColorStop(0, '#613247');
-            grad.addColorStop(1, '#38243a');
-            this.ctx.fillStyle = villain.hitFlashTimer > 0 ? '#ffffff' : grad;
-
-            this.ctx.beginPath();
-            this.ctx.moveTo(30, 0);
-            this.ctx.lineTo(-10, 25);
-            this.ctx.lineTo(-5, 0);
-            this.ctx.lineTo(-10, -25);
-            this.ctx.closePath();
-            outlinedShape(this.ctx, this.ctx.fillStyle, '#f3a0af');
-
-            // Glowing Vents
-            this.ctx.fillStyle = '#ff0000';
-            this.ctx.shadowColor = '#ff0000';
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, 5);
-            this.ctx.lineTo(-15, 15);
-            this.ctx.lineTo(-10, 5);
-            this.ctx.fill();
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, -5);
-            this.ctx.lineTo(-15, -15);
-            this.ctx.lineTo(-10, -5);
-            this.ctx.fill();
-
-            // Core
-            this.ctx.fillStyle = '#ff3300';
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, 4, 0, Math.PI * 2);
-            this.ctx.fill();
+            this.ctx.fillStyle = '#06121f';
+            this.ctx.fillRect(-villain.width / 2 - 30, -19, 28, 7);
+            this.ctx.fillStyle = '#ffe39a';
+            this.ctx.fillRect(-villain.width / 2 - 28, -17, 24 * charge, 3);
         }
 
         // Health Bar - Always show for all villains
         const maxHp = villain.type === 'JUGGERNAUT' ? 100 : (villain.type === 'SPEEDSTER' ? 40 : 20);
-        this.ctx.fillStyle = '#333';
-        this.ctx.fillRect(-30, -50, 60, 6);
-        this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#a855f7' : (villain.type === 'JUGGERNAUT' ? '#ff8800' : '#f00');
-        this.ctx.fillRect(-30, -50, 60 * (villain.hp / maxHp), 6);
+        const barY = -villain.height / 2 - 14;
+        this.ctx.fillStyle = '#101a24';
+        this.ctx.fillRect(-31, barY - 1, 62, 7);
+        this.ctx.fillStyle = '#34404a';
+        this.ctx.fillRect(-30, barY, 60, 5);
+        this.ctx.fillStyle = villain.type === 'SPEEDSTER' ? '#c7b9fa' : (villain.type === 'JUGGERNAUT' ? '#e4b786' : '#ee8c82');
+        this.ctx.fillRect(-30, barY, 60 * Math.max(0, Math.min(1, villain.hp / maxHp)), 5);
 
         this.ctx.restore();
     }
@@ -833,6 +745,8 @@ export class Renderer {
     drawProjectiles(projectiles) {
         projectiles.forEach(proj => {
             const ctx = this.ctx;
+            if (proj.markedForDeletion) return;
+            if (proj.type === 'SCOUT_BEAM') { drawScoutBeam(ctx, proj); return; }
             ctx.save();
             ctx.globalAlpha = 1;
             ctx.globalCompositeOperation = 'source-over';
@@ -884,10 +798,10 @@ export class Renderer {
     drawPlayerProjectiles(projectiles, cosmeticId = null, reducedMotion = false) {
         projectiles.forEach(proj => {
             const ctx = this.ctx;
-            const cosmetic = getCosmetic(cosmeticId || proj.cosmeticId);
+            const cosmetic = getCosmeticEffects(cosmeticId || proj.cosmeticId);
             const shot = cosmetic?.colors.shot || FRIENDLY;
             if (cosmetic && Number.isFinite(proj.visualAge) && proj.visualAge >= 0 && proj.visualAge < .12) {
-                ctx.save(); ctx.translate(proj.x + (proj.visualMuzzleOffset ?? -proj.speed * proj.visualAge), proj.y);
+                ctx.save(); ctx.translate(proj.x + (proj.visualMuzzleOffset ?? -(proj.visualTravel ?? proj.speed * proj.visualAge)), proj.y);
                 drawCosmeticMuzzle(ctx, cosmetic, proj.visualAge); ctx.restore();
             }
             ctx.save();
@@ -921,7 +835,8 @@ export class Renderer {
                     ctx.moveTo(-9, 0); ctx.lineTo(-4, -3); ctx.lineTo(1, 3); ctx.lineTo(7, -3); ctx.lineTo(12, 0);
                     ctx.stroke(); ctx.strokeStyle = cosmetic ? shot : '#bdf4f5'; ctx.lineWidth = 2; ctx.stroke(); break;
                 default:
-                    ctx.roundRect(-7, -2, 15, 4, 2); outlinedShape(ctx, shot, cosmetic ? '#ffffff' : '#c9f6ff', 1);
+                    if (WEAPON_STATS[proj.type]?.shape) drawCatalogProjectile(ctx, WEAPON_STATS[proj.type], cosmetic ? shot : null);
+                    else { ctx.roundRect(-7, -2, 15, 4, 2); outlinedShape(ctx, shot, cosmetic ? '#ffffff' : '#c9f6ff', 1); }
             }
             ctx.restore();
         });

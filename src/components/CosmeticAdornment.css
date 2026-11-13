@@ -1,0 +1,15 @@
+.cosmetic-adornment { pointer-events: none; }
+.cosmetic-motion { transform-origin: 0px 0px; }
+@media (prefers-reduced-motion: no-preference) {
+  .cosmetic-motion { animation-duration: var(--cosmetic-period); animation-delay: var(--cosmetic-delay); animation-iteration-count: infinite; }
+  .cosmetic-motion-float { animation-name: cosmetic-orbit-float; animation-timing-function: ease-in-out; }
+  .cosmetic-motion-spin { animation-name: cosmetic-rotor-turn; animation-timing-function: linear; }
+  .cosmetic-motion-sway { animation-name: cosmetic-leaf-sway; animation-timing-function: ease-in-out; }
+  .cosmetic-motion-pulse { animation-name: cosmetic-core-breathe; animation-timing-function: ease-in-out; }
+  .cosmetic-motion-flutter { animation-name: cosmetic-butterfly-flutter; animation-timing-function: ease-in-out; }
+}
+@keyframes cosmetic-orbit-float { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(3px); } 75% { transform: translateY(-3px); } }
+@keyframes cosmetic-rotor-turn { to { transform: rotate(360deg); } }
+@keyframes cosmetic-leaf-sway { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(4deg); } 75% { transform: rotate(-4deg); } }
+@keyframes cosmetic-core-breathe { 0%, 100% { opacity: .83; } 25% { opacity: .96; } 75% { opacity: .7; } }
+@keyframes cosmetic-butterfly-flutter { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.8); } }

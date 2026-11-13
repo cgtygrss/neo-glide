@@ -29,8 +29,41 @@ dist-ssr
 keystore.properties
 android/keystore.properties
 android/billing.properties
+android/local.properties
+/build/
 android/signing/upload_certificate.pem
 
 # Release binaries are retained locally; release notes and screenshots remain tracked.
 release/**/*.ipa
 release/**/*.aab
+
+# Event infrastructure
+dist-admin/
+.firebase/
+*-debug.log
+backend/.env.local
+backend/.secret.local
+
+# Swift configuration helper build products
+scripts/ios-accounts/.build/
+
+# Deployment-specific owner configuration stays on this machine.
+backend/.env.*
+!backend/.env.example
+**/xcuserdata/
+
+# CI credentials and generated products
+.env.release
+.env.production
+*.p12
+*.mobileprovision
+*.p8
+gha-creds-*.json
+ci-output/
+vendor/bundle/
+.bundle/
+fastlane/report.xml
+fastlane/README.md
+release/**/*.apk
+**/*.xcarchive/
+**/*.xcresult/

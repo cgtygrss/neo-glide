@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "neo-glide-live": {
+      "hosting": {
+        "developer": [
+          "neo-glide-live-developer"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -1,0 +1,2 @@
+The runtime music is now licensed for commercial use with attribution.
+See CREDITS.txt, CC-BY-4.0.txt, manifest.json and docs/MUSIC_LICENSING.md.

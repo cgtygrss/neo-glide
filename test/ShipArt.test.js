@@ -24,6 +24,8 @@ class DrawingContext {
     this.globalAlpha = this.stack.pop().alpha;
   }
   translate() {}
+  rotate() {}
+  clip() {}
   scale() {}
   beginPath() {}
   moveTo() {}
@@ -42,7 +44,7 @@ class DrawingContext {
 
 test("saved ship IDs remain compatible with the new progression prices", () => {
   assert.deepEqual(
-    SHIPS.map((ship) => [ship.id, ship.cost]),
+    SHIPS.slice(0, 6).map((ship) => [ship.id, ship.cost]),
     [
       ["default", 0],
       ["interceptor", 60000],

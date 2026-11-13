@@ -20,10 +20,16 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-8003289282406955~3027228409</string>
 	<key>GADIsAdManagerApp</key>
 	<true/>
+	<key>GADDelayAppMeasurementInit</key>
+	<true/>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier helps us show relevant ads and keep Neo Glide free to play.</string>
 	<key>SKAdNetworkItems</key>
@@ -74,5 +80,14 @@
 	<true/>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.288922991366-ll9kkl40pv9obm9bpss0crg5m3iembn7</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

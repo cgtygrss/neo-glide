@@ -1,4 +1,7 @@
+import { getWeaponStats } from './WeaponCatalog.js';
 import { COIN_VALUES } from './Economy.js';
+import { constrainEnemyY } from './EnemySpacing.js';
+import { DEFAULT_FLIGHT_BOUNDS } from './FlightViewport.js';
 
 export class HealthPickup {
     constructor(x, y) {
@@ -118,6 +121,7 @@ export class Villain {
         this.height = 60;
         this.markedForDeletion = false;
         this.hp = 20;
+        this.type = 'SCOUT';
         this.state = 'ENTERING'; // ENTERING, ATTACKING, LEAVING
         this.stateTimer = 0;
         this.attackTimer = 0;
@@ -145,7 +149,7 @@ export class Villain {
         return false;
     }
 
-    update(deltaTime, playerY, playerProjectiles = []) {
+    update(deltaTime, playerY, playerProjectiles = [], neighbors = [], arena = DEFAULT_FLIGHT_BOUNDS) {
         this.stateTimer += deltaTime;
         this.oscillation += deltaTime * 2;
         if (this.hitFlashTimer > 0) this.hitFlashTimer -= deltaTime;
@@ -172,11 +176,11 @@ export class Villain {
 
         if (this.state === 'ENTERING') {
             // Move to attack position (right side of screen)
-            const targetX = window.innerWidth - 150;
+            const targetX = Math.max(arena.width - 150, arena.width * .8);
             this.x -= (this.x - targetX) * 2 * deltaTime;
 
-            // Smoothly center vertically
-            this.y += (window.innerHeight / 2 - this.y) * 2 * deltaTime;
+            // Approach the assigned encounter lane.
+            this.y = constrainEnemyY(this, this.y + (this.targetY - this.y) * 2 * deltaTime, neighbors, arena.height, deltaTime);
 
             if (Math.abs(this.x - targetX) < 10) {
                 this.state = 'ATTACKING';
@@ -203,20 +207,17 @@ export class Villain {
             this.vy = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, this.vy));
 
             // Apply Velocity
-            this.y += this.vy * deltaTime;
-
-            // Clamp Position
-            this.y = Math.max(50, Math.min(window.innerHeight - 100, this.y));
+            this.y = constrainEnemyY(this, this.y + this.vy * deltaTime, neighbors, arena.height, deltaTime);
 
             this.attackTimer += deltaTime;
 
-            // Leave after 20 seconds (gave them a bit more time)
-            if (this.stateTimer > 20) {
+            // The encounter director shortens later visits, leaving recovery gaps.
+            if (this.stateTimer > (this.encounterDuration ?? 20)) {
                 this.state = 'LEAVING';
             }
         } else if (this.state === 'LEAVING') {
             // Fly away to the left
-            this.x -= 500 * deltaTime;
+            this.x -= 500 * (arena.paceScale ?? 1) * deltaTime;
             if (this.x < -200) {
                 this.markedForDeletion = true;
             }
@@ -234,11 +235,12 @@ export class Projectile {
         this.markedForDeletion = false;
     }
 
-    update(deltaTime) {
+    update(deltaTime, arena = DEFAULT_FLIGHT_BOUNDS) {
+        this.previousX = this.x; this.previousY = this.y;
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
 
-        if (this.x < 0 || this.y < 0 || this.y > window.innerHeight) {
+        if (this.x < 0 || this.y < 0 || this.y > arena.height) {
             this.markedForDeletion = true;
         }
     }
@@ -254,41 +256,16 @@ export class PlayerProjectile {
         this.cosmeticId = cosmeticId;
         this.visualAge = 0;
 
-        // Weapon Stats
-        switch (type) {
-            case 'blaster':
-                this.speed = 1200;
-                this.damage = 25;
-                break;
-            case 'cannon':
-                this.speed = 600;
-                this.radius = 8;
-                this.damage = 50;
-                break;
-            case 'beam':
-                this.speed = 2000;
-                this.damage = 75;
-                break;
-            case 'wave':
-                this.speed = 500;
-                this.radius = 10;
-                this.damage = 100;
-                break;
-            case 'shock':
-                this.speed = 1000;
-                this.damage = 150;
-                break;
-            default:
-                this.speed = 800;
-                this.damage = 10;
-                break;
-        }
+        Object.assign(this, getWeaponStats(type));
     }
 
-    update(deltaTime) {
+    update(deltaTime, arena = DEFAULT_FLIGHT_BOUNDS) {
+        this.previousX = this.x; this.previousY = this.y;
         this.visualAge += Math.max(0, deltaTime);
-        this.x += this.speed * deltaTime;
-        if (this.x > window.innerWidth) {
+        const travel = this.speed * (arena.paceScale ?? 1) * deltaTime;
+        this.x += travel;
+        this.visualTravel = (this.visualTravel || 0) + travel;
+        if (this.x > arena.width || this.y < -30 || this.y > arena.height + 30) {
             this.markedForDeletion = true;
         }
     }
@@ -304,7 +281,8 @@ export class HomingProjectile extends Projectile {
         this.life = 5.0; // Expires after 5 seconds
     }
 
-    update(deltaTime) {
+    update(deltaTime, arena = DEFAULT_FLIGHT_BOUNDS) {
+        this.previousX = this.x; this.previousY = this.y;
         this.life -= deltaTime;
         if (this.life <= 0) {
             this.markedForDeletion = true;
@@ -336,7 +314,7 @@ export class HomingProjectile extends Projectile {
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
 
-        if (this.x < -50 || this.y < -50 || this.y > window.innerHeight + 50) {
+        if (this.x < -50 || this.y < -50 || this.y > arena.height + 50) {
             this.markedForDeletion = true;
         }
     }
@@ -351,12 +329,13 @@ export class FuseProjectile extends Projectile {
         this.type = 'FUSE';
     }
 
-    update(deltaTime) {
+    update(deltaTime, arena = DEFAULT_FLIGHT_BOUNDS) {
+        this.previousX = this.x; this.previousY = this.y;
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
         this.rotation += this.rotationSpeed * deltaTime;
 
-        if (this.x < -50 || this.y < -50 || this.y > window.innerHeight + 50) {
+        if (this.x < -50 || this.y < -50 || this.y > arena.height + 50) {
             this.markedForDeletion = true;
         }
     }
@@ -370,12 +349,13 @@ export class SonicBladeProjectile extends Projectile {
         this.type = 'SONIC_BLADE';
     }
 
-    update(deltaTime) {
+    update(deltaTime, arena = DEFAULT_FLIGHT_BOUNDS) {
+        this.previousX = this.x; this.previousY = this.y;
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
         // No rotation update needed as it faces travel direction
 
-        if (this.x < -50 || this.y < -50 || this.y > window.innerHeight + 50) {
+        if (this.x < -50 || this.y < -50 || this.y > arena.height + 50) {
             this.markedForDeletion = true;
         }
     }
@@ -394,8 +374,8 @@ export class SpeedsterVillain extends Villain {
         this.vx = 0; // Horizontal velocity
     }
 
-    update(deltaTime, playerY, playerProjectiles = []) {
-        super.update(deltaTime, playerY, playerProjectiles);
+    update(deltaTime, playerY, playerProjectiles = [], neighbors = [], arena = DEFAULT_FLIGHT_BOUNDS) {
+        super.update(deltaTime, playerY, playerProjectiles, neighbors, arena);
 
         if (this.state === 'ATTACKING') {
             // Smooth Dash Logic
@@ -424,7 +404,7 @@ export class SpeedsterVillain extends Villain {
             }
 
             // Apply horizontal velocity
-            this.x += this.vx * deltaTime;
+            this.x += this.vx * (arena.paceScale ?? 1) * deltaTime;
 
             // Enhanced vertical movement (faster than normal villain)
             this.vy *= 0.95; // Slightly more friction
@@ -444,8 +424,8 @@ export class JuggernautVillain extends Villain {
         this.acceleration = 600; // Slower acceleration (was 800, now 600)
     }
 
-    update(deltaTime, playerY, playerProjectiles = []) {
-        super.update(deltaTime, playerY, playerProjectiles);
+    update(deltaTime, playerY, playerProjectiles = [], neighbors = [], arena = DEFAULT_FLIGHT_BOUNDS) {
+        super.update(deltaTime, playerY, playerProjectiles, neighbors, arena);
 
         if (this.state === 'ATTACKING') {
             // Juggernaut moves slowly and relentlessly towards player Y
@@ -461,8 +441,7 @@ export class JuggernautVillain extends Villain {
 
             this.vy *= this.friction;
             this.vy = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, this.vy));
-            this.y += this.vy * deltaTime;
-            this.y = Math.max(50, Math.min(window.innerHeight - 100, this.y));
+            this.y = constrainEnemyY(this, this.y + this.vy * deltaTime, neighbors, arena.height, deltaTime);
         }
     }
 }

@@ -4,8 +4,14 @@ umask 077
 
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 key_path="$repo_dir/android/signing/upload-key.jks"
-unsigned_path="$repo_dir/release/1.2.0/NeoGlide-1.2.0-version4-UNSIGNED.aab"
-signed_path="$repo_dir/release/1.2.0/NeoGlide-1.2.0-version4-payments.aab"
+unsigned_path="${1:-$repo_dir/android/app/build/outputs/bundle/release/app-release.aab}"
+if [[ $# -ge 2 ]]; then
+    signed_path="$2"
+elif [[ "$unsigned_path" == *-unsigned.aab ]]; then
+    signed_path="${unsigned_path%-unsigned.aab}.aab"
+else
+    signed_path="$repo_dir/release/1.3.0/NeoGlide-1.3.0-version5.aab"
+fi
 
 if [[ ! -t 0 ]]; then
   printf 'Run this script interactively in a terminal so jarsigner can prompt for passwords.\n' >&2
@@ -22,6 +28,8 @@ fi
 
 if [[ -n "${JAVA_HOME:-}" && -x "$JAVA_HOME/bin/jarsigner" ]]; then
   jarsigner_path="$JAVA_HOME/bin/jarsigner"
+elif [[ -x /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin/jarsigner ]]; then
+  jarsigner_path=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin/jarsigner
 elif command -v jarsigner >/dev/null 2>&1; then
   jarsigner_path="$(command -v jarsigner)"
 else
@@ -38,4 +46,4 @@ printf 'Enter the keystore password and the separate key password locally when p
   -signedjar "$signed_path" "$unsigned_path" upload
 "$jarsigner_path" -verify "$signed_path"
 printf 'Signed AAB: %s\n' "$signed_path"
-printf 'Wait for Google to accept the upload-key reset before uploading this bundle.\n'
+printf 'Compare the upload certificate with Play Console before uploading this bundle.\n'

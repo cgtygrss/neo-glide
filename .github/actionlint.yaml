@@ -1,0 +1,7 @@
+# GitHub documents these 2026 features, which actionlint 1.7.12 does not yet know.
+self-hosted-runner:
+  labels: [xcode-27]
+paths:
+  .github/workflows/release.yml:
+    ignore:
+      - '^unexpected key "queue" for "concurrency" section'

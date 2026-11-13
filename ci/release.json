@@ -1,0 +1,11 @@
+{
+  "buildNumberOffset": 100,
+  "androidPackage": "com.cgtygrss.neoglide",
+  "appleBundle": "com.cgtygrssgame.neonglide",
+  "appleAppId": "6755588297",
+  "appleTeamId": "5NA3743WWP",
+  "androidTrack": "alpha",
+  "firebaseProject": "neo-glide-live",
+  "firestoreDatabase": "events",
+  "androidUploadCertificateSha256": "E34EFD9B65DB31F9CEEACC5A7C7BECFA72A4B31F3BEC0438F76D4E67E3F18230"
+}

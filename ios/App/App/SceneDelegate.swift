@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import GoogleSignIn
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -22,6 +23,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     private func forwardURLContexts(_ contexts: Set<UIOpenURLContext>) {
         for context in contexts {
+            if GIDSignIn.sharedInstance.handle(context.url) { continue }
             var options: [UIApplication.OpenURLOptionsKey: Any] = [.openInPlace: context.options.openInPlace]
             if let sourceApplication = context.options.sourceApplication {
                 options[.sourceApplication] = sourceApplication

@@ -1,7 +1,13 @@
-No account or sign-in is required to play.
+No account registration is required to play. The app can create an anonymous session; Game Center is optional, and Google linking is available in Pilot > Account > Manage account. Cancel sign-in to continue playing. Account deletion is available in Pilot > Account > Manage account.
 
-Tap Play, then hold BOOST to rise and release it to descend. FIRE shoots at enemy ships. Garage previews are available without unlocking an item.
+Tap Play, then hold BOOST to rise and release it to descend. FIRE shoots at enemy ships. Garage previews are available without unlocking an item. Transformation capsules temporarily assemble one of five special vehicles during ordinary flights.
 
-The game uses optional rewarded ads for an additional flight-credit reward or one continue. Cancelling an ad does not grant a reward.
+The game uses optional rewarded ads for an additional flight-credit reward or one continue. Cancelling or failing to load an ad does not grant a reward. Live ad availability depends on AdMob review.
 
-Purchase and restore flows must be verified against the App Store Sandbox before submission. Do not submit this draft note until that verification is complete.
+In-app purchases use StoreKit. Restore purchases is available in the game store. Apple-signed Sandbox transactions used by App Review and TestFlight are supported by the server verifier. No reviewer-specific account or special unlock code is required.
+
+Cloud saves and event progress use Firebase. Events appear only when an event schedule is available. Normal flights remain playable offline.
+
+Current build expands the Garage to 16 ships, 16 weapons, 16 upgrade paths, 24 galaxies and 26 cosmetic visual kits. Every skin has an earned-credit option and a one-time StoreKit option. Ownership is shared across these options; pending store approval prevents a conflicting credit unlock. The two event skins also remain earnable through Events. Skins change appearance only. Products are sorted by increasing price.
+
+Privacy policy and support links are available in Settings. Account deletion: Home > Pilot > Account > Manage account > Delete account. The release uses production AdMob unit IDs, UMP consent, and ATT where applicable; no forced ad is required to play.

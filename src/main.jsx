@@ -1,9 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.jsx'
-
-import { ErrorBoundary } from './ErrorBoundary.jsx'
+import AppRoot from './components/AppRoot.jsx'
 
 // Lock screen orientation to landscape
 if (screen.orientation && screen.orientation.lock) {
@@ -12,10 +10,4 @@ if (screen.orientation && screen.orientation.lock) {
   });
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-)
+createRoot(document.getElementById('root')).render(<StrictMode><AppRoot /></StrictMode>)

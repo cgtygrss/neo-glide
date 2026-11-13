@@ -1,0 +1,31 @@
+/* HUD stays readable without making large-screen controls cover the flight. */
+.flight-stage .flight-hud { padding: max(12px, 3cqh, env(safe-area-inset-top)) max(16px, 2cqw, env(safe-area-inset-right)) max(12px, 3cqh, env(safe-area-inset-bottom)) max(16px, 2cqw, env(safe-area-inset-left)); }
+.flight-stage .flight-pedal { width: clamp(88px, 26cqh, 160px); height: clamp(66px, 22cqh, 132px); border-radius: clamp(18px, 5cqh, 28px); }
+.flight-stage .flight-pedal > strong { font-size: clamp(13px, 3.8cqh, 20px); }
+.flight-stage .flight-pedal > small { font-size: clamp(8px, 2cqh, 11px); }
+.flight-stage .flight-pedal > svg { width: clamp(24px, 7cqh, 36px); height: clamp(24px, 7cqh, 36px); }
+.flight-stage .flight-distance > strong { font-size: clamp(26px, 7.5cqh, 44px); }
+.flight-stage .flight-vitals { width: clamp(150px, 22cqw, 220px); }
+.flight-stage .vital-row { font-size: clamp(11px, 2.6cqh, 15px); }
+.flight-stage .flight-top-actions > .coin-balance { font-size: clamp(13px, 3.5cqh, 19px); max-width: 25cqw; overflow: hidden; text-overflow: ellipsis; }
+@container (max-width: 600px) {
+  .flight-stage .flight-topbar { gap: 8px; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .flight-stage .flight-vitals { width: 140px; padding: 8px; }
+  .flight-stage .vital-row { gap: 5px; }
+  .flight-stage .flight-top-actions { gap: 6px; }
+  .flight-stage .flight-top-actions > .coin-balance { padding: 8px; font-size: 12px; }
+  .flight-stage .flight-distance { padding: 0 3px; }
+  .flight-stage .keyboard-hint { display: none; }
+}
+@container (max-height: 330px) {
+  .flight-stage .flight-hud { padding-top: 8px; padding-bottom: 8px; }
+  .flight-stage .flight-pedal { height: 64px; width: 84px; gap: 1px; }
+  .flight-stage .flight-pedal > small, .flight-stage .keyboard-hint { display: none; }
+  .flight-stage .flight-bonuses { top: 65px; }
+}
+@container (max-width: 420px) {
+  .flight-stage .flight-topbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .flight-stage .flight-vitals { width: 120px; }
+  .flight-stage .flight-distance { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); }
+  .flight-stage .flight-top-actions > .coin-balance { max-width: 32cqw; }
+}

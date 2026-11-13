@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Neo Glide · Scout attack</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #081322; color: #edf4ff; }
+    body { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 8px 0; font-size: 32px; } p { color: #a6bacb; line-height: 1.6; }
+    canvas { width: 100%; aspect-ratio: 844/390; border: 1px solid #334761; border-radius: 18px; display: block; }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+    button { background: #18334a; color: #edf4ff; border: 1px solid #7194a8; border-radius: 10px; padding: 12px 16px; font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 3px solid #ffd369; } label { color: #b9c9d6; font-size: 13px; }
+    output { display: block; color: #ffd369; min-height: 48px; margin: 12px 0; font-variant-numeric: tabular-nums; }
+    a { color: #b8e9a1; }
+  </style>
+</head>
+<body>
+  <p>NEO GLIDE · DEVELOPMENT ARENA</p>
+  <h1>Track. Lock. Pulse.</h1>
+  <p>The scout tracks for 0.35s, locks its target for at least 0.6s, then fires a 0.22s ray. Amber dashes mean tracking; a coral line and closed reticle mean locked. This arena runs the game's attack, collision, art and sound code. The evasive ship starts ordinary boost physics 0.2s after locking.</p>
+  <canvas width="844" height="390" aria-label="Scout targeting and laser arena"></canvas>
+  <output role="status" id="status">Choose a scenario.</output>
+  <div class="controls">
+    <button id="stationary">Run stationary target</button>
+    <button id="evasive">Run evasive target</button>
+    <button id="pause">Pause simulation</button>
+  </div>
+  <div class="controls">
+    <label><input id="pause-lock" type="checkbox" checked/> Pause on target lock</label>
+    <label><input id="pause-fire" type="checkbox"/> Pause on laser fire</label>
+  </div>
+  <p id="result">Tank: moving fuse bomb · Speedster: three sonic blades · Scout: locked precision ray.</p>
+  <a href="/">Back to the game</a>
+  <script type="module" src="./scout.js"></script>
+</body>
+</html>

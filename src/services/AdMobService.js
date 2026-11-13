@@ -5,7 +5,10 @@ import {
   MaxAdContentRating,
   RewardAdPluginEvents,
   RewardInterstitialAdPluginEvents,
+  InterstitialAdPluginEvents,
 } from '@capacitor-community/admob';
+import { withAdAudioRecovery } from './AdAudioRecovery.js';
+import { onlineServicesAllowed } from '../privacy/AudiencePolicy.js';
 
 const TEST_REWARDED_IDS = { android: 'ca-app-pub-3940256099942544/5224354917', ios: 'ca-app-pub-3940256099942544/1712485313' };
 const TEST_INTERSTITIAL_IDS = { android: 'ca-app-pub-3940256099942544/1033173712', ios: 'ca-app-pub-3940256099942544/4411468910' };
@@ -25,7 +28,7 @@ const configuredRewardedInterstitialId = () => platform() === 'ios' ? import.met
 const isLiveNativeInventoryEnabled = () => import.meta.env.MODE === 'release' && import.meta.env.VITE_ADMOB_LIVE_RELEASE === 'true';
 const isTestAdsEnabled = () => !isLiveNativeInventoryEnabled();
 
-export const isNativeAdMobAvailable = () => Capacitor.isNativePlatform();
+export const isNativeAdMobAvailable = () => onlineServicesAllowed() && Capacitor.isNativePlatform();
 export const isAdPrivacyOptionsRequired = () => privacyOptionsRequired;
 
 export function updatePrivacyState(consent) {
@@ -35,14 +38,32 @@ export function updatePrivacyState(consent) {
 
 export function createSingleFlightRunner(action) {
   let inFlight = null;
-  return () => {
+  return (...args) => {
     if (inFlight) return inFlight;
-    inFlight = Promise.resolve().then(action).finally(() => { inFlight = null; });
+    inFlight = Promise.resolve().then(() => action(...args)).finally(() => { inFlight = null; });
     return inFlight;
   };
 }
 
 const errorFromEvent = (event, fallback) => new Error(event?.message || event?.error?.message || fallback);
+
+// The iOS plugin rejects prepare() with only "Loading failed". Its load event
+// carries the real SDK reason, so attach before requesting and always detach.
+export async function prepareRewardedAd({ adMob, events, prepare, options }) {
+  let failure;
+  const handle = await adMob.addListener(events.FailedToLoad, error => { failure = error; });
+  try {
+    return await prepare(options);
+  } catch (error) {
+    if (!failure) throw error;
+    const detailed = errorFromEvent(failure, error.message || 'The rewarded ad could not be loaded.');
+    detailed.nativeCode = failure.code;
+    detailed.cause = error;
+    throw detailed;
+  } finally {
+    try { await handle?.remove?.(); } catch { /* Removing a diagnostic listener must not replace the ad result. */ }
+  }
+}
 
 // The plugin's show promise is not a reliable reward signal on every native platform.
 // Reward is recorded immediately, but callers only proceed once the ad is dismissed.
@@ -66,7 +87,7 @@ export async function presentRewardedAd({ adMob, events, show }) {
   });
 
   try {
-    handles.push(await adMob.addListener(events.Rewarded, () => { earned = true; }));
+    if (events.Rewarded) handles.push(await adMob.addListener(events.Rewarded, () => { earned = true; }));
     handles.push(await adMob.addListener(events.Dismissed, () => settle(resolveResult, earned)));
     handles.push(await adMob.addListener(events.FailedToShow, error => {
       settle(rejectResult, errorFromEvent(error, 'The rewarded ad could not be shown.'));
@@ -152,7 +173,7 @@ const consentApi = {
 };
 const consentController = createAdConsentController({
   adMob: AdMob, consentApi, isIOS: () => platform() === 'ios', onState: updatePrivacyState,
-  getOptions: () => ({ initializeForTesting: isTestAdsEnabled(), maxAdContentRating: MaxAdContentRating.Teen, tagForChildDirectedTreatment: false, tagForUnderAgeOfConsent: false }),
+  getOptions: () => ({ initializeForTesting: isTestAdsEnabled(), maxAdContentRating: MaxAdContentRating.ParentalGuidance, tagForChildDirectedTreatment: false, tagForUnderAgeOfConsent: false }),
 });
 
 export async function initializeAdMob() {
@@ -160,28 +181,33 @@ export async function initializeAdMob() {
   return { ...await consentController.initialize(), testMode: isTestAdsEnabled() };
 }
 
-async function showConfiguredRewardedAd({ prepare, show, adId, events }) {
-  await prepare({ adId, isTesting: isTestAdsEnabled(), immersiveMode: true });
-  return presentRewardedAd({ adMob: AdMob, events, show });
+async function showConfiguredRewardedAd({ prepare, show, adId, events, ssv }) {
+  return withAdAudioRecovery(async () => {
+    await prepareRewardedAd({ adMob: AdMob, events, prepare,
+      options: { adId, isTesting: isTestAdsEnabled(), immersiveMode: true, ...(ssv ? { ssv } : {}) } });
+    return presentRewardedAd({ adMob: AdMob, events, show });
+  });
 }
 
-const runRewardedAd = createSingleFlightRunner(async () => {
+const runRewardedAd = createSingleFlightRunner(async (ssv) => {
     const status = await initializeAdMob();
     if (!status.ready) throw new Error('Advertising consent is required before loading an ad.');
     const adId = isTestAdsEnabled() ? TEST_REWARDED_IDS[platform()] : configuredRewardedId();
     if (!adId) throw new Error('The rewarded AdMob unit is not configured.');
-    return showConfiguredRewardedAd({ prepare: options => AdMob.prepareRewardVideoAd(options), show: () => AdMob.showRewardVideoAd(), adId, events: RewardAdPluginEvents });
+    return showConfiguredRewardedAd({ prepare: options => AdMob.prepareRewardVideoAd(options), show: () => AdMob.showRewardVideoAd(), adId, events: RewardAdPluginEvents, ssv });
   });
 
-export const showAdMobRewardedAd = () => runRewardedAd();
+export const showAdMobRewardedAd = ssv => runRewardedAd(ssv);
 
 export async function showAdMobInterstitial() {
   const status = await initializeAdMob();
   if (!status.ready) throw new Error('Advertising consent is required before loading an ad.');
   const adId = isTestAdsEnabled() ? TEST_INTERSTITIAL_IDS[platform()] : configuredInterstitialId();
   if (!adId) throw new Error('The interstitial AdMob unit is not configured.');
-  await AdMob.prepareInterstitial({ adId, isTesting: isTestAdsEnabled(), immersiveMode: true });
-  await AdMob.showInterstitial();
+  await withAdAudioRecovery(async () => {
+    await AdMob.prepareInterstitial({ adId, isTesting: isTestAdsEnabled(), immersiveMode: true });
+    return presentRewardedAd({ adMob: AdMob, events: InterstitialAdPluginEvents, show: () => AdMob.showInterstitial() });
+  });
 }
 
 const runRewardedInterstitialAd = createSingleFlightRunner(async () => {

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>288922991366-ll9kkl40pv9obm9bpss0crg5m3iembn7.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.288922991366-ll9kkl40pv9obm9bpss0crg5m3iembn7</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBSDn4T8v9gBJ7OlEgVrVyVY3qrP0FjGBQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>288922991366</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.cgtygrssgame.neonglide</string>
+	<key>PROJECT_ID</key>
+	<string>neo-glide-live</string>
+	<key>STORAGE_BUCKET</key>
+	<string>neo-glide-live.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:288922991366:ios:af9e51bd4c4715f4a8bc87</string>
+</dict>
+</plist>

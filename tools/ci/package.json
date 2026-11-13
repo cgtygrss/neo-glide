@@ -1,0 +1,7 @@
+{
+  "name": "neo-glide-ci-tools",
+  "private": true,
+  "version": "1.0.0",
+  "engines": { "node": "22.x" },
+  "dependencies": { "firebase-tools": "15.36.0" }
+}

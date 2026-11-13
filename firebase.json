@@ -1,0 +1,102 @@
+{
+  "functions": [
+    {
+      "source": "backend",
+      "codebase": "events",
+      "runtime": "nodejs22",
+      "ignore": [
+        "node_modules",
+        "test",
+        ".env.local"
+      ]
+    }
+  ],
+  "firestore": {
+    "database": "events",
+    "edition": "enterprise",
+    "location": "europe-west3",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "site": "neo-glide-live",
+    "public": "dist-admin",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/app-ads.txt",
+        "destination": "https://neo-glide-live-developer.web.app/app-ads.txt",
+        "type": 302
+      },
+      {
+        "source": "/robots.txt",
+        "destination": "https://neo-glide-live-developer.web.app/robots.txt",
+        "type": 302
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": {
+          "functionId": "api",
+          "region": "europe-west3"
+        }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "same-origin"
+          }
+        ]
+      }
+    ]
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Neo Glide",
+        "supportEmail": "cgty5960@gmail.com"
+      }
+    },
+    "authorizedDomains": [
+      "localhost",
+      "neo-glide-live.firebaseapp.com",
+      "neo-glide-live.web.app"
+    ]
+  }
+}

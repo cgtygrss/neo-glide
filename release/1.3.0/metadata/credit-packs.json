@@ -1,0 +1,66 @@
+{
+  "status": "Implementation and local StoreKit targets. App Store Connect status is recorded separately.",
+  "baseStorefront": "USA",
+  "products": [
+    {
+      "productId": "credits_50000",
+      "name": "50,000 Credits",
+      "type": "consumable",
+      "credits": 50000,
+      "usdPrice": "$0.49",
+      "appleId": "6833014899",
+      "description": "50,000 credits to spend in the Garage.",
+      "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 50,000 Credits. Each verified purchase delivers exactly 50,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent."
+    },
+    {
+      "productId": "credits_1000",
+      "name": "100,000 Credits",
+      "type": "consumable",
+      "credits": 100000,
+      "usdPrice": "$0.79",
+      "appleId": "6823598792",
+      "description": "100,000 credits to spend in the Garage.",
+      "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 100,000 Credits. Each verified purchase delivers exactly 100,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent."
+    },
+    {
+      "productId": "credits_250000",
+      "name": "250,000 Credits",
+      "type": "consumable",
+      "credits": 250000,
+      "usdPrice": "$1.49",
+      "appleId": "6833015788",
+      "description": "250,000 credits to spend in the Garage.",
+      "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 250,000 Credits. Each verified purchase delivers exactly 250,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent."
+    },
+    {
+      "productId": "credits_5500",
+      "name": "550,000 Credits",
+      "type": "consumable",
+      "credits": 550000,
+      "usdPrice": "$2.99",
+      "appleId": "6825324927",
+      "description": "550,000 credits to spend in the Garage.",
+      "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 550,000 Credits. Each verified purchase delivers exactly 550,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent."
+    },
+    {
+      "productId": "credits_1000000",
+      "name": "1,000,000 Credits",
+      "type": "consumable",
+      "credits": 1000000,
+      "usdPrice": "$4.49",
+      "appleId": "6833058947",
+      "description": "1,000,000 credits to spend in the Garage.",
+      "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 1,000,000 Credits. Each verified purchase delivers exactly 1,000,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent."
+    },
+    {
+      "productId": "credits_15000",
+      "name": "1,500,000 Credits",
+      "type": "consumable",
+      "credits": 1500000,
+      "usdPrice": "$5.99",
+      "appleId": "6825326785",
+      "description": "1,500,000 credits to spend in the Garage.",
+      "reviewNotes": "Consumable game credits. Open Garage > Store and browse to 1,500,000 Credits. Each verified purchase delivers exactly 1,500,000 credits once. Cancellation or pending approval delivers nothing. Existing transaction IDs are idempotent."
+    }
+  ]
+}

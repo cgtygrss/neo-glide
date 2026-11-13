@@ -1,0 +1,149 @@
+/* Career and account share one pilot frame and one scrolling content area. */
+.career-screen .pilot-tabs { display: flex; align-items: center; flex-shrink: 0; gap: 7px; border-bottom: 1px solid #c5d7c514; }
+.pilot-tabs > button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 114px; padding: 10px 17px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: #92aeb8; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.pilot-tabs > button[aria-selected="true"] { background: #e6cc9510; border-color: #e6cc952d; color: #efd6a2; box-shadow: inset 0 -2px #e2c78c; }
+.pilot-tabs > span { margin-left: auto; color: #7895a3; font-size: 8px; letter-spacing: .12em; }
+.career-screen button:disabled { cursor: default; }
+.career-screen .menu-header > button:disabled, .pilot-tabs > button:disabled { opacity: .5; }
+.career-account-link { width: 100%; margin-top: 20px; display: flex; align-items: center; gap: 13px; min-height: 72px; padding: 15px 18px; border: 1px solid #e8cd9426; border-radius: 15px; background: #e5cb9208; color: #e3ca95; text-align: left; cursor: pointer; }
+.career-account-link > span { flex: 1; }
+.career-account-link strong, .career-account-link small { display: block; }
+.career-account-link strong { font-size: 13px; }
+.career-account-link small { margin-top: 5px; color: #96aeb9; font-size: 11px; }
+.pilot-account { display: grid; gap: 20px; min-width: 0; }
+.pilot-account h3, .pilot-account h4, .pilot-account p { margin: 0; }
+.pilot-account button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 15px; border: 1px solid #b5d7c52d; border-radius: 11px; background: #b5d7c50b; color: #d4e5d8; font: inherit; font-size: 11px; font-weight: 750; line-height: 1.4; cursor: pointer; }
+.pilot-account button:hover:not(:disabled) { background: #d0e8ca16; border-color: #c8dfb752; }
+.pilot-account button:disabled { opacity: .48; cursor: default; }
+.pilot-account button > svg { flex-shrink: 0; }
+.pilot-identity { display: flex; align-items: center; gap: 23px; min-width: 0; padding: 26px; border: 1px solid #e5c88b30; border-radius: 21px; background: radial-gradient(ellipse at 10% 20%, #e8c67f14, transparent 65%), #1b3341; }
+.pilot-avatar { position: relative; display: grid; place-items: center; flex-shrink: 0; height: 86px; width: 86px; margin-bottom: 6px; border: 1px solid #e1c88a70; border-radius: 50%; background: linear-gradient(140deg, #b6ad7026, #183342); color: #ebd29b; box-shadow: 0 0 0 7px #e9ca8907, inset 0 0 20px #e8c98e05; }
+.pilot-avatar > span { position: absolute; bottom: -7px; padding: 4px 9px; border: 1px solid #cfbd8252; border-radius: 7px; background: #253c42; color: #ecd39c; font-size: 9px; font-weight: 800; letter-spacing: .06em; }
+.pilot-identity-copy { flex: 1; min-width: 0; }
+.pilot-identity-copy h3 { margin-top: 7px; color: #f3e8d2; font-size: clamp(23px, 3vw, 31px); font-weight: 850; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.pilot-identity-copy > .menu-eyebrow { display: block; line-height: 1.5; }
+.pilot-identity-copy h3 { line-height: 1.25; }
+.career-screen .career-summary h3 { overflow-wrap: anywhere; }
+.pilot-identity-copy > p { margin-top: 6px; color: #9fb7bf; font-size: 11px; line-height: 1.6; }
+.pilot-provider-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.pilot-provider-tags > span { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #b8d8c324; border-radius: 7px; padding: 4px 7px; color: #b9d4c4; font-size: 9px; }
+.pilot-pass { display: flex; flex-direction: column; align-items: center; gap: 9px; color: #bfae786e; flex-shrink: 0; margin-left: 15px; }
+.pilot-pass > small { font-size: 7px; line-height: 1.7; letter-spacing: .17em; text-align: center; }
+.account-feature-icon { flex-shrink: 0; width: 45px; height: 45px; display: grid; place-items: center; border: 1px solid #a8d6cb22; border-radius: 14px; color: #a8d1c7; background: #a8d6cb0b; }
+.pilot-cloud { display: flex; align-items: center; gap: 15px; padding: 19px 22px; border: 1px solid #a6c9cc22; border-radius: 17px; background: #a6c9cc05; }
+.pilot-cloud > div { flex: 1; min-width: 0; }
+.pilot-cloud .menu-eyebrow { color: #99b7be; font-size: 8px; }
+.pilot-cloud h3 { color: #d9e7df; font-size: 15px; line-height: 1.4; margin-top: 5px; font-weight: 750; }
+.pilot-cloud p { color: #8faab7; font-size: 11px; line-height: 1.6; margin-top: 4px; }
+.pilot-cloud.is-synced { border-color: #94d4b92e; background: #94d4b907; }
+.pilot-cloud.is-synced .account-feature-icon { color: #99d7b7; }
+.pilot-cloud.has-conflict { border-color: #e5c98d50; background: #e5c98d08; }
+.pilot-cloud.has-conflict .account-feature-icon { color: #e4c98e; }
+.pilot-cloud .account-sync { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; color: #a8d1c7; font-size: 11px; }
+.account-section-title { margin: 5px 0 15px; }
+.account-section-title h3 { font-size: 20px; font-weight: 800; color: #ede6d3; letter-spacing: -.025em; margin-top: 6px; }
+.account-section-title > p { font-size: 11px; line-height: 1.6; color: #94aeb9; margin-top: 6px; }
+.pilot-service-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 385px), 1fr)); gap: 13px; }
+.pilot-service { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px solid #b6d3cf26; border-radius: 17px; background: linear-gradient(130deg, #203b4b80, #172e4080); min-width: 0; }
+.pilot-service-copy { flex: 1; min-width: 0; }
+.pilot-service-copy h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; font-size: 16px; color: #e7e8d8; font-weight: 800; }
+.pilot-service-copy h4 > span { display: inline-flex; align-items: center; gap: 3px; font-size: 8px; color: #a8d9bb; font-weight: 600; }
+.pilot-service-copy p { color: #91aeb9; font-size: 10px; line-height: 1.6; margin-top: 5px; }
+.pilot-service > button { flex-shrink: 0; background: #bcdbc612; }
+.pilot-account-management { border: 1px solid #b0cfd31e; border-radius: 15px; overflow: hidden; background: #0a21332b; }
+.pilot-account-management > summary { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 18px; color: #abc2c7; font-size: 12px; font-weight: 700; cursor: pointer; list-style: none; }
+.pilot-account-management > summary::-webkit-details-marker { display: none; }
+.pilot-account-management > summary > span { display: inline-flex; align-items: center; gap: 9px; }
+.pilot-account-management > summary:focus-visible { outline: 2px solid #e7cc93; outline-offset: -3px; }
+.pilot-account-management[open] > summary > svg { transform: rotate(180deg); }
+.pilot-management-body { padding: 0 18px 18px; }
+.pilot-management-body p { color: #90aab6; font-size: 11px; line-height: 1.7; }
+.pilot-switch-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 10px; margin-top: 13px; }
+.pilot-switch-list button { justify-content: flex-start; }
+.pilot-switch-list button > span { flex: 1; text-align: left; }
+.pilot-management-body .pilot-account-note { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #c9d3cf07; }
+.pilot-danger-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 20px; padding-top: 18px; border-top: 1px solid #c795911a; }
+.pilot-danger-row h4 { font-size: 12px; color: #d4bdba; margin-bottom: 4px; }
+.pilot-account .account-danger { color: #efb1a7; background: #d7978b07; border-color: #db9d8d38; }
+.pilot-account .account-danger:hover:not(:disabled) { background: #d7978b16; border-color: #db9d8d70; }
+.pilot-delete-confirm { margin-top: 16px; padding: 17px; border: 1px solid #dba79450; background: #dba79408; border-radius: 13px; }
+.pilot-delete-confirm h4 { color: #f0c1b2; font-size: 14px; margin-bottom: 8px; }
+.pilot-delete-confirm > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.pilot-account-message { display: flex; align-items: center; gap: 9px; padding: 13px 16px; border-radius: 12px; background: #e6c68a0b; border: 1px solid #e6c68a2e; font-size: 12px; line-height: 1.6; color: #d3c4a6; overflow-wrap: anywhere; }
+.account-spinning { animation: account-spin 1.5s linear infinite; }
+@keyframes account-spin { to { transform: rotate(360deg); } }
+.pilot-save-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+.pilot-save-options > button { flex-direction: column; align-items: flex-start; text-align: left; padding: 20px; gap: 11px; min-width: 0; background: #a8c8c808; }
+.pilot-save-options strong { font-size: 18px; color: #ece4cf; }
+.pilot-save-options span { color: #aec4c5; font-size: 12px; font-weight: 400; }
+.pilot-save-options small { color: #87a5b2; font-size: 10px; }
+.pilot-save-options b { display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 11px; color: #e3ce9f; }
+@media (min-width: 760px) {
+  .pilot-account { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: stretch; }
+  .pilot-account > * { grid-column: 1 / -1; }
+  .pilot-account > .pilot-identity { grid-column: 1; padding: 23px 21px; gap: 19px; }
+  .pilot-account > .pilot-cloud { grid-column: 2; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 9px 13px; padding: 21px; align-content: center; }
+  .pilot-cloud > .account-feature-icon { width: 36px; height: 36px; border-radius: 11px; }
+  .pilot-cloud .account-sync { grid-column: 2; justify-self: start; }
+  .pilot-pass { display: none; }
+  .pilot-identity-copy h3 { font-size: 27px; }
+}
+@media (max-width: 650px) and (orientation: portrait) {
+  .pilot-tabs > span { display: none; }
+  .pilot-tabs > button { flex: 1; min-width: 0; }
+  .pilot-account { gap: 17px; }
+  .pilot-identity { padding: 21px 17px; gap: 17px; }
+  .pilot-avatar { width: 64px; height: 64px; }
+  .pilot-avatar > svg { width: 26px; height: 26px; }
+  .pilot-avatar > span { font-size: 8px; padding: 3px 7px; }
+  .pilot-identity-copy h3 { font-size: 23px; }
+  .pilot-identity-copy > p { font-size: 10px; }
+  .pilot-pass { display: none; }
+  .pilot-cloud { flex-wrap: wrap; padding: 17px; gap: 12px; }
+  .pilot-cloud > .account-feature-icon { width: 36px; height: 36px; border-radius: 11px; }
+  .pilot-cloud > div { flex-basis: calc(100% - 48px); }
+  .pilot-cloud .account-sync { margin-left: 48px; }
+  .pilot-cloud h3 { font-size: 14px; }
+  .pilot-service { flex-wrap: wrap; gap: 11px; padding: 16px; }
+  .pilot-service > button { width: 100%; }
+  .pilot-service-copy p { font-size: 11px; }
+  .pilot-danger-row { flex-direction: column; align-items: stretch; }
+  .pilot-save-options { grid-template-columns: minmax(0, 1fr); }
+  .pilot-management-body { padding-inline: 15px; }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  .pilot-identity { padding: 18px 21px; }
+  .pilot-avatar { width: 66px; height: 66px; }
+  .pilot-identity-copy h3 { font-size: 24px; }
+  .pilot-identity-copy > p { margin-top: 4px; }
+  .pilot-provider-tags { margin-top: 8px; }
+  .pilot-cloud { padding: 16px 18px; }
+  .pilot-account { gap: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-spinning { animation: none; }
+}
+/* Pilot nicknames are account-scoped; editing does not change platform identity. */
+.pilot-name-heading { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.pilot-name-heading h3 { flex: 1; min-width: 0; }
+.pilot-account .pilot-edit-name { flex-shrink: 0; width: 44px; padding: 8px; color: #d9c392; border-color: #dec78b22; background: #e5d29505; }
+.pilot-name-editor { min-width: 0; padding: 20px; background: #d4c29808; border: 1px solid #dfc58c38; border-radius: 17px; }
+.pilot-name-editor > label { display: block; color: #eee2c9; font-size: 16px; font-weight: 800; }
+.pilot-name-editor > p { margin-top: 7px; color: #9eb7bd; font-size: 11px; line-height: 1.6; }
+.pilot-name-editor > input { display: block; width: 100%; min-width: 0; min-height: 48px; margin-top: 15px; padding: 11px 13px; font: inherit; font-size: 16px; color: #edf0db; border: 1px solid #c5d9bd42; border-radius: 10px; background: #0b2136; }
+.pilot-name-editor > input:focus-visible { outline: 2px solid #dfc58c; outline-offset: 2px; }
+.pilot-name-editor > input[aria-invalid="true"] { border-color: #e2a894; }
+.pilot-name-editor > #pilot-name-error { color: #f0b7a3; }
+.pilot-name-editor-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.pilot-name-editor-actions > button[type="submit"] { border-color: #dfc58c50; background: #dfc58c16; color: #e8d5a7; }
+.pilot-name-editor-actions > .pilot-reset-name { margin-left: auto; font-weight: 500; }
+@media (min-width: 760px) {
+  .pilot-account > .pilot-identity, .pilot-account > .pilot-cloud { grid-row: 1; }
+}
+@media (max-width: 650px) and (orientation: portrait) {
+  .pilot-name-heading { flex-wrap: wrap; gap: 5px; }
+  .pilot-name-heading h3 { flex-basis: 100%; }
+  .pilot-account .pilot-edit-name { min-height: 35px; height: 35px; width: 38px; }
+  .pilot-name-editor { padding: 17px; }
+  .pilot-name-editor-actions > .pilot-reset-name { margin-left: 0; }
+}

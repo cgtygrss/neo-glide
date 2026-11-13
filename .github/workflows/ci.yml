@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches: [Dev]
+  pull_request:
+    branches: [main]
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: JavaScript and Firebase
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Require Dev as the source of main pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: test "$HEAD_BRANCH" = Dev && test "$HEAD_REPO" = "$GITHUB_REPOSITORY"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            tools/ci/package-lock.json
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci && npm ci --prefix backend && npm ci --prefix tools/ci
+      - run: npm run version:sync && npm run legal:build
+      - run: npm run lint && npm test && npm run test:ci && npm run test:backend
+      - name: Required Auth and Firestore integration tests
+        run: npm run test:emulators
+      - run: npm run build && npm run build:admin
+
+  android:
+    name: Android build and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          accept-android-sdk-licenses: false
+      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - run: npm ci && npm run version:sync && npm run build && npx --no-install cap sync android
+      - name: Native tests, lint and unsigned release compilation
+        working-directory: android
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleRelease
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: android-checks-${{ github.run_id }}
+          path: android/app/build/reports/
+          retention-days: 14
+
+  ios:
+    name: iOS build and simulator
+    runs-on: xcode-27
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199
+        with:
+          ruby-version: '3.4.12'
+          bundler-cache: true
+      - run: npm ci && npm run version:sync && npm run build && bundle exec npx --no-install cap sync ios
+      - name: Compile native Release for simulator
+        run: >-
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -onlyUsePackageVersionsFromResolvedFile -disableAutomaticPackageResolution
+          -derivedDataPath ci-output/simulator build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+          CODE_SIGN_IDENTITY= PROVISIONING_PROFILE_SPECIFIER= ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+      - run: node scripts/verify-ios-admob.mjs ci-output/simulator/Build/Products/Release-iphonesimulator/App.app --ads=test
+      - run: bash scripts/ci/ios-smoke.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ios-checks-${{ github.run_id }}
+          path: ci-output/smoke-*.xcresult
+          retention-days: 14
+
+  required:
+    name: Required checks
+    runs-on: ubuntu-24.04
+    needs: [checks, android, ios]
+    if: always()
+    steps:
+      - name: Fail if any required job failed or was skipped
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import os,json
+          results=json.loads(os.environ['RESULTS'])
+          assert all(job['result']=='success' for job in results.values()), results
+          PY

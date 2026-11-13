@@ -11,7 +11,7 @@ no purchase simulation switches in the native release build.
 
 Check these scenarios in Xcode's StoreKit transaction manager:
 
-- Each credit pack delivers exactly 100000 / 550000 / 1500000 credits. Buy the same
+- Each credit pack delivers exactly 50000 / 100000 / 250000 / 550000 / 1000000 / 1500000 credits. Buy the same
   consumable twice and confirm two independent deliveries.
 - Cancel and pending approval grant nothing. Approving a pending transaction
   delivers once, including after app restart.
@@ -28,13 +28,19 @@ Check these scenarios in Xcode's StoreKit transaction manager:
   products and storefront currency changes. Missing products cannot be bought.
 - Collect coins or receive an optional ad reward while a purchase is pending;
   the final balance includes each source once.
+- Each of the 26 skins offers credits and a one-time store purchase. Unlocking
+  by either route removes both purchase options. Pending approval blocks credit
+  spending for that skin. Event rewards also satisfy the same ownership check.
 
 The JS regression tests cover atomic-write failure, replay, duplicate deliveries,
 acknowledgement failure and concurrent wallet writers. A successful simulator
 build and these tests do **not** establish App Store Sandbox purchase success.
 
-Before distribution, disable local StoreKit configuration and verify the four
-current App Store Connect products, historical restores and rewarded ads with
+Run `npm run store:sync` after changing the shared price catalog to regenerate
+the skin fixtures, native product lists and release price manifest together.
+
+Before distribution, disable local StoreKit configuration and verify all 26
+skin products, the six credit packs and Starter Pack, historical restores and rewarded ads with
 a Sandbox account on a signed device build. Keep the existing bundle identifier.
 
 Apple documentation:

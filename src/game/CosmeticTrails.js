@@ -1,5 +1,6 @@
 import { getShip } from './ShipCatalog.js';
 import { drawCosmeticMark } from './CosmeticEffects.js';
+import { cosmeticEffectId } from './CosmeticsCatalog.js';
 
 export const TRAIL_SAMPLE_SECONDS = 1 / 30;
 export const TRAIL_MAX_POINTS = 144;
@@ -9,6 +10,7 @@ export function createCosmeticTrailState() { return { points: [], elapsed: 0, si
 export function resetCosmeticTrail(state) { state.points = []; state.elapsed = 0; state.signature = ''; state.run = null; state.distance = 0; }
 
 export function advanceCosmeticTrail(state, { game, cosmetic, deltaTime, scale = .18 }) {
+  if (cosmetic?.kind === 'skin') cosmetic = null;
   const signature = cosmetic ? `${game.shipType}:${cosmetic.id}` : '';
   const dt = Number.isFinite(deltaTime) ? Math.max(0, Math.min(.1, deltaTime)) : 0;
   const running = game?.phase === 'FLYING' || game?.phase === 'LAUNCH';
@@ -38,7 +40,8 @@ export function advanceCosmeticTrail(state, { game, cosmetic, deltaTime, scale =
 }
 
 export function drawCosmeticTrail(ctx, points, cosmetic, palette, lowPower = false, effectScale = 1) {
-  if (!cosmetic || points.length < 2) return;
+  if (!cosmetic || cosmetic.kind === 'skin' || points.length < 2) return;
+  effectScale *= cosmetic.effectScale || 1;
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.shadowBlur = 0;
   const engines = new Set(points.map(point => point.engine));
   const segmentBudget = Math.max(2, Math.floor((lowPower ? 18 : 36) / engines.size));
@@ -60,7 +63,7 @@ export function drawCosmeticTrail(ctx, points, cosmetic, palette, lowPower = fal
         ctx.strokeStyle = color; ctx.lineWidth = width * fade + .5;
         line(a.x, a.y + offset + Math.sin(phase + offset) * amp, b.x, b.y + offset + Math.sin(nextPhase + offset) * amp);
       };
-      switch (cosmetic.id) {
+      switch (cosmeticEffectId(cosmetic)) {
         case 'void_pilot':
           wave(-2, 3, palette.engine); wave(2, -3, palette.trim);
           if (i % 4 === 0) { ctx.beginPath(); ctx.arc(a.x, a.y, 4 * fade, phase, phase + 2); ctx.stroke(); } break;

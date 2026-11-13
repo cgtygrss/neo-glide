@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "288922991366",
+    "project_id": "neo-glide-live",
+    "storage_bucket": "neo-glide-live.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288922991366:android:f41b2787846d636ca8bc87",
+        "android_client_info": {
+          "package_name": "com.cgtygrss.neoglide"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288922991366-f14aano7j5or70iuc2ags4aj7fbsm2go.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAP88FAEvWgdON8zeczZoLwPMCmuhwKfE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "288922991366-f14aano7j5or70iuc2ags4aj7fbsm2go.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "288922991366-ll9kkl40pv9obm9bpss0crg5m3iembn7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cgtygrssgame.neonglide"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

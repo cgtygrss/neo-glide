@@ -1,3 +1,11 @@
+import { ownerId, withProfile } from '../account/ProfileStorage.js';
+let accountHooks;
+export function configureStoreAccounts(hooks) { accountHooks=hooks; }
+const transactionOwner = (transaction) => {
+ const key='neo_glide_store_owners_v1', owners=JSON.parse(localStorage.getItem(key)||'{}');
+ const owner=owners[transaction.transactionId]||owners[`pending:${transaction.productId}`]||ownerId();
+ owners[transaction.transactionId]=owner;delete owners[`pending:${transaction.productId}`];localStorage.setItem(key,JSON.stringify(owners));return owner;
+};
 import { grantStoreTransaction, syncStoreSnapshot } from '../game/Economy.js';
 
 // All native delivery paths use this coordinator. StoreKit keeps unfinished
@@ -8,9 +16,12 @@ export function createStoreDelivery(bridge, onChange = () => {}) {
     if (!transaction?.verified || !transaction.transactionId) return Promise.reject(new Error('Purchase could not be verified.'));
     const existing = pending.get(transaction.transactionId);
     if (existing) return existing;
+    const owner = accountHooks ? transactionOwner(transaction) : ownerId();
+    const context = accountHooks?.capture(owner);
     const operation = Promise.resolve().then(async () => {
-      const result = grantStoreTransaction(transaction);
-      onChange({ type: 'delivery', productId: transaction.productId, applied: result.applied });
+      if (accountHooks) await accountHooks.verify(transaction, context);
+      const result = withProfile(owner, () => grantStoreTransaction(transaction));
+      if (owner === ownerId()) onChange({ type: 'delivery', productId: transaction.productId, applied: result.applied });
       try {
         await bridge.finishTransaction({ transactionId: transaction.transactionId, productId: transaction.productId });
         return { ...result, finishPending: false };
@@ -56,6 +67,7 @@ export function createStoreClient(bridge, onChange = () => {}, onError = () => {
         // otherwise an interrupted first purchase could lose the credit portion.
         await delivery.replay();
         const snapshotGeneration = entitlementGeneration;
+        const snapshotOwner = ownerId();
         const result = await bridge.currentEntitlements();
         if (!result || !Array.isArray(result.productIds) || result.productIds.some(id => typeof id !== 'string')) {
           throw new Error('Store entitlement data could not be verified.');
@@ -67,10 +79,13 @@ export function createStoreClient(bridge, onChange = () => {}, onError = () => {
         }
         // A native update can deliver ownership while this request is in
         // flight. Its old snapshot must never clear that committed delivery.
+        if (snapshotOwner !== ownerId()) return;
         if (snapshotGeneration !== entitlementGeneration) continue;
         const pendingProductIds = result.pendingProductIds;
+        if(accountHooks?.reconcile) await accountHooks.reconcile(result, accountHooks.capture(snapshotOwner));
+        if(snapshotOwner!==ownerId())return;
         // One atomic write, only after all native data is structurally valid.
-        syncStoreSnapshot(result.productIds, pendingProductIds);
+        syncStoreSnapshot(accountHooks ? [] : result.productIds, pendingProductIds);
         onChange({ type: 'entitlements', pendingProductIds });
         return;
       }
@@ -95,8 +110,9 @@ export function createStoreClient(bridge, onChange = () => {}, onError = () => {
     requestActive = true;
     try {
       await start();
+      if(accountHooks){const key='neo_glide_store_owners_v1',owners=JSON.parse(localStorage.getItem(key)||'{}');owners[`pending:${productId}`]=ownerId();localStorage.setItem(key,JSON.stringify(owners));}
       const result = await bridge.purchase({ productId });
-      if (result.status === 'cancelled') return { status: 'cancelled' };
+      if (result.status === 'cancelled') { if(accountHooks){const key='neo_glide_store_owners_v1',owners=JSON.parse(localStorage.getItem(key)||'{}');delete owners[`pending:${productId}`];localStorage.setItem(key,JSON.stringify(owners));} return { status: 'cancelled' }; }
       if (result.status === 'pending') return { status: 'pending' };
       if (result.status === 'owned') {
         // An ownership response can race an unfinished delivery.

@@ -22,16 +22,24 @@ if (!playBillingPublicKey) {
 }
 def escapedPlayBillingPublicKey = playBillingPublicKey.replace("\\", "\\\\").replace("\"", "\\\"")
 
+def playGamesAppId = providers.gradleProperty("NEO_GLIDE_PLAY_GAMES_APP_ID")
+        .orElse(providers.environmentVariable("NEO_GLIDE_PLAY_GAMES_APP_ID"))
+        .map { it.trim() ?: "0" }.getOrElse("0")
+if (!(playGamesAppId ==~ /[0-9]+/)) throw new GradleException("Invalid Play Games application ID.")
+
 android {
     namespace "com.cgtygrss.neoglide"
     compileSdk rootProject.ext.compileSdkVersion
+    buildToolsVersion "35.0.0"
     defaultConfig {
         applicationId "com.cgtygrss.neoglide"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.2.0"
+        versionCode providers.gradleProperty("NEO_GLIDE_BUILD_NUMBER").map { it.toInteger() }.getOrElse(5)
+        versionName new groovy.json.JsonSlurper().parse(rootProject.file("../package.json")).version
         buildConfigField "String", "PLAY_BILLING_PUBLIC_KEY", "\"${escapedPlayBillingPublicKey}\""
+        resValue "string", "game_services_project_id", playGamesAppId
+        manifestPlaceholders["neoGlideGamesEnabled"] = playGamesAppId != "0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -44,6 +52,10 @@ android {
         buildConfig true
     }
     
+    if (System.getenv("NEO_GLIDE_CI_SIGNED_RELEASE") == "true" && !keystorePropertiesFile.exists()) {
+        throw new GradleException("CI release requires an explicit upload signing configuration.")
+    }
+
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
@@ -74,6 +86,12 @@ repositories {
 }
 
 dependencies {
+    implementation platform('com.google.firebase:firebase-bom:34.19.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'androidx.credentials:credentials:1.6.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.6.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.2.1'
+    implementation 'com.google.android.gms:play-services-games-v2:21.0.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"

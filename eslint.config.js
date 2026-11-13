@@ -7,11 +7,17 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores([
     'dist',
+    'dist-admin',
+    'vendor/**',
+    'ci-output/**',
+    'tools/ci/node_modules/**',
+    'backend/node_modules/**',
     'android/**/build/**',
     'android/.gradle/**',
     'android/app/src/main/assets/public',
     'ios/App/App/public',
   ]),
+  { files: ['backend/**/*.js', 'scripts/**/*.js'], languageOptions: { globals: globals.node }, rules: { 'react-hooks/rules-of-hooks': 'off' } },
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -21,7 +27,7 @@ export default defineConfig([
     ],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: { ...globals.browser, ...globals.node },
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },

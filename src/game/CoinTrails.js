@@ -1,8 +1,10 @@
 import { Collectible } from './Entities.js';
 import { coinMultiplier } from './Economy.js';
 
-const GAPS = [1100, 1400, 1200, 1500];
+// 25% more distance between trails yields about 20% fewer coins per flight.
+const GAPS = [1375, 1750, 1500, 1875];
 const SHAPES = [[0, 0, 0, 0, 0], [1, .5, 0, -.5, -1], [0, -.7, -1, -.7, 0], [-1, -.5, 0, .5, 1]];
+const HEIGHT_BANDS = [0, -.65, .65, -.35, .35];
 export const createCoinTrailState = () => ({ travel: 0, nextAt: 300, index: 0 });
 
 export function trailValues(index) {
@@ -12,16 +14,19 @@ export function trailValues(index) {
   return [50, 100, 250, 100, 50];
 }
 
-export function buildCoinTrail(index, width, height, overshoot = 0, obstacles = []) {
+export function buildCoinTrail(index, width, height, overshoot = 0, obstacles = [], horizontalScale = 1) {
   const values = trailValues(index);
   const shape = SHAPES[index % SHAPES.length];
   // Leave room for the maximum 100px edge obstacles and the largest coin.
   const margin = Math.min(140, height / 2);
-  const center = height / 2;
-  const amplitude = Math.max(0, Math.min(30, (height - margin * 2) / 2));
+  const travel = Math.max(0, Math.min(160, height / 2 - margin));
+  // The first trail stays central; later trails alternate above/below it.
+  // Reserve the rest of the vertical travel for each trail's arc or diagonal.
+  const center = height / 2 + HEIGHT_BANDS[index % HEIGHT_BANDS.length] * travel;
+  const amplitude = travel * .35;
   for (const shift of [0, -amplitude / 2, amplitude / 2]) {
     const coins = values.map((value, i) => new Collectible(
-      width + 36 + i * 54 - overshoot,
+      width + (36 + i * 54 - overshoot) * horizontalScale,
       Math.max(margin, Math.min(height - margin, center + shape[i] * amplitude + shift)), value,
     ));
     const blocked = coins.some(coin => obstacles.some(obs => !obs.markedForDeletion &&
@@ -32,11 +37,11 @@ export function buildCoinTrail(index, width, height, overshoot = 0, obstacles = 
   return [];
 }
 
-export function advanceCoinTrails(state, scrollDistance, width, height, obstacles = []) {
+export function advanceCoinTrails(state, scrollDistance, width, height, obstacles = [], horizontalScale = 1) {
   state.travel += Math.max(0, scrollDistance);
   if (state.travel < state.nextAt) return [];
   const overshoot = state.travel - state.nextAt;
-  const coins = buildCoinTrail(state.index, width, height, overshoot, obstacles);
+  const coins = buildCoinTrail(state.index, width, height, overshoot, obstacles, horizontalScale);
   if (!coins.length) {
     state.nextAt = state.travel + 80;
     return [];

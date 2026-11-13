@@ -1,0 +1,33 @@
+.boss-status { position: absolute; z-index: 18; left: 50%; top: 90px; transform: translateX(-50%); width: min(330px, 40%); padding: 8px 12px; border: 1px solid #7a8f9b55; border-radius: 9px; background: #071727e8; pointer-events: none; color: #edf4ef; }
+.boss-status>div:first-child { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 5px; }
+.boss-status>div>span { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; color: var(--boss-color); }
+.boss-status small { font-size: 9px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; color: #b8c9d0; }
+.boss-health { height: 5px; border-radius: 4px; background: #3a4854; overflow: hidden; }
+.boss-health>span { display: block; height: 100%; background: var(--boss-color); }
+.boss-status-transformed { top: 133px; }
+.boss-arrival-status { width: min(370px, 46%); padding: 12px 15px; border-color: color-mix(in srgb, var(--boss-color) 55%, transparent); background: linear-gradient(120deg, #112539f5, #091724f5); box-shadow: 0 8px 25px #020b1640, inset 0 1px 0 #e8f4f510; }
+.boss-status .boss-arrival-heading { margin-bottom: 6px; }
+.boss-status .boss-arrival-heading > span { font-size: 10px; letter-spacing: .13em; }
+.boss-arrival-name { display: block; font-size: 22px; color: #f5eee2; line-height: 1.15; letter-spacing: -.035em; text-wrap: balance; }
+.boss-arrival-reward { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 7px; color: #f4d49c; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.boss-arrival-reward > small { margin-left: auto; font-size: 8px; color: #b4c4ce; }
+.boss-arrival-progress { height: 3px; background: #d1e7ef18; margin-top: 10px; border-radius: 3px; overflow: hidden; }
+.boss-arrival-progress > span { display: block; height: 100%; background: var(--boss-color); }
+@media (max-height: 550px) and (min-width: 600px) {
+  .boss-status { top: 72px; padding: 5px 9px; }
+  .boss-status-transformed { top: 111px; }
+  .boss-arrival-status { padding: 8px 11px; top: 65px; width: min(330px, 45%); }
+  .boss-arrival-status.boss-status-transformed { top: 111px; }
+  .boss-arrival-name { font-size: 19px; }
+  .boss-arrival-reward { font-size: 11px; margin-top: 5px; }
+  .boss-arrival-progress { margin-top: 7px; }
+}
+@media (max-width: 599px) {
+  .boss-status { width: 55%; top: 80px; }
+  .boss-status>div:first-child { flex-wrap: wrap; gap: 3px; }
+  .boss-status-transformed { top: 131px; }
+  .boss-arrival-status { width: 62%; padding: 9px 11px; }
+  .boss-arrival-name { font-size: 19px; }
+  .boss-arrival-reward > small { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .boss-status * { animation: none !important; transition: none !important; } }

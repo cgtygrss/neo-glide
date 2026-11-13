@@ -46,6 +46,8 @@ export class GameLoop {
         this.update(deltaTime);
         this.draw(deltaTime);
 
-        this.animationFrameId = requestAnimationFrame(this.loop);
+        // An update can stop the loop. Do not leave a
+        // second RAF alive when the player resumes before the next frame.
+        if (this.isRunning) this.animationFrameId = requestAnimationFrame(this.loop);
     }
 }

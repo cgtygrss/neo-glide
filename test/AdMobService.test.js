@@ -5,10 +5,11 @@ import {
   createAdConsentController,
   isAdPrivacyOptionsRequired,
   presentRewardedAd,
+  prepareRewardedAd,
   updatePrivacyState,
 } from '../src/services/AdMobService.js';
 
-const events = { Rewarded: 'reward', Dismissed: 'dismissed', FailedToShow: 'failed' };
+const events = { Rewarded: 'reward', Dismissed: 'dismissed', FailedToShow: 'failed', FailedToLoad: 'loadFailed' };
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 function mockAdMob() {
@@ -48,6 +49,36 @@ test('skipping a rewarded ad resolves false after dismissal', async () => {
   await flush();
   mock.emit(events.Dismissed);
   assert.equal(await result, false);
+});
+
+test('a non-rewarded interstitial also waits for dismissal instead of the show promise', async () => {
+  const mock=mockAdMob(),plainEvents={Dismissed:'dismissed',FailedToShow:'failed'};
+  const result=presentRewardedAd({adMob:mock.adMob,events:plainEvents,show:async()=>{}});
+  let completed=false;void result.then(()=>{completed=true;});await flush();
+  assert.equal(completed,false);mock.emit(plainEvents.Dismissed);
+  assert.equal(await result,false);assert.deepEqual(mock.removed.sort(),['dismissed','failed']);
+});
+
+test('load diagnostics preserve the real SDK error instead of the generic iOS rejection and clean up', async () => {
+  const mock = mockAdMob(), original = new Error('Loading failed');
+  await assert.rejects(prepareRewardedAd({ adMob:mock.adMob, events, options:{ adId:'demo', isTesting:true },
+    prepare: async () => { mock.emit(events.FailedToLoad,{ code:0, message:'Publisher data not found.' }); throw original; },
+  }), error => error.message === 'Publisher data not found.' && error.nativeCode === 0 && error.cause === original);
+  assert.deepEqual(mock.removed,['loadFailed']);
+});
+
+test('successful preparation passes options unchanged and removes its load listener without granting a reward', async () => {
+  const mock = mockAdMob(), options = { adId:'demo', isTesting:true, ssv:{ customData:'nonce' } };
+  const result = await prepareRewardedAd({ adMob:mock.adMob, events, options,
+    prepare: async supplied => { assert.equal(supplied,options); return { adUnitId:'demo' }; },
+  });
+  assert.deepEqual(result,{ adUnitId:'demo' }); assert.deepEqual(mock.removed,['loadFailed']);
+});
+
+test('prepare bridge errors retain their identity when no native load event arrives', async () => {
+  const mock = mockAdMob(), error = new Error('Plugin unavailable');
+  await assert.rejects(prepareRewardedAd({ adMob:mock.adMob, events, options:{}, prepare:async()=>{throw error;} }), supplied=>supplied===error);
+  assert.deepEqual(mock.removed,['loadFailed']);
 });
 
 test('a native show rejection rejects and cleans up listeners', async () => {

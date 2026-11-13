@@ -1,0 +1,10 @@
+import { createRoot } from 'react-dom/client';
+import Events from '../src/components/Events';
+import { createInstance,DEFAULT_TEMPLATES,DAY,dayOf } from '../backend/shared/events';
+import '../src/index.css';
+const now=Date.now();
+const daily=createInstance(DEFAULT_TEMPLATES[0],now);daily.stats={seconds:186,distance:4400,coins:14600,capsules:2,bosses:1};
+const weekly=createInstance(DEFAULT_TEMPLATES[1],now);weekly.fragments=42;weekly.claims={0:now};
+const expedition=createInstance(DEFAULT_TEMPLATES[2],now-3*DAY);expedition.card=2;expedition.nextDay=dayOf(now);expedition.claims={0:now-DAY*2,1:now-DAY};expedition.stats.coins=21400;
+const previewState={serverNow:now,receivedAt:now,lease:{end:now+DAY},instances:[daily,weekly,expedition],ads:{[dayOf(now)]:{used:1}}};
+createRoot(document.getElementById('root')).render(<Events previewState={previewState} onClose={()=>{location.href='/';}} onAccount={()=>{}}/>);

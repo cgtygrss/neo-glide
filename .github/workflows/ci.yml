@@ -96,7 +96,7 @@ jobs:
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
           -onlyUsePackageVersionsFromResolvedFile -disableAutomaticPackageResolution
           -derivedDataPath ci-output/simulator build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
-          CODE_SIGN_IDENTITY= PROVISIONING_PROFILE_SPECIFIER=
+          CODE_SIGN_IDENTITY= PROVISIONING_PROFILE_SPECIFIER= ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
       - run: node scripts/verify-ios-admob.mjs ci-output/simulator/Build/Products/Release-iphonesimulator/App.app --ads=test
       - run: bash scripts/ci/ios-smoke.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

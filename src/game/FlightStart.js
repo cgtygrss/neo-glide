@@ -1,8 +1,9 @@
+import { flightHomeX } from './FlightViewport.js';
 // The simulation stays frozen until the launch finishes AND Boost is held.
 export function prepareLaunch(game, height, reducedMotion = false) {
   game.phase = 'LAUNCH';
-  game.launch = { elapsed: 0, duration: reducedMotion ? 0.25 : 1.15, reducedMotion };
-  game.player.x = reducedMotion ? 100 : -70;
+  game.launch = { elapsed: 0, duration: reducedMotion ? 0.25 : 1.15, reducedMotion, homeX: flightHomeX(game.viewport?.width) };
+  game.player.x = reducedMotion ? game.launch.homeX : -70;
   game.player.y = height * 0.45;
   game.player.velocity = 0;
   game.player.rotation = 0;
@@ -24,10 +25,11 @@ export function advanceFlightStart(game, deltaTime, held) {
   launch.elapsed = Math.min(launch.duration, launch.elapsed + deltaTime);
   const progress = launch.elapsed / launch.duration;
   const eased = 1 - Math.pow(1 - progress, 3);
-  game.player.x = launch.reducedMotion ? 100 : -70 + 170 * eased;
+  const homeX = launch.homeX ?? 100;
+  game.player.x = launch.reducedMotion ? homeX : -70 + (homeX + 70) * eased;
   game.player.rotation = launch.reducedMotion ? 0 : -8 * Math.sin(progress * Math.PI);
   if (progress === 1) {
-    game.player.x = 100;
+    game.player.x = homeX;
     game.player.rotation = 0;
     game.player.velocity = 0;
     game.phase = 'READY';
@@ -39,7 +41,7 @@ export function advanceFlightStart(game, deltaTime, held) {
 
 export function prepareFlightReady(game) {
   game.phase = 'READY';
-  game.player.x = 100;
+  game.player.x = flightHomeX(game.viewport?.width);
   game.player.velocity = 0;
   game.player.rotation = 0;
   game.player.boost(false);

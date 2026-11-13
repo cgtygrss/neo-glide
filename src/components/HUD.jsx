@@ -29,7 +29,7 @@ export default function HUD({
   const SecondaryIcon = transformation?.id === 'aegis' ? Shield : transformation?.id === 'volt' ? Zap : transformation?.id === 'drill' ? ChevronsRight : transformation?.id === 'striker' ? Rocket : transformation ? CircleDot : Crosshair;
   const primaryLabel = transformation ? `${transformation.primary} — ${transformation.primaryHint.toLowerCase()}` : 'Boost — hold to rise';
   const secondaryLabel = transformation ? `${transformation.secondary} — ${transformation.cooldownRemaining > 0 ? `${transformation.cooldownRemaining.toFixed(1)} seconds cooldown` : transformation.secondaryHint.toLowerCase()}` : `Fire — ${unlimited ? 'unlimited' : ammo} ammo`;
-  const energyValue = transformation ? transformation.remaining / TRANSFORMATION_SECONDS * 100 : energy;
+  const energyValue = transformation ? transformation.remaining / (transformation.duration || TRANSFORMATION_SECONDS) * 100 : energy;
   return (
     <div className={`flight-hud ${transformation ? 'transformed-hud' : ''}`} style={transformation ? { '--form-accent': transformation.color } : undefined}>
       <div className="flight-topbar">

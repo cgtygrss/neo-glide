@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Neo Glide · Crossfire arena</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #081322; color: #edf4ff; }
+    body { max-width: 1080px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 8px 0; font-size: 32px; letter-spacing: -.04em; } p { color: #a6bacb; line-height: 1.6; font-size: 13px; }
+    canvas { width: 100%; aspect-ratio: 844/390; border: 1px solid #334761; border-radius: 18px; display: block; }
+    .controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+    button,select { background: #18334a; color: #edf4ff; border: 1px solid #7194a8; border-radius: 10px; padding: 12px 16px; font: inherit; cursor: pointer; }
+    label { color: #b9c9d6; font-size: 13px; } output { display: block; color: #ffd369; margin: 14px 0; font-size: 14px; line-height: 1.7; }
+    a { color: #b8e9a1; }
+  </style>
+</head>
+<body>
+  <p>NEO GLIDE · COMBAT REVIEW</p>
+  <h1>Overlapping fire. Rising pressure.</h1>
+  <p>The game's production attack director and renderer at different flight ages. Formations hold position for comparison; the demonstration pilot moves automatically and takes no damage. Each ship still charges its own attack before firing.</p>
+  <div class="controls">
+    <label>Flight age <select aria-label="Flight age"><option value="0">Opening · serial fire</option><option value="45">45s · two parallel attacks</option><option value="90">90s · three parallel attacks</option><option value="180" selected>180s · four parallel attacks</option><option value="300">300s · maximum pressure</option></select></label>
+    <button id="restart">Restart encounter</button><button id="pause">Pause simulation</button>
+    <label><input type="checkbox" id="auto-pause" checked/> Pause on mixed crossfire</label>
+  </div>
+  <canvas width="844" height="390" aria-label="Concurrent scout lasers, sonic spreads and heavy bombs"></canvas>
+  <output role="status"></output>
+  <a href="/">Back to the game</a>
+  <script type="module" src="./crossfire.js"></script>
+</body>
+</html>

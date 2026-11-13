@@ -1,25 +1,22 @@
 # Cosmetics setup
 
-Configure these ten non-consumable products in App Store Connect and Google Play. USD base prices are targets; native storefronts supply localized prices.
+Configure all 26 non-consumable skin products in App Store Connect and Google
+Play using the [price table](release/1.2.0/metadata/store-prices.csv) and
+[console manifest](release/1.2.0/metadata/store-catalog.json). USD base prices
+are targets; native storefronts supply localized prices. Existing IDs are
+preserved; the 16 new cash products need console registration before release.
 
-| Rank | Theme | Tier | Credits | USD base | SKU |
-| --- | --- | --- | ---: | ---: | --- |
-| 01 | Copper Horizon | Classic | 1,200,000 | $2.99 | `cosmetic_copper_horizon` |
-| 02 | Arctic Pulse | Classic | 1,500,000 | $3.49 | `cosmetic_arctic_pulse` |
-| 03 | Cyber Current | Signature | 1,800,000 | $3.99 | `cosmetic_cyber_current` |
-| 04 | Jade Drift | Signature | 2,200,000 | $4.49 | `cosmetic_jade_drift` |
-| 05 | Rose Circuit | Elite | 2,600,000 | $4.99 | `cosmetic_rose_circuit` |
-| 06 | Solar Forge | Elite | 3,000,000 | $5.99 | `cosmetic_solar_forge` |
-| 07 | Pearl Comet | Prestige | 3,600,000 | $6.99 | `cosmetic_pearl_comet` |
-| 08 | Void Pilot | Prestige | 4,200,000 | $7.99 | `cosmetic_void_pilot` |
-| 09 | Cobalt Storm | Legendary | 5,000,000 | $8.99 | `cosmetic_cobalt_storm` |
-| 10 | Prism Voyager | Legendary | 6,000,000 | $9.99 | `cosmetic_prism_voyager` |
+Every skin also supports an earned-credit unlock. Prices use the best-value
+credit pack (USD 7.99 for 1,500,000 credits), rounded to the nearest 10,000.
+`backend/shared/store-catalog.js` holds the product IDs and pricing reference.
+Run `npm run store:sync` to regenerate native lists, fixtures and metadata.
+Both event skins remain earnable in Events as well as purchasable.
 
-The local wallet records only the small entitlement and transaction ledger
-needed by this device. It is not an account, cloud save, or cross-device
-ownership service. Themes may also be unlocked for 1,200,000 to 6,000,000 earned credits, depending on the theme;
-that credit record remains valid if a separate store entitlement is refunded or
-revoked.
+Credit, event and verified store ownership satisfy the same unlock check.
+An existing unlock prevents another credit debit or new store purchase. Credit
+ownership remains valid if a separate store entitlement is refunded or revoked.
+Native receipt verification and account sync retain their existing protections.
+Deploy the updated backend verifier and rebuild native apps before release.
 
 The StoreKit sandbox fixture is `ios/StoreKitTests/NeoGlide.storekit`. Real
 StoreKit or Play Billing verification requires external sandbox/test accounts

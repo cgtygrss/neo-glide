@@ -1,0 +1,21 @@
+Neo Glide — music attribution
+
+"Happy Alley", "Beach Bum" and "The Whip" — Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+https://creativecommons.org/licenses/by/4.0/
+
+Happy Alley (menu), ISRC USUAN1100482:
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100482
+Beach Bum (flight), ISRC USUAN1100347:
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100347
+
+The Whip (villain encounters), ISRC USUAN1100543:
+https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100543
+
+Changes: excerpted into loops, boundary blended, level adjusted and AAC encoded.
+The artist does not endorse Neo Glide. No warranties are provided by the licensor.
+These music recordings retain CC BY 4.0 rights independently of the game's code.
+Unrestricted source downloads are linked from the source pages above.
+
+Verified 22 October 2026. Source and output SHA-256 hashes: manifest.json.
+Canva/Muzaic personal-use listening drafts are excluded from the shipped assets.

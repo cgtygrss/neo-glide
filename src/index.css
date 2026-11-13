@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./App.css";
+@import "./components/MenuPanels.css";
 
 :root {
   --neon-blue: #00f3ff;

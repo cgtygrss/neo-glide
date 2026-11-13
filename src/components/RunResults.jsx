@@ -1,9 +1,11 @@
 import React from 'react';
 import { ArrowRight, Check, Coins, Film, Home, Rocket, RotateCcw, Star, Trophy, Wrench } from 'lucide-react';
 import './RunResults.css';
-import { flightEarningsBreakdown } from '../game/Economy';
+import { distanceAdReward, flightEarningsBreakdown } from '../game/Economy';
 
 export default function RunResults({
+  onEvents,
+  eventProgress,
   distance,
   bestDistance,
   isNewBest,
@@ -27,6 +29,7 @@ export default function RunResults({
   rewardAction = null,
 }) {
   const breakdown = flightEarningsBreakdown(coins, distanceBonus, levelBonus, earningsBonus);
+  const adReward = distanceAdReward(distance);
   const remaining = nextShip ? Math.max(0, nextShip.cost - wallet) : 0;
   const progress = nextShip ? (nextShip.cost > 0 ? Math.max(0, Math.min(100, wallet / nextShip.cost * 100)) : 100) : 0;
   const boostingEarnings = rewardBusy && rewardAction === 'earnings';
@@ -50,10 +53,10 @@ export default function RunResults({
             <span><small><Star size={11} />Pilot XP</small><strong>+{xp.toLocaleString()}</strong></span>
             <span><small><Trophy size={11} />{isNewBest ? 'New best!' : 'Best flight'}</small><strong>{Math.floor(bestDistance).toLocaleString()}<i> m</i></strong></span>
           </div>
-          {coins > 0 && !earningsBonusClaimed && onBoostEarnings && (
-            <button type="button" className="earnings-ad-action earnings-double" onClick={onBoostEarnings} disabled={rewardBusy} aria-label="Double flight credits">
+          {adReward > 0 && !earningsBonusClaimed && onBoostEarnings && (
+            <button type="button" className="earnings-ad-action earnings-distance" onClick={onBoostEarnings} disabled={rewardBusy} aria-label={`Watch ad for ${adReward.toLocaleString()} distance bonus credits`}>
               <Film size={18} />
-              <span><strong>{boostingEarnings ? 'Getting your ad ready…' : `Double these ${coins.toLocaleString()} credits`}</strong><small>Watch ad · Optional</small></span>
+              <span><strong>{boostingEarnings ? 'Getting your ad ready…' : `Get +${adReward.toLocaleString()} credits`}</strong><small>Watch ad · {Math.floor(distance).toLocaleString()} m × 2</small></span>
               <ArrowRight size={16} />
             </button>
           )}
@@ -70,6 +73,7 @@ export default function RunResults({
           ) : fleetComplete && (
             <section className="earnings-goal earnings-fleet" aria-label="Fleet complete"><span className="earnings-goal-label"><Check size={15} />FLEET COMPLETE</span><h3>Every ship is yours.</h3><p>Fine-tune your fleet in the Garage.</p></section>
           )}
+          {eventProgress && <button className="earnings-ad-action" onClick={onEvents} disabled={rewardBusy}><Star size={18}/><span><strong>Event progress saved</strong><small>{Math.floor(eventProgress.seconds)}s flight · {eventProgress.capsules} capsules · {eventProgress.coins.toLocaleString()} pickup credits</small></span><ArrowRight size={16}/></button>}
           <div className="earnings-main-actions">
             <button type="button" className="earnings-button earnings-play" onClick={onRetry} disabled={rewardBusy}><RotateCcw size={21} />Play again<ArrowRight size={18} /></button>
             <div className="earnings-secondary-actions">
@@ -77,7 +81,7 @@ export default function RunResults({
               <button type="button" className="earnings-button earnings-home" onClick={onHome} disabled={rewardBusy} aria-label="Back to home"><Home size={19} /></button>
             </div>
           </div>
-          {!continueUsed && (
+          {!continueUsed && onContinue && (
             <button type="button" className="earnings-ad-action earnings-continue" onClick={onContinue} disabled={rewardBusy}>
               <Film size={18} /><span><strong>{continuing ? 'Getting your ad ready…' : 'Continue this flight'}</strong><small>Watch ad · Continue once</small></span><ArrowRight size={16} />
             </button>

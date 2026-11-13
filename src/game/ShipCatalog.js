@@ -21,6 +21,7 @@ const engine = (x, y, width, length, style = "jet") => ({
 export const SHIPS = [
   {
     id: "default",
+    hullBounds: [86, 30, 388, 204],
     name: "Standard Glider",
     className: "The everyday explorer",
     number: "01",
@@ -64,6 +65,7 @@ export const SHIPS = [
   },
   {
     id: "interceptor",
+    hullBounds: [94, 40, 400, 198],
     name: "Interceptor",
     className: "The twin-engine dart",
     number: "02",
@@ -104,6 +106,7 @@ export const SHIPS = [
   },
   {
     id: "cruiser",
+    hullBounds: [89, 46, 355, 183],
     name: "Heavy Cruiser",
     className: "The armored space tug",
     number: "03",
@@ -156,6 +159,7 @@ export const SHIPS = [
   },
   {
     id: "stealth",
+    hullBounds: [102, 18, 359, 221],
     name: "Stealth Wing",
     className: "The quiet flying wing",
     number: "04",
@@ -203,6 +207,7 @@ export const SHIPS = [
   },
   {
     id: "void_runner",
+    hullBounds: [117, 28, 372, 209],
     name: "Void Runner",
     className: "The split-hull wanderer",
     number: "05",
@@ -265,6 +270,7 @@ export const SHIPS = [
   },
   {
     id: "plasma_breaker",
+    hullBounds: [100, 55, 403, 187],
     name: "Plasma Breaker",
     className: "The reactor-powered ram",
     number: "06",
@@ -318,6 +324,258 @@ export const SHIPS = [
     ],
   },
 ];
+
+// Extended fleet: unique silhouettes, palettes and functional equipment traits.
+const expeditionHulls = [
+  [
+    "kestrel",
+    "Kestrel",
+    "The long-range scout",
+    "A long nose, high tail and generous fuel tank for pilots who like to stay aloft.",
+    "Starts each flight with 30 extra energy.",
+    "+30 energy",
+    "#7ac9e0",
+    "M100 105L158 93L174 42L207 90L299 102L400 121L295 147L168 155L127 188L116 146L94 132Z",
+    [
+      [
+        103,
+        122,
+        18,
+        85
+      ]
+    ]
+  ],
+  [
+    "manta",
+    "Manta",
+    "The coin-collecting wing",
+    "A sweeping crescent hull carries an extended magnetic collector.",
+    "Attracts coins from 40px further away.",
+    "+40px magnet range",
+    "#83d6b4",
+    "M96 54Q211 25 304 94L389 121L303 148Q209 215 96 188L149 151L122 121L151 89Z",
+    [
+      [
+        123,
+        92,
+        12,
+        62
+      ],
+      [
+        123,
+        151,
+        12,
+        62
+      ]
+    ]
+  ],
+  [
+    "bulwark",
+    "Bulwark",
+    "The armored fortress",
+    "A squared-off bridge and thick side armor protect a compact ammunition bay.",
+    "70 extra maximum health; carries 2 fewer rounds.",
+    "+70 HP · 8 base ammo",
+    "#b2b7cd",
+    "M94 87L145 87L145 51L266 51L284 79L354 79L385 103L385 151L350 173L267 173L248 190L142 190L142 161L94 161Z",
+    [
+      [
+        97,
+        104,
+        17,
+        65
+      ],
+      [
+        97,
+        145,
+        17,
+        65
+      ]
+    ]
+  ],
+  [
+    "firefly",
+    "Firefly",
+    "The solar-powered skiff",
+    "A tiny capsule hangs between broad solar sails. Glide to recharge its cells.",
+    "Recovers 2 energy per second while coasting.",
+    "+2 energy /s while coasting",
+    "#f3d17e",
+    "M106 109L147 98L162 35L232 36L239 94L341 102L385 122L342 144L238 150L230 208L164 208L146 149L106 137Z",
+    [
+      [
+        110,
+        123,
+        14,
+        67
+      ]
+    ]
+  ],
+  [
+    "lancer",
+    "Lancer",
+    "The precision spear",
+    "A slender hull and long split prow accelerate every shot.",
+    "Weapon projectiles travel 25% faster.",
+    "+25% shot speed",
+    "#ffa58c",
+    "M97 102L180 91L150 53L184 60L243 92L399 107L341 122L399 137L243 151L183 183L150 190L180 152L97 140L116 121Z",
+    [
+      [
+        103,
+        111,
+        10,
+        75
+      ],
+      [
+        103,
+        133,
+        10,
+        75
+      ]
+    ]
+  ],
+  [
+    "nomad",
+    "Nomad",
+    "The expedition catamaran",
+    "Two cargo pontoons flank a raised bridge, packed for a very long journey.",
+    "Collected power-ups last 30% longer.",
+    "+30% power-up duration",
+    "#d4ae7c",
+    "M99 63L273 55L364 77L385 95L278 104L231 117L281 136L382 147L363 171L273 192L99 181L112 148L175 138L175 106L111 95Z",
+    [
+      [
+        105,
+        79,
+        14,
+        72
+      ],
+      [
+        105,
+        165,
+        14,
+        72
+      ]
+    ]
+  ],
+  [
+    "mender",
+    "Mender",
+    "The rescue shuttle",
+    "A rounded rescue pod keeps its repair core working from takeoff.",
+    "Recovers 2 health per second, even without a generator.",
+    "+2 HP /s recovery",
+    "#94dcc6",
+    "M101 94Q131 67 190 67L203 43L259 43L277 70Q349 80 381 121Q352 165 277 174L259 198L203 198L190 174Q129 174 101 147Z",
+    [
+      [
+        104,
+        103,
+        13,
+        62
+      ],
+      [
+        104,
+        139,
+        13,
+        62
+      ]
+    ]
+  ],
+  [
+    "corsair",
+    "Corsair",
+    "The deep-space gunship",
+    "A stepped cockpit and broad ammunition drums carry a larger opening volley.",
+    "Starts each flight with 5 extra rounds of ammo capacity.",
+    "+5 maximum ammo",
+    "#e2a2bc",
+    "M97 87L164 87L181 56L241 56L259 86L333 96L389 121L333 147L260 159L240 189L179 189L163 158L97 158L113 122Z",
+    [
+      [
+        101,
+        99,
+        14,
+        88
+      ],
+      [
+        101,
+        146,
+        14,
+        88
+      ]
+    ]
+  ],
+  [
+    "wisp",
+    "Wisp",
+    "The evasive crescent",
+    "An open crescent and a floating cockpit leave room for an emergency barrier.",
+    "Enemy hits grant 0.5 seconds more protection.",
+    "+0.5s hit protection",
+    "#baaff4",
+    "M103 45Q226 27 366 104L396 121L365 139Q227 216 103 196L156 161L234 147L281 122L234 96L156 80Z",
+    [
+      [
+        120,
+        65,
+        11,
+        76
+      ],
+      [
+        120,
+        175,
+        11,
+        76
+      ]
+    ]
+  ],
+  [
+    "sentinel",
+    "Sentinel",
+    "The shielded patrol craft",
+    "A forward shield frame surrounds a squat, heavily plated patrol hull.",
+    "Enemy projectiles deal 5 less damage, down to a 5 HP minimum.",
+    "−5 damage per enemy shot",
+    "#86bddc",
+    "M95 97L146 80L223 80L246 53L297 53L333 82L379 92L402 121L379 151L333 161L297 190L246 190L223 163L146 163L95 147Z",
+    [
+      [
+        100,
+        109,
+        12,
+        67
+      ],
+      [
+        100,
+        137,
+        12,
+        67
+      ]
+    ]
+  ]
+];
+for (const [id, name, className, description, trait, shortTrait, accent, hull, ports] of expeditionHulls) {
+  SHIPS.push({
+    id, name, className, description, trait, shortTrait,
+    number: String(SHIPS.length + 1).padStart(2, '0'), cost: SHIP_PRICES[id],
+    hullBounds: ({ kestrel:[94,42,400,188], manta:[96,40,389,202], bulwark:[94,51,385,190], firefly:[106,35,385,208], lancer:[97,53,399,190], nomad:[99,55,385,192], mender:[101,43,381,198], corsair:[97,56,389,189], wisp:[103,35,396,207], sentinel:[95,53,402,190] })[id],
+    palette: { body: '#e7e9e2', shade: '#8eabb5', armor: '#476776', accent,
+      glass: '#244657', shine: '#e6fcff', trim: '#fff2dc', outline: '#203a4c', engine: accent, core: '#fff5d4' },
+    engines: ports.map(([x, y, width, length]) => engine(x, y, width, length, 'pulse')),
+    parts: [
+      part(hull, 'body'),
+      part('M133 126L363 122L316 143L187 151L141 143Z', 'shade', { stroke: 'none' }),
+      part('M170 96L241 89L280 111L180 120Z', 'glass'),
+      line('M190 101L215 98M224 98L245 104', 'shine', 4),
+      part('M286 107L348 116L316 123L285 119Z', 'accent'),
+      line('M155 131L174 132M155 139L174 140', 'armor', 4),
+      circle(267, 134, 8, 'accent'), circle(267, 134, 3, 'core', { stroke: 'none' }),
+      ...ports.map(([x, y, width]) => line(`M${x} ${y - width / 2}L${x} ${y + width / 2}`, 'engine', 6)),
+    ],
+  });
+}
 
 export const SHIP_NAMES = Object.fromEntries(
   SHIPS.map((ship) => [ship.id, ship.name]),

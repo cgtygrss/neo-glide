@@ -1,0 +1,14 @@
+# Gizlilik ve hesap silme destek işleyişi
+
+Sorumlu: Çağatay Gürses. Yayınlanan talep adresi: cgty5960@gmail.com.
+Bu belge operasyon içindir; kullanıcı bilgileriyle birlikte herkese açık depoya talep kaydı eklenmez.
+
+1. Gelen talebi ve yanıt tarihini özel, erişimi sınırlı destek kaydında takip et. Erişim/düzeltme/silme isteğini ve uygulanacak yasal süreyi belirle; normalde geçerli talebin alınmasından itibaren 30 gün içinde yanıtla. Gerekiyorsa hukuken izin verilen uzatmayı zamanında açıkla.
+2. Pilot adı tek başına sahiplik kanıtı değildir. Account reference, bağlı giriş sağlayıcısı ve mevcut hesap erişimiyle ölçülü doğrulama yap. Google'a bağlı hesapta ilgili adres üzerinden talep yardımcıdır; şifre/OTP/kimlik/kart isteme. Ebeveyn talebini ayrıca değerlendir ve gereksiz çocuk bilgisi toplama. Belirlenemeyen anonim hesap hakkında sınırlamayı açıkla; tahmin edilen başka hesabı silme.
+3. Hesabına erişen yetişkin, oyun içindeki Manage account → Delete account akışını kullanabilir; mevcut backend `deleteAccount` eylemi yakın zamanda giriş gerektirir. E-posta talebini yalnız bu ekranı kullanmaya zorlayarak kapatma; uygulama erişimi olmayan kişi için destek işlemini tamamla.
+4. Erişimsiz hesapta, sahiplik doğrulanınca yetkili operatör mevcut backend silme mantığını esas alarak işlem yapmalıdır (`backend/index.js`, `deleteAccount`). Sadece Firebase Auth satırını silmek yeterli değildir. Kapatma işareti ve silme işi, birleşmiş UID'ler, players alt koleksiyonları, leases/adIntents/adTransactions, accountMerges, Auth kullanıcıları ve satın alma kayıtlarının UID'sizleştirilmesi birlikte ele alınır. İşlem öncesi doğru proje/UID ve silinecek kapsam ikinci kez kontrol edilir; gerçek geri döndürülemez silme için talep sahibinin açık isteği ve operatör onayı kaydedilir. Bu çalışma sırasında üretimde hiçbir hesap silinmedi.
+5. İşlem yarıda kalırsa başarı bildirme; silme işi kaydını koruyarak yetkili teknik inceleme yap. İşlem sonrası etkin oyuncu/Auth kaydı ve ilgili kullanıcı alanları kalmadığını doğrula. Gizlilik metninde açıklanan hash'li kapatma işareti ve sınırlı satın alma tekrarını önleme kayıtlarını keyfî olarak silip aynı işlemi yeniden ödüllendirilebilir hale getirme.
+6. Başarı yanıtında silinen kapsamı, tutulan sınırlı kayıtların sebebini ve Apple/Google kayıtları ile cihaz yedeklerinin ayrı olduğunu açıkla. Hesap silme otomatik iade değildir. Bağımsız sağlayıcı kayıtlarını sildiğini kanıtsız söyleme.
+7. Talep ve doğrulama yazışmasını yalnız gerekli süre ve hukukî gerekçeyle tut; diğer kişilerle veya halka açık hata kayıtlarıyla paylaşma. Bu adresin düzenli izlenmesi ve erişimsiz hesap için operatör işleminin prova edilmesi yayın öncesi koşuldur.
+
+Yayımlanan adımlar: [hesap silme](https://neo-glide-live-developer.web.app/delete-account.html), [gizlilik](https://neo-glide-live-developer.web.app/privacy.html).

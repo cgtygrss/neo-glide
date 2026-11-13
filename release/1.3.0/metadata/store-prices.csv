@@ -1,0 +1,27 @@
+product_id,name,type,usd_price,credits
+cosmetic_copper_horizon,Copper Horizon,non_consumable,2.99,2000000
+cosmetic_arctic_pulse,Arctic Pulse,non_consumable,3.49,2000000
+cosmetic_cyber_current,Cyber Current,non_consumable,3.99,2250000
+cosmetic_jade_drift,Jade Drift,non_consumable,4.49,2250000
+cosmetic_rose_circuit,Rose Circuit,non_consumable,4.99,2250000
+cosmetic_solar_forge,Solar Forge,non_consumable,5.99,2500000
+cosmetic_pearl_comet,Pearl Comet,non_consumable,6.99,2750000
+cosmetic_void_pilot,Void Pilot,non_consumable,7.99,3000000
+cosmetic_cobalt_storm,Cobalt Storm,non_consumable,8.99,3000000
+cosmetic_prism_voyager,Prism Voyager,non_consumable,9.99,3250000
+cosmetic_mint_condition,Mint Condition,non_consumable,1.99,1750000
+cosmetic_scarlet_comet,Scarlet Comet,non_consumable,2.99,2000000
+cosmetic_amber_signal,Amber Signal,non_consumable,2.49,1750000
+cosmetic_lunar_silver,Lunar Silver,non_consumable,2.99,2000000
+cosmetic_ocean_depth,Ocean Depth,non_consumable,3.49,2000000
+cosmetic_lavender_dream,Lavender Dream,non_consumable,3.99,2250000
+cosmetic_toxic_bloom,Toxic Bloom,non_consumable,3.49,2000000
+cosmetic_desert_mirage,Desert Mirage,non_consumable,3.99,2250000
+cosmetic_ruby_eclipse,Ruby Eclipse,non_consumable,4.99,2250000
+cosmetic_glacier_blue,Glacier Blue,non_consumable,4.99,2250000
+cosmetic_saffron_sky,Saffron Sky,non_consumable,4.49,2250000
+cosmetic_midnight_gold,Midnight Gold,non_consumable,5.49,2500000
+cosmetic_coral_reef,Coral Reef,non_consumable,4.49,2250000
+cosmetic_ultraviolet,Ultraviolet,non_consumable,5.99,2500000
+cosmetic_nebula_circuit,Nebula Circuit,non_consumable,4.99,2250000
+cosmetic_aurora_pathfinder,Aurora Pathfinder,non_consumable,5.99,2500000

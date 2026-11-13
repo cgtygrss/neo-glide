@@ -44,6 +44,10 @@
 .premium-footer > p { display: flex; align-items: flex-start; gap: 8px; color: #8faebb; font-size: 10px; line-height: 1.6; max-width: 460px; }
 .premium-footer > p > svg { color: #a0bdbf; margin-top: 1px; flex-shrink: 0; }
 .premium-restore { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; background: transparent; color: #9ae2d0; font-size: 11px; font-weight: 750; white-space: nowrap; padding: 8px; }
+.premium-recovery { width: 100%; color: #a9c2cd; font-size: 11px; }
+.premium-recovery summary { width: fit-content; min-height: 44px; display: flex; align-items: center; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.premium-recovery summary:focus-visible { outline: 2px solid #9ae2d0; outline-offset: 2px; }
+.premium-recovery p { line-height: 1.5; margin: 0; }
 .premium-message { padding: 12px 15px; margin-top: 9px; border: 1px solid #a3e5d82b; border-radius: 12px; color: #e5eee5; background: #b1efe009; font-size: 12px; line-height: 1.5; }
 @media (max-width: 950px) {
   .premium-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

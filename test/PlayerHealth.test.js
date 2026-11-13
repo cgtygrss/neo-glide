@@ -90,12 +90,12 @@ test('medical packs restore 25 HP once, cap at upgraded maximum and stay availab
   }
 });
 
-test('medical spawns stay 12 seconds apart with at most one pack on screen', () => {
+test('medical spawns stay 28 seconds apart initially with at most one pack on screen', () => {
   const game = run();
-  assert.equal(advanceHealthPickupSpawn(game, 11.9), false);
+  assert.equal(advanceHealthPickupSpawn(game, 27.9), false);
   assert.equal(advanceHealthPickupSpawn(game, .11), true);
   const pickup = new HealthPickup(600, 180); game.healthPickups.push(pickup);
-  assert.equal(advanceHealthPickupSpawn(game, 20), false);
+  assert.equal(advanceHealthPickupSpawn(game, 30), false);
   pickup.update(3, 300);
   assert.equal(pickup.markedForDeletion, true);
   assert.equal(pickup.y, 180);

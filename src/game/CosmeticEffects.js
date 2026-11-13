@@ -1,11 +1,39 @@
 // Shared, deterministic marks for engine wakes and friendly fire. Coordinates are
 // local to the effect, so previews and flight use exactly the same visual language.
+import { cosmeticEffectId } from './CosmeticsCatalog.js';
 export function drawCosmeticMark(ctx, cosmetic, palette, x, y, size, phase = 0) {
-  if (!cosmetic) return;
-  const id = cosmetic.id;
+  if (!cosmetic || cosmetic.kind === 'skin') return;
+  const id = cosmeticEffectId(cosmetic);
+  size *= cosmetic.effectScale || 1;
   ctx.save(); ctx.translate(x, y); ctx.scale(size, size);
   ctx.strokeStyle = palette.trim; ctx.fillStyle = palette.core; ctx.lineWidth = .8;
   ctx.beginPath();
+  // Small themed silhouettes also appear in wakes and muzzle flashes, so the
+  // fantasy identity survives at the scale of actual flight.
+  if (cosmetic.motif) {
+    switch (cosmetic.motif) {
+      case 'butterfly': {
+        const lift = 1.6 + Math.cos(phase) * .45;
+        for (const side of [-1, 1]) {
+          ctx.fillStyle = side < 0 ? palette.wing : palette.petal;
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-4, -side * lift * 2, -3, -side * lift);
+          ctx.quadraticCurveTo(-4, side * lift * 2.5, 0, 0); ctx.fill(); ctx.stroke();
+        }
+        ctx.strokeStyle = palette.core; ctx.beginPath(); ctx.moveTo(-1, 0); ctx.lineTo(2, 0); ctx.stroke();
+        break;
+      }
+      case 'blossom':
+        for (let petal = 0; petal < 4; petal++) { const a = petal * Math.PI / 2; ctx.beginPath(); ctx.arc(Math.cos(a) * 1.7, Math.sin(a) * 1.7, 1.4, 0, Math.PI * 2); ctx.fillStyle = petal % 2 ? palette.petal : palette.wing; ctx.fill(); }
+        ctx.fillStyle = palette.core; ctx.beginPath(); ctx.arc(0, 0, .8, 0, Math.PI * 2); ctx.fill(); break;
+      case 'dragon':
+        ctx.moveTo(-4, 0); ctx.lineTo(-2, -3); ctx.lineTo(0, -1); ctx.lineTo(1, -3); ctx.lineTo(3, -1); ctx.lineTo(4, 0); ctx.lineTo(1, 1); ctx.lineTo(-2, 3); ctx.lineTo(-1, 0); ctx.closePath(); ctx.fillStyle = palette.engine; ctx.fill(); ctx.stroke(); break;
+      case 'mecha':
+        ctx.moveTo(-3, -2); ctx.lineTo(0, -3); ctx.lineTo(3, -2); ctx.lineTo(3, 1); ctx.lineTo(0, 3); ctx.lineTo(-3, 1); ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-1.5, -1); ctx.lineTo(0, 0); ctx.lineTo(1.5, -1); ctx.strokeStyle = palette.core; ctx.stroke(); break;
+    }
+    ctx.restore();
+    return;
+  }
   switch (id) {
     case 'void_pilot':
       ctx.arc(0, 0, 2.4, -.8 + phase, 1.5 + phase); ctx.stroke();
@@ -36,7 +64,7 @@ export function drawCosmeticMark(ctx, cosmetic, palette, x, y, size, phase = 0) 
 }
 
 export function drawCosmeticShot(ctx, cosmetic, age = 1, lowPower = false) {
-  if (!cosmetic) return;
+  if (!cosmetic || cosmetic.kind === 'skin') return;
   const palette = cosmetic.colors;
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = palette.engine; ctx.globalAlpha *= .15; ctx.lineWidth = 10;
@@ -45,7 +73,7 @@ export function drawCosmeticShot(ctx, cosmetic, age = 1, lowPower = false) {
   const phase = age * 12, motion = Math.sin(phase) * 2;
   const stroke = (color = palette.engine, width = 1.5) => { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke(); };
   ctx.beginPath();
-  switch (cosmetic.id) {
+  switch (cosmeticEffectId(cosmetic)) {
     case 'void_pilot':
       ctx.arc(-21, 0, 8, phase, phase + 2.7); ctx.arc(-21, 0, 5, -phase + 3, -phase + 5.7); stroke(palette.trim); break;
     case 'solar_forge':
@@ -78,11 +106,12 @@ export function drawCosmeticShot(ctx, cosmetic, age = 1, lowPower = false) {
 
 // Render at the firing origin, independently of the traveling projectile.
 export function drawCosmeticMuzzle(ctx, cosmetic, age) {
-  if (!cosmetic || age < 0 || age >= .12) return;
+  if (!cosmetic || cosmetic.kind === 'skin' || age < 0 || age >= .12) return;
   ctx.save(); ctx.globalAlpha *= (1 - age / .12) * .65;
   ctx.strokeStyle = cosmetic.colors.core; ctx.lineWidth = 1.5;
   const radius = 4 + age * 35;
   ctx.beginPath(); ctx.arc(0, 0, radius, -.8, .8); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(-5, -radius - 3); ctx.moveTo(0, radius); ctx.lineTo(-5, radius + 3); ctx.stroke();
+  drawCosmeticMark(ctx, cosmetic, cosmetic.colors, 0, 0, radius * .32, age * 3);
   ctx.restore();
 }

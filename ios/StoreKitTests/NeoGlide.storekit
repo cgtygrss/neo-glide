@@ -3,82 +3,524 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
-      "displayPrice": "2.99", "familyShareable": false, "internalID": "10000001",
-      "localizations": [{ "description": "Permanent removal of forced ads. Optional rewarded ads remain available.", "displayName": "Ad-Free Flight", "locale": "en_US" }],
-      "productID": "remove_ads", "referenceName": "Ad-Free Flight", "type": "NonConsumable"
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "10000001",
+      "localizations": [
+        {
+          "description": "Permanent removal of forced ads. Optional rewarded ads remain available.",
+          "displayName": "Ad-Free Flight",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "remove_ads",
+      "referenceName": "Ad-Free Flight",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "4.99", "familyShareable": false, "internalID": "10000002",
-      "localizations": [{ "description": "200000 credits, Interceptor and Solar Blaster.", "displayName": "Starter Pack", "locale": "en_US" }],
-      "productID": "starter_pack", "referenceName": "Starter Pack", "type": "NonConsumable"
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "10000002",
+      "localizations": [
+        {
+          "description": "200000 credits, Interceptor and Solar Blaster.",
+          "displayName": "Starter Pack",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "starter_pack",
+      "referenceName": "Starter Pack",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "0.99", "familyShareable": false, "internalID": "10000003",
-      "localizations": [{ "description": "100000 credits for the Garage.", "displayName": "100000 Credits", "locale": "en_US" }],
-      "productID": "credits_1000", "referenceName": "100000 Credits", "type": "Consumable"
+      "displayPrice": "0.49",
+      "familyShareable": false,
+      "internalID": "10000032",
+      "localizations": [
+        {
+          "description": "50,000 credits to spend in the Garage.",
+          "displayName": "50,000 Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "credits_50000",
+      "referenceName": "50,000 Credits",
+      "type": "Consumable"
     },
     {
-      "displayPrice": "3.99", "familyShareable": false, "internalID": "10000004",
-      "localizations": [{ "description": "550000 credits for the Garage.", "displayName": "550000 Credits", "locale": "en_US" }],
-      "productID": "credits_5500", "referenceName": "550000 Credits", "type": "Consumable"
+      "displayPrice": "0.79",
+      "familyShareable": false,
+      "internalID": "10000003",
+      "localizations": [
+        {
+          "description": "100,000 credits to spend in the Garage.",
+          "displayName": "100,000 Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "credits_1000",
+      "referenceName": "100,000 Credits",
+      "type": "Consumable"
     },
     {
-      "displayPrice": "7.99", "familyShareable": false, "internalID": "10000005",
-      "localizations": [{ "description": "1500000 credits for the Garage.", "displayName": "1500000 Credits", "locale": "en_US" }],
-      "productID": "credits_15000", "referenceName": "1500000 Credits", "type": "Consumable"
+      "displayPrice": "1.49",
+      "familyShareable": false,
+      "internalID": "10000033",
+      "localizations": [
+        {
+          "description": "250,000 credits to spend in the Garage.",
+          "displayName": "250,000 Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "credits_250000",
+      "referenceName": "250,000 Credits",
+      "type": "Consumable"
     },
     {
-      "displayPrice": "7.99", "familyShareable": false, "internalID": "10000006",
-      "localizations": [{ "description": "Black and violet hull theme with a lavender trail.", "displayName": "Void Pilot", "locale": "en_US" }],
-      "productID": "cosmetic_void_pilot", "referenceName": "Void Pilot", "type": "NonConsumable"
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "10000004",
+      "localizations": [
+        {
+          "description": "550,000 credits to spend in the Garage.",
+          "displayName": "550,000 Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "credits_5500",
+      "referenceName": "550,000 Credits",
+      "type": "Consumable"
     },
     {
-      "displayPrice": "5.99", "familyShareable": false, "internalID": "10000007",
-      "localizations": [{ "description": "Anthracite, gold and orange hull theme.", "displayName": "Solar Forge", "locale": "en_US" }],
-      "productID": "cosmetic_solar_forge", "referenceName": "Solar Forge", "type": "NonConsumable"
+      "displayPrice": "4.49",
+      "familyShareable": false,
+      "internalID": "10000034",
+      "localizations": [
+        {
+          "description": "1,000,000 credits to spend in the Garage.",
+          "displayName": "1,000,000 Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "credits_1000000",
+      "referenceName": "1,000,000 Credits",
+      "type": "Consumable"
     },
     {
-      "displayPrice": "3.49", "familyShareable": false, "internalID": "10000008",
-      "localizations": [{ "description": "White and ice-blue hull theme.", "displayName": "Arctic Pulse", "locale": "en_US" }],
-      "productID": "cosmetic_arctic_pulse", "referenceName": "Arctic Pulse", "type": "NonConsumable"
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "10000005",
+      "localizations": [
+        {
+          "description": "1,500,000 credits to spend in the Garage.",
+          "displayName": "1,500,000 Credits",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "credits_15000",
+      "referenceName": "1,500,000 Credits",
+      "type": "Consumable"
     },
     {
-      "displayPrice": "3.99", "familyShareable": false, "internalID": "10000009",
-      "localizations": [{ "description": "Navy and cyan hull theme.", "displayName": "Cyber Current", "locale": "en_US" }],
-      "productID": "cosmetic_cyber_current", "referenceName": "Cyber Current", "type": "NonConsumable"
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "10000014",
+      "localizations": [
+        {
+          "description": "A hand-built star machine, alive with turning brass and copper instruments.",
+          "displayName": "Copper Horizon",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_copper_horizon",
+      "referenceName": "Copper Horizon",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "4.99", "familyShareable": false, "internalID": "10000010",
-      "localizations": [{ "description": "Pink and silver circuit hull theme.", "displayName": "Rose Circuit", "locale": "en_US" }],
-      "productID": "cosmetic_rose_circuit", "referenceName": "Rose Circuit", "type": "NonConsumable"
+      "displayPrice": "3.49",
+      "familyShareable": false,
+      "internalID": "10000008",
+      "localizations": [
+        {
+          "description": "A glacier in flight. Faceted ice fins split the light while tiny snow crystals orbit the hull.",
+          "displayName": "Arctic Pulse",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_arctic_pulse",
+      "referenceName": "Arctic Pulse",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "4.49", "familyShareable": false, "internalID": "10000011",
-      "localizations": [{ "description": "Jade and copper hull theme.", "displayName": "Jade Drift", "locale": "en_US" }],
-      "productID": "cosmetic_jade_drift", "referenceName": "Jade Drift", "type": "NonConsumable"
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "10000009",
+      "localizations": [
+        {
+          "description": "Detached circuit panels follow your hull, linked by a live cyan data lattice.",
+          "displayName": "Cyber Current",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_cyber_current",
+      "referenceName": "Cyber Current",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "6.99", "familyShareable": false, "internalID": "10000012",
-      "localizations": [{ "description": "Pearl and champagne hull theme.", "displayName": "Pearl Comet", "locale": "en_US" }],
-      "productID": "cosmetic_pearl_comet", "referenceName": "Pearl Comet", "type": "NonConsumable"
+      "displayPrice": "4.49",
+      "familyShareable": false,
+      "internalID": "10000011",
+      "localizations": [
+        {
+          "description": "Jade leaves unfurl into a living canopy. A little piece of a lost garden, carried between stars.",
+          "displayName": "Jade Drift",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_jade_drift",
+      "referenceName": "Jade Drift",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "8.99", "familyShareable": false, "internalID": "10000013",
-      "localizations": [{ "description": "Graphite and cobalt hull theme.", "displayName": "Cobalt Storm", "locale": "en_US" }],
-      "productID": "cosmetic_cobalt_storm", "referenceName": "Cobalt Storm", "type": "NonConsumable"
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "10000010",
+      "localizations": [
+        {
+          "description": "A rose-pink fairy garden in flight, with translucent petal wings and a tiny flower crown.",
+          "displayName": "Rose Circuit",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_rose_circuit",
+      "referenceName": "Rose Circuit",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "2.99", "familyShareable": false, "internalID": "10000014",
-      "localizations": [{ "description": "Copper and cream hull theme.", "displayName": "Copper Horizon", "locale": "en_US" }],
-      "productID": "cosmetic_copper_horizon", "referenceName": "Copper Horizon", "type": "NonConsumable"
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "10000007",
+      "localizations": [
+        {
+          "description": "An exposed turbine and layered heat vanes turn your ship into a miniature solar engine.",
+          "displayName": "Solar Forge",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_solar_forge",
+      "referenceName": "Solar Forge",
+      "type": "NonConsumable"
     },
     {
-      "displayPrice": "9.99", "familyShareable": false, "internalID": "10000015",
-      "localizations": [{ "description": "Violet, cyan and pink hull theme.", "displayName": "Prism Voyager", "locale": "en_US" }],
-      "productID": "cosmetic_prism_voyager", "referenceName": "Prism Voyager", "type": "NonConsumable"
+      "displayPrice": "6.99",
+      "familyShareable": false,
+      "internalID": "10000012",
+      "localizations": [
+        {
+          "description": "An ivory butterfly carriage with rose-glass wings, a pearl tiara and trailing moon ribbons. Its wings open wide when you boost.",
+          "displayName": "Pearl Comet",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_pearl_comet",
+      "referenceName": "Pearl Comet",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "7.99",
+      "familyShareable": false,
+      "internalID": "10000006",
+      "localizations": [
+        {
+          "description": "An obsidian space dragon unfurls enormous violet membrane wings. A horned crest, eclipse ring and coiling comet tail complete the transformation.",
+          "displayName": "Void Pilot",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_void_pilot",
+      "referenceName": "Void Pilot",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "8.99",
+      "familyShareable": false,
+      "internalID": "10000013",
+      "localizations": [
+        {
+          "description": "Royal mecha armor, twin hovering sentries and a luminous knight crest turn the hull into a cobalt sky guardian. Its plated wings deploy on boost.",
+          "displayName": "Cobalt Storm",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_cobalt_storm",
+      "referenceName": "Cobalt Storm",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "10000015",
+      "localizations": [
+        {
+          "description": "A rainbow butterfly spectacle: four stained-glass wings, a floating jewel crown and a constellation of fairy stars. Boost opens the full royal silhouette.",
+          "displayName": "Prism Voyager",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_prism_voyager",
+      "referenceName": "Prism Voyager",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "10000016",
+      "localizations": [
+        {
+          "description": "A miniature terrarium in orbit, with translucent seed pods and gently opening fronds.",
+          "displayName": "Mint Condition",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_mint_condition",
+      "referenceName": "Mint Condition",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "10000017",
+      "localizations": [
+        {
+          "description": "Swept flame feathers rise behind a ruby phoenix crest.",
+          "displayName": "Scarlet Comet",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_scarlet_comet",
+      "referenceName": "Scarlet Comet",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.49",
+      "familyShareable": false,
+      "internalID": "10000018",
+      "localizations": [
+        {
+          "description": "An amber navigation array opens its honeycomb wings and broadcasts concentric signal rings.",
+          "displayName": "Amber Signal",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_amber_signal",
+      "referenceName": "Amber Signal",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "10000019",
+      "localizations": [
+        {
+          "description": "Silver crescent sails and a moonstone brooch drift in a quiet orbital dance.",
+          "displayName": "Lunar Silver",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_lunar_silver",
+      "referenceName": "Lunar Silver",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.49",
+      "familyShareable": false,
+      "internalID": "10000020",
+      "localizations": [
+        {
+          "description": "A bioluminescent manta wears luminous gill fans and a flowing deep-sea crest.",
+          "displayName": "Ocean Depth",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_ocean_depth",
+      "referenceName": "Ocean Depth",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "10000021",
+      "localizations": [
+        {
+          "description": "Soft lilac butterfly wings open around a moonstone brooch, with tiny dream stars floating nearby.",
+          "displayName": "Lavender Dream",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_lavender_dream",
+      "referenceName": "Lavender Dream",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.49",
+      "familyShareable": false,
+      "internalID": "10000022",
+      "localizations": [
+        {
+          "description": "Thorned living armor surrounds a bright, unstable botanical core.",
+          "displayName": "Toxic Bloom",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_toxic_bloom",
+      "referenceName": "Toxic Bloom",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "10000023",
+      "localizations": [
+        {
+          "description": "Bronze sail spars hold wind-carved fabric above the hull, with a compass rose at the prow.",
+          "displayName": "Desert Mirage",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_desert_mirage",
+      "referenceName": "Desert Mirage",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "10000024",
+      "localizations": [
+        {
+          "description": "A red eclipse, royal blade wings and a suspended ruby seal form a dark celestial crown.",
+          "displayName": "Ruby Eclipse",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_ruby_eclipse",
+      "referenceName": "Ruby Eclipse",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "10000025",
+      "localizations": [
+        {
+          "description": "Stacked ice blades float on either side of a frost-cut star medallion.",
+          "displayName": "Glacier Blue",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_glacier_blue",
+      "referenceName": "Glacier Blue",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.49",
+      "familyShareable": false,
+      "internalID": "10000026",
+      "localizations": [
+        {
+          "description": "A fan of golden sun feathers unfolds into a warm, radiant star sail.",
+          "displayName": "Saffron Sky",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_saffron_sky",
+      "referenceName": "Saffron Sky",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "5.49",
+      "familyShareable": false,
+      "internalID": "10000027",
+      "localizations": [
+        {
+          "description": "Gilded architectural fins frame a miniature royal observatory.",
+          "displayName": "Midnight Gold",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_midnight_gold",
+      "referenceName": "Midnight Gold",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.49",
+      "familyShareable": false,
+      "internalID": "10000028",
+      "localizations": [
+        {
+          "description": "Sculpted coral antlers and a luminous sea-pearl bring a little reef into deep space.",
+          "displayName": "Coral Reef",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_coral_reef",
+      "referenceName": "Coral Reef",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "10000029",
+      "localizations": [
+        {
+          "description": "Detached spectral frames and an ultraviolet lens turn your hull into an impossible light sculpture.",
+          "displayName": "Ultraviolet",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_ultraviolet",
+      "referenceName": "Ultraviolet",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "10000030",
+      "localizations": [
+        {
+          "description": "A hard-earned navigational crown charts a tiny constellation around your ship.",
+          "displayName": "Nebula Circuit",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_nebula_circuit",
+      "referenceName": "Nebula Circuit",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "10000031",
+      "localizations": [
+        {
+          "description": "Sweeping auroral sails carry a luminous expedition compass across the frontier.",
+          "displayName": "Aurora Pathfinder",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "cosmetic_aurora_pathfinder",
+      "referenceName": "Aurora Pathfinder",
+      "type": "NonConsumable"
     }
   ],
-  "settings": { "_failTransactionsEnabled": false, "_locale": "en_US", "_storefront": "USA" },
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA"
+  },
   "subscriptionGroups": [],
-  "version": { "major": 3, "minor": 0 }
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
 }

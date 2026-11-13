@@ -1,16 +1,21 @@
+import { APP_VERSION } from './version.js';
+import { flightEquipment, getShipTraits, advanceEquipmentEnergy } from './game/FlightEquipment';
+import { UPGRADES, WEAPONS, upgradeOffer } from './game/ShopCatalog';
+import Events from './components/Events';
+import { setAccountLocked, syncAccount, startAccount, accountSnapshot } from './account/AccountService';
+import { beginEventFlight, queueEventFlight, refreshEvents } from './services/EventsService';
+import { profileStorage } from './account/ProfileStorage.js';
 import React, { useEffect, useRef, useState } from 'react';
 import { GameLoop } from './game/GameLoop';
 import { Renderer } from './game/Renderer';
 import { SoundManager } from './game/SoundManager';
-import { BOSS_REWARD, LEVEL_REWARD, claimDistanceCredits, loadWallet, updateWallet as setCurrency, subscribeWallet, getEquippedStage, getStageOwnership, equipStage, unlockCreditStage, claimEarningsBonus, coinMultiplier, MULTIPLIER_MAX_LEVEL, getCosmeticOwnership, getPendingCosmeticProducts, unlockCreditCosmetic } from './game/Economy';
+import { LEVEL_REWARD, claimDistanceCredits, loadWallet, updateWallet as setCurrency, subscribeWallet, getEquippedStage, getStageOwnership, equipStage, unlockCreditStage, distanceAdReward, claimDistanceAdBonus, coinMultiplier, MULTIPLIER_MAX_LEVEL, getCosmeticOwnership, getPendingCosmeticProducts, unlockCreditCosmetic } from './game/Economy';
 import { SHIPS } from './game/ShipCatalog';
-import { COSMETICS } from './game/CosmeticsCatalog';
+import { ALL_APPEARANCES, COSMETICS, getCosmetic } from './game/CosmeticsCatalog';
 import { loadSoundPreferences, saveSoundPreferences } from './game/SoundPreferences';
 import {
-  Player, Obstacle, Fuel, Villain, Projectile, PlayerProjectile, SpeedsterVillain, JuggernautVillain, HomingProjectile,
-  PowerUp, HealthPickup,
-  FuseProjectile,
-  SonicBladeProjectile
+  Player, Fuel,
+  PowerUp, HealthPickup
 } from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
@@ -18,32 +23,54 @@ import Tutorial from './components/Tutorial';
 import Career from './components/Career';
 import { Home, Play } from 'lucide-react';
 import HomeScreen from './components/HomeScreen';
+import LegalPanel from './privacy/LegalPanel.jsx';
+import { onlineServicesAllowed } from './privacy/AudiencePolicy.js';
 import RunResults from './components/RunResults';
+import AudioControls from './components/AudioControls';
 import { createCoinTrailState, advanceCoinTrails, collectCoin } from './game/CoinTrails';
 import { syncEncounterMusic } from './game/EncounterMusic';
-import { BASE_HEALTH, ENEMY_HIT_DAMAGE, HIT_PROTECTION_SECONDS, maxHullHealth, hullRecoveryRate, advanceHitProtection, takeProjectileHit, collectHealth, advanceHealthPickupSpawn, obstacleImpact, touchesFlightBoundary } from './game/PlayerHealth';
+import { BASE_HEALTH, maxHullHealth, advanceHitProtection, takeProjectileHit, collectHealth, advanceHealthPickupSpawn, obstacleImpact, touchesFlightBoundary } from './game/PlayerHealth';
 import { FlightInput } from './game/FlightInput';
+import { flightViewport, fitFlightViewport, flightScrollSpeed } from './game/FlightViewport.js';
 import { constrainFlightPlayer } from './game/FlightBounds';
+import { obstacleCollisionBounds, touchesObstacle } from './game/ObstacleCollision';
+import { START_SPEED, advanceFlightPace, advanceHazardSpawns, flightEnemies, positionEnemyLanes, advanceEnemyAttacks, createEnemyVolley } from './game/FlightDifficulty';
 import { prepareLaunch, advanceFlightStart, takeFlightControl, prepareFlightReady, pauseFlight, resumeFlight, refillFuel } from './game/FlightStart';
 import { getPurchases, initializeMonetization, purchaseProduct, restorePurchases, refreshStorePurchases, subscribeStore, showRewardedAd, trackMonetizationEvent } from './services/MonetizationService';
-import { claimMission, loadProfile, recordRun } from './services/ProgressionService';
+import { subscribeAdAudio, recoverAdAudioOnForeground } from './services/AdAudioRecovery';
+import { claimMission, loadProfile, recordRun, updatePilotName } from './services/ProgressionService';
 import { isAdPrivacyOptionsRequired, showAdPrivacyOptions } from './services/AdMobService';
 import './NavigationMotion.css';
+import './components/ResponsiveFlight.css';
 import { transformationProtected, absorbTransformationHit, transformationHitbox, advanceTransformation, advanceTransformationCapsule, resetTransformations, resizeTransformation, transformationPrimary, transformationSecondary, transformationHud } from './game/Transformations';
 
 import { transformationWorldDelta } from './game/TransformationCatalog';
+import { advanceSupportDrop } from './game/SupportDrops';
+import { hostileShotTouchesRect, nearestBeamPoint, isScout } from './game/ScoutAttack';
+import { prepareRewardedContinue } from './game/RunLifecycle.js';
+import { createEncounterDirector, advanceBossEncounter, encounterRestrictsSpawns, drainEncounterEvents, bossHud, abandonBossEncounter } from './game/BossEncounters.js';
+import { advanceAmmoRecharge, damageEnemy, resolveFriendlyHits, drainCombatEvents, fireNormalWeapon } from './game/Combat.js';
+import BossStatus from './components/BossStatus.jsx';
 
-const frameChance = (chanceAt60Fps, deltaTime) => 1 - Math.pow(1 - chanceAt60Fps, deltaTime * 60);
-const cosmeticIds = new Set(COSMETICS.map(cosmetic => cosmetic.id));
+const cosmeticIds = new Set(ALL_APPEARANCES.map(cosmetic => cosmetic.id));
+const menuMusicStates = new Set(['MENU', 'SHOP', 'CAREER', 'ACCOUNT', 'EVENTS', 'LEGAL']);
 const safeCosmeticOwnership = () => {
   try { return getCosmeticOwnership(); } catch { return {}; }
 };
 
-export default function App() {
+export default function App({ startupComplete = true }) {
   const [gameState, setGameState] = useState('MENU'); // MENU, TUTORIAL, COUNTDOWN, PLAYING, GAMEOVER, SHOP
+  const [legalDocument, setLegalDocument] = useState('privacy');
+  // Results still own this flight and its optional rewards. Defer a late initial
+  // account activation until the player leaves, so it cannot remount the app here.
+  useEffect(() => {
+    const flightOwnsAccount = ['PLAYING', 'COUNTDOWN', 'PAUSED', 'GAMEOVER'].includes(gameState);
+    setAccountLocked(flightOwnsAccount);
+    if (!flightOwnsAccount) void syncAccount();
+  }, [gameState]);
   const [audioPreferences, setAudioPreferences] = useState(loadSoundPreferences);
   const [showTutorialOnStart, setShowTutorialOnStart] = useState(() => {
-    return localStorage.getItem('neon_glide_learned_controls') !== 'true';
+    return profileStorage.getItem('neon_glide_learned_controls') !== 'true';
   });
   const [flightPhase, setFlightPhase] = useState('ENDED');
   const runTokenRef = useRef(0);
@@ -52,9 +79,10 @@ export default function App() {
   const [distance, setDistance] = useState(0);
   const currency = React.useSyncExternalStore(subscribeWallet, loadWallet);
   const equippedStage = React.useSyncExternalStore(subscribeWallet, getEquippedStage);
-  const [shopInitialTab, setShopInitialTab] = useState('upgrades');
+  const [shopInitialTab, setShopInitialTab] = useState('featured');
   const [energy, setEnergy] = useState(100);
   const [ammo, setAmmo] = useState(10);
+  const [maxAmmo, setMaxAmmo] = useState(10);
   const [health, setHealth] = useState(BASE_HEALTH);
   const [maxHealth, setMaxHealth] = useState(BASE_HEALTH);
   const [sessionCurrency, setSessionCurrency] = useState(0);
@@ -62,7 +90,7 @@ export default function App() {
   const [purchases, setPurchases] = useState(getPurchases);
   const [ownedCosmetics, setOwnedCosmetics] = useState(safeCosmeticOwnership);
   const [equippedCosmetic, setEquippedCosmetic] = useState(() => {
-    const id = localStorage.getItem('neon_glide_equipped_cosmetic') || '';
+    const id = profileStorage.getItem('neon_glide_equipped_cosmetic') || '';
     return safeCosmeticOwnership()[id] && cosmeticIds.has(id) ? id : '';
   });
   const [pendingProducts, setPendingProducts] = useState(getPendingCosmeticProducts);
@@ -89,7 +117,7 @@ export default function App() {
 
   const [upgrades, setUpgrades] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('neon_glide_upgrades')) || {};
+      return JSON.parse(profileStorage.getItem('neon_glide_upgrades')) || {};
     } catch {
       return {};
     }
@@ -97,7 +125,7 @@ export default function App() {
 
   const [ownedShips, setOwnedShips] = useState(() => {
     try {
-      const items = JSON.parse(localStorage.getItem('neon_glide_owned_ships')) || ['default'];
+      const items = JSON.parse(profileStorage.getItem('neon_glide_owned_ships')) || ['default'];
       return getPurchases().starter_pack && !items.includes('interceptor') ? [...items, 'interceptor'] : items;
     } catch {
       return ['default'];
@@ -105,12 +133,12 @@ export default function App() {
   });
 
   const [equippedShip, setEquippedShip] = useState(() => {
-    return localStorage.getItem('neon_glide_equipped_ship') || 'default';
+    return profileStorage.getItem('neon_glide_equipped_ship') || 'default';
   });
 
   const [ownedWeapons, setOwnedWeapons] = useState(() => {
     try {
-      const items = JSON.parse(localStorage.getItem('neon_glide_owned_weapons')) || ['default'];
+      const items = JSON.parse(profileStorage.getItem('neon_glide_owned_weapons')) || ['default'];
       return getPurchases().starter_pack && !items.includes('blaster') ? [...items, 'blaster'] : items;
     } catch {
       return ['default'];
@@ -118,15 +146,18 @@ export default function App() {
   });
 
   const [equippedWeapon, setEquippedWeapon] = useState(() => {
-    return localStorage.getItem('neon_glide_equipped_weapon') || 'default';
+    return profileStorage.getItem('neon_glide_equipped_weapon') || 'default';
   });
 
   // Active power-ups state
   const [activePowerUps, setActivePowerUps] = useState([]);
   const [transformationView, setTransformationView] = useState(null);
+  const [bossView, setBossView] = useState(null);
 
   // Refs for Game Loop
   const canvasRef = useRef(null);
+  const flightStageRef = useRef(null);
+  const viewportRef = useRef(flightViewport(window.innerWidth, window.innerHeight));
   const loopRef = useRef(null);
   const rendererRef = useRef(null);
   const soundRef = useRef(null);
@@ -142,7 +173,7 @@ export default function App() {
     healthPickups: [],
     powerUps: [],
     activePowerUps: [],
-    speed: 300,
+    speed: START_SPEED,
     distance: 0,
     energy: 100,
     ammo: 10,
@@ -155,6 +186,10 @@ export default function App() {
   useEffect(() => {
     const input = new FlightInput(active => {
       const game = gameRef.current;
+      if (active && ['LAUNCH', 'READY', 'FLYING'].includes(game.phase)
+        && (game.transformation ? game.transformation.phase === 'ACTIVE' : game.energy > 0)) {
+        soundRef.current?.playControlPress('boost');
+      }
       if (game.transformation) {
         game.player.boost(false);
         if (active) transformationPrimary(game);
@@ -162,6 +197,21 @@ export default function App() {
     });
     flightInputRef.current = input;
     return () => input.reset();
+  }, []);
+
+  useEffect(() => { const update = () => { setOwnedCosmetics(safeCosmeticOwnership()); setProfile(loadProfile()); };  window.addEventListener('neo-events-updated', update); return () => window.removeEventListener('neo-events-updated', update); }, []);
+
+  useEffect(() => {
+    const update = () => {
+      const read = (key, fallback) => { try { return JSON.parse(profileStorage.getItem(key)) || fallback; } catch { return fallback; } };
+      setProfile(loadProfile()); setOwnedCosmetics(safeCosmeticOwnership());
+      setOwnedShips(read('neon_glide_owned_ships', ['default'])); setOwnedWeapons(read('neon_glide_owned_weapons', ['default']));
+      setEquippedShip(profileStorage.getItem('neon_glide_equipped_ship') || 'default');
+      setEquippedWeapon(profileStorage.getItem('neon_glide_equipped_weapon') || 'default');
+      setEquippedCosmetic(profileStorage.getItem('neon_glide_equipped_cosmetic') || ''); setUpgrades(read('neon_glide_upgrades', {}));
+    };
+    window.addEventListener('neo-account-save-updated', update);
+    return () => window.removeEventListener('neo-account-save-updated', update);
   }, []);
 
   const upgradesRef = useRef(upgrades);
@@ -175,19 +225,25 @@ export default function App() {
 
     // Initialize Sound Manager
     soundRef.current = new SoundManager();
+    const stopAdAudio = subscribeAdAudio(event => event.active
+      ? soundRef.current?.beginAdAudio()
+      : soundRef.current?.recoverAfterAd(event));
+    const recoverForegroundAudio = () => { if (!document.hidden) recoverAdAudioOnForeground(); };
+    window.addEventListener('focus', recoverForegroundAudio);
+    document.addEventListener('visibilitychange', recoverForegroundAudio);
 
     // Initialize Renderer
     rendererRef.current = new Renderer(canvasRef.current);
 
     // Version Check
     const checkVersion = async () => {
+      if (!onlineServicesAllowed()) return;
       try {
-        // Replace with your actual GitHub raw URL or hosted JSON URL
-        const response = await fetch('https://raw.githubusercontent.com/cgtygrss/neon-glide/main/public/version.json');
+        const response = await fetch('https://raw.githubusercontent.com/cgtygrss/neo-glide/main/public/version.json');
         const data = await response.json();
 
         // Current app version (should match package.json)
-        const currentVersion = '1.2.0';
+        const currentVersion = APP_VERSION;
 
         if (data.forceUpdate && data.version !== currentVersion) {
           // Simple semantic version check (assumes format x.y.z)
@@ -219,15 +275,28 @@ export default function App() {
     };
 
     checkVersion();
-    void initializeMonetization().then(status => {
-      setAdPrivacyAvailable(Boolean(status?.privacyOptionsRequired || isAdPrivacyOptionsRequired()));
-    });
 
     // Handle Resize
     const handleResize = () => {
-      rendererRef.current.resize(window.innerWidth, window.innerHeight);
-      resizeTransformation(gameRef.current, window.innerWidth, window.innerHeight);
-      constrainFlightPlayer(gameRef.current, window.innerWidth);
+      const next = flightViewport(window.innerWidth, window.innerHeight);
+      const game = gameRef.current;
+      const aspectChanged = fitFlightViewport(game, next);
+      viewportRef.current = next;
+      const stage = flightStageRef.current;
+      Object.assign(stage.style, { width: `${next.displayWidth}px`, height: `${next.displayHeight}px`, left: `${next.left}px`, top: `${next.top}px` });
+      stage.dataset.worldWidth = next.width;
+      stage.dataset.worldHeight = next.height;
+      rendererRef.current.resize(next.width, next.height, { displayScale: next.scale });
+      resizeTransformation(game, next.width, next.height);
+      constrainFlightPlayer(game, next.width);
+      // A changing aspect ratio must not turn a resize into an unseen collision.
+      if (aspectChanged && pauseFlight(game)) {
+        flightInputRef.current?.reset();
+        loopRef.current?.stop();
+        setGameState('PAUSED');
+      }
+      // Resizing clears the bitmap; repaint the frozen scene under pause/HUD.
+      if (['LAUNCH', 'READY', 'FLYING', 'PAUSED', 'COUNTDOWN'].includes(game.phase)) rendererRef.current.drawScene(game, 0);
     };
     window.addEventListener('resize', handleResize);
     handleResize();
@@ -236,20 +305,43 @@ export default function App() {
     const handleUserInteraction = () => {
       void soundRef.current?.unlock();
     };
-    window.addEventListener('click', handleUserInteraction);
-    window.addEventListener('keydown', handleUserInteraction);
-    window.addEventListener('touchstart', handleUserInteraction);
+    // Capture gestures before game controls can stop propagation.
+    window.addEventListener('pointerdown', handleUserInteraction, true);
+    window.addEventListener('click', handleUserInteraction, true);
+    window.addEventListener('keydown', handleUserInteraction, true);
+    window.addEventListener('touchstart', handleUserInteraction, true);
 
     return () => {
       invalidateRun();
       if (loopRef.current) loopRef.current.stop();
+      stopAdAudio();
+      window.removeEventListener('focus', recoverForegroundAudio);
+      document.removeEventListener('visibilitychange', recoverForegroundAudio);
       if (soundRef.current) soundRef.current.cleanup();
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('click', handleUserInteraction);
-      window.removeEventListener('keydown', handleUserInteraction);
-      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('pointerdown', handleUserInteraction, true);
+      window.removeEventListener('click', handleUserInteraction, true);
+      window.removeEventListener('keydown', handleUserInteraction, true);
+      window.removeEventListener('touchstart', handleUserInteraction, true);
     };
   }, [invalidateRun]);
+
+  // User-facing store/privacy flows wait until the opening has revealed home.
+  // Local account initialization and rendering continue underneath the intro.
+  useEffect(() => {
+    if (!startupComplete) return;
+    let active = true, started = false;
+    const initialize = () => {
+      if (document.hidden || started) return;
+      started = true;
+      void startAccount().then(() => active ? initializeMonetization() : null).then(status => {
+        if (active && status) setAdPrivacyAvailable(Boolean(status.privacyOptionsRequired || isAdPrivacyOptionsRequired()));
+      }).catch(() => { /* Store/consent can retry through its existing entry points. */ });
+    };
+    initialize();
+    document.addEventListener('visibilitychange', initialize);
+    return () => { active = false; document.removeEventListener('visibilitychange', initialize); };
+  }, [startupComplete]);
 
   useEffect(() => {
     soundRef.current?.setPreferences(audioPreferences);
@@ -257,23 +349,23 @@ export default function App() {
   }, [audioPreferences]);
 
   useEffect(() => {
-    localStorage.setItem('neon_glide_owned_ships', JSON.stringify(ownedShips));
+    profileStorage.setItem('neon_glide_owned_ships', JSON.stringify(ownedShips));
   }, [ownedShips]);
 
   useEffect(() => {
-    localStorage.setItem('neon_glide_equipped_ship', equippedShip);
+    profileStorage.setItem('neon_glide_equipped_ship', equippedShip);
   }, [equippedShip]);
 
   useEffect(() => {
-    localStorage.setItem('neon_glide_owned_weapons', JSON.stringify(ownedWeapons));
+    profileStorage.setItem('neon_glide_owned_weapons', JSON.stringify(ownedWeapons));
   }, [ownedWeapons]);
 
   useEffect(() => {
-    localStorage.setItem('neon_glide_equipped_weapon', equippedWeapon);
+    profileStorage.setItem('neon_glide_equipped_weapon', equippedWeapon);
   }, [equippedWeapon]);
 
   useEffect(() => {
-    localStorage.setItem('neon_glide_equipped_cosmetic', equippedCosmetic);
+    profileStorage.setItem('neon_glide_equipped_cosmetic', equippedCosmetic);
   }, [equippedCosmetic]);
 
   useEffect(() => {
@@ -286,7 +378,7 @@ export default function App() {
       gameRef.current.weaponType = equippedWeapon;
       gameRef.current.cosmeticId = equippedCosmetic;
     }
-    localStorage.setItem('neon_glide_upgrades', JSON.stringify(upgrades));
+    profileStorage.setItem('neon_glide_upgrades', JSON.stringify(upgrades));
   }, [upgrades, equippedShip, equippedWeapon, equippedCosmetic]);
 
   useEffect(() => {
@@ -313,10 +405,10 @@ export default function App() {
     const resume = window.setTimeout(() => {
       if (!isCurrent()) return;
       prepareFlightReady(game);
-      constrainFlightPlayer(game, window.innerWidth);
+      constrainFlightPlayer(game, viewportRef.current.width);
       setFlightPhase(game.phase);
       setGameState('PLAYING');
-      syncEncounterMusic(game, soundRef.current, { allowEntrance: false });
+      syncEncounterMusic(game, soundRef.current);
       loopRef.current?.start();
     }, 2550);
 
@@ -329,15 +421,21 @@ export default function App() {
 
   // Menu Music Effect
   useEffect(() => {
-    if (['MENU', 'SHOP', 'CAREER'].includes(gameState) && soundRef.current) {
+    if (!startupComplete || document.hidden) return;
+    if (menuMusicStates.has(gameState) && soundRef.current) {
       soundRef.current.startMenuMusic();
     } else if (gameState !== 'PLAYING' && soundRef.current) {
       // Only stop music if not playing (for GAMEOVER state)
       soundRef.current.stopMusic();
     }
-  }, [gameState]);
+  }, [gameState, startupComplete]);
 
   const startGame = ({ forceTutorial = false } = {}) => {
+    if(accountSnapshot().busy)return;
+    abandonBossEncounter(gameRef.current);
+    for (const event of drainEncounterEvents(gameRef.current)) trackMonetizationEvent(event.name, event.data);
+    setBossView(null);
+    setAccountLocked(true);
     runTokenRef.current++;
     rewardOperationRef.current = null;
     const shouldRunTutorial = forceTutorial || showTutorialOnStart;
@@ -351,25 +449,22 @@ export default function App() {
     // Reset Game State
     const currentUpgrades = upgradesRef.current;
     const pilotLevel = profileRef.current.level || 1;
-    const batteryLvl = currentUpgrades.battery || 1;
-    const maxEnergy = 100 + (batteryLvl - 1) * 20 + (pilotLevel - 1) * 2;
+    const equipment = flightEquipment(currentUpgrades, equippedShipRef.current, pilotLevel);
+    const maxEnergy = equipment.maxEnergy;
 
     // New Upgrades Logic
     const hullLvl = currentUpgrades.hull || 1;
-    const shieldGenLvl = currentUpgrades.shield_gen || 0;
     const multiplierLvl = currentUpgrades.multiplier || 1;
 
     // Ship Bonuses
     const ship = equippedShipRef.current;
-    let ammoRegenTime = 2.0;
-    let villainChance = 0.005;
-
-    if (ship === 'interceptor') ammoRegenTime = 1.5;
-    if (ship === 'stealth') villainChance = 0.0025;
+    const encounterDelay = getShipTraits(ship).encounterDelay || 1;
 
     const totalHealth = maxHullHealth(hullLvl, ship, pilotLevel);
 
     gameRef.current = {
+      viewport: viewportRef.current,
+      eventFlight: beginEventFlight(),
       player: new Player(currentUpgrades.thruster || 1),
       shipType: equippedShipRef.current,
       stageId: getEquippedStage(),
@@ -381,17 +476,25 @@ export default function App() {
       fuels: [],
       healthPickups: [],
       healthPickupTimer: 0,
+      supportDropTimers: {},
       powerUps: [],
       activePowerUps: [],
-      villain: null,
+      enemies: [],
+      flightTime: 0,
+      enemySpawnTimer: 20 * encounterDelay,
+      obstacleSpawnTimer: 4,
+      enemyShotCooldown: 0,
+      enemyAttackWarning: null,
+      enemyAttackWarnings: [],
+      lastEnemyAttackLane: -1,
       projectiles: [],
       playerProjectiles: [],
       floatingTexts: [],
-      speed: 300 + ((currentUpgrades.thruster || 1) * 20) + (pilotLevel - 1) * 3,
+      speed: START_SPEED,
       distance: 0,
       energy: maxEnergy,
-      ammo: 10,
-      maxAmmo: 10,
+      ammo: equipment.maxAmmo,
+      maxAmmo: equipment.maxAmmo,
       ammoTimer: 0,
       maxEnergy: maxEnergy,
 
@@ -399,10 +502,8 @@ export default function App() {
       health: totalHealth,
       maxHealth: totalHealth,
       hitProtection: 0,
-      regenRate: hullRecoveryRate(shieldGenLvl),
+      ...equipment,
       currencyMultiplier: coinMultiplier(multiplierLvl),
-      ammoRegenTime: ammoRegenTime,
-      villainChance: villainChance,
 
       gameOver: false,
       sessionCurrency: 0, // Flight credits, including earned distance rewards
@@ -417,13 +518,16 @@ export default function App() {
       earningsBonusClaimed: false
     };
 
+    gameRef.current.encounter = createEncounterDirector();
+    gameRef.current.combatEvents = [];
     resetTransformations(gameRef.current, true);
     setTransformationView(null);
-    prepareLaunch(gameRef.current, window.innerHeight, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    prepareLaunch(gameRef.current, viewportRef.current.height, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     setFlightPhase('LAUNCH');
     setDistance(0);
     setEnergy(100); // Always start at 100% regardless of max energy
-    setAmmo(10); // Reset ammo state
+    setAmmo(equipment.maxAmmo); // Match the equipped ammunition bay
+    setMaxAmmo(equipment.maxAmmo);
     setHealth(totalHealth);
     setMaxHealth(totalHealth);
     setSessionCurrency(0);
@@ -448,7 +552,7 @@ export default function App() {
   const handleTutorialComplete = React.useCallback(() => {
     setTutorialActive(false);
     setShowTutorialOnStart(false);
-    localStorage.setItem('neon_glide_learned_controls', 'true');
+    profileStorage.setItem('neon_glide_learned_controls', 'true');
   }, []);
 
   const handleTutorialSkip = () => {
@@ -468,6 +572,8 @@ export default function App() {
     if (loopRef.current) loopRef.current.stop();
     if (soundRef.current) soundRef.current.stopMusic();
 
+    queueEventFlight(gameRef.current);
+    void refreshEvents().catch(() => {});
     const distanceDelta = claimDistanceCredits(gameRef.current);
     if (distanceDelta) setCurrency(value => value + distanceDelta);
     setDistanceBonus(gameRef.current.distanceBonus || 0);
@@ -498,6 +604,18 @@ export default function App() {
     setGameState('GAMEOVER');
   }, []);
 
+  const consumeCombatEvents = React.useCallback((game) => {
+    const events = drainCombatEvents(game);
+    const credits = events.reduce((total, event) => total + event.reward, 0);
+    if (credits) { setCurrency(value => value + credits); setSessionCurrency(game.sessionCurrency); }
+    for (const event of events) {
+      soundRef.current?.playExplosion();
+      rendererRef.current?.emitBurst(event.x, event.y, event.enemy.isEliteBoss ? event.enemy.color : '#ff627d', event.enemy.isEliteBoss ? 42 : 20, 260);
+      game.floatingTexts.push({ x: event.x, y: event.y, text: event.enemy.isEliteBoss ? 'BOSS DEFEATED!' : event.enemy.isBossDrone ? 'DRONE DOWN' : 'ENEMY DEFEATED', color: '#ffcf9a', life: 1.2 });
+      if (event.reward) game.floatingTexts.push({ x: event.x, y: event.y + 24, text: `+${event.reward.toLocaleString()} credits`, color: '#ffd369', life: 1.2 });
+    }
+  }, []);
+
   const checkCollisions = React.useCallback((game, deltaTime) => {
     const p = game.player;
     // Simple AABB Collision
@@ -510,12 +628,7 @@ export default function App() {
       const impact = obstacleImpact(game, obs);
       if (impact === 'phase' && !transformationProtected(game)) continue;
 
-      if (
-        pRect.x < obs.x + obs.width &&
-        pRect.x + pRect.w > obs.x &&
-        pRect.y < obs.y + obs.height &&
-        pRect.y + pRect.h > obs.y
-      ) {
+      if (touchesObstacle(game, obs)) {
         obs.markedForDeletion = true;
 
         if (game.transformationSafety > 0 || transformationProtected(game)) continue;
@@ -547,9 +660,9 @@ export default function App() {
     }
 
     // Falling below the screen remains fatal, even during hit protection.
-    if (!game.transformation && touchesFlightBoundary(p, window.innerHeight)) {
+    if (!game.transformation && touchesFlightBoundary(p, viewportRef.current.height)) {
       if (game.transformationSafety > 0) {
-        p.y = window.innerHeight - 30;
+        p.y = viewportRef.current.height - 30;
         p.velocity = 0;
         return;
       }
@@ -575,16 +688,17 @@ export default function App() {
         col.y += (p.y - col.y) * (1 - Math.pow(.85, deltaTime * 60));
       } else {
         // Normal magnet upgrade: Only pull nearby coins
-        const magnetRange = 50 + ((currentUpgrades.magnet || 1) * 20);
+        const magnetRange = game.magnetRange;
         if (dist < magnetRange) {
-          col.x += (p.x - col.x) * (1 - Math.pow(.9, deltaTime * 60));
-          col.y += (p.y - col.y) * (1 - Math.pow(.9, deltaTime * 60));
+          col.x += (p.x - col.x) * (1 - Math.pow(.9, deltaTime * 60 * (game.tractorRate || 1)));
+          col.y += (p.y - col.y) * (1 - Math.pow(.9, deltaTime * 60 * (game.tractorRate || 1)));
         }
       }
 
       // Collection
       if (dist < 30) {
         const amount = collectCoin(game, col, currentUpgrades.multiplier || 1);
+        if (game.eventFlight) game.eventFlight.coins += amount;
         setCombo(game.combo);
         setCurrency(c => c + amount);
         setSessionCurrency(game.sessionCurrency); // Sync with React state
@@ -617,7 +731,7 @@ export default function App() {
           life: 1.0
         });
 
-        setEnergy(100);
+        setEnergy((game.energy / game.maxEnergy) * 100);
         if (soundRef.current) soundRef.current.playCollect();
       }
     });
@@ -656,14 +770,14 @@ export default function App() {
         const existingPowerUp = game.activePowerUps.find(p => p.type === powerUp.type);
         if (existingPowerUp) {
           // Refresh duration
-          existingPowerUp.remainingTime = powerUp.duration;
-          existingPowerUp.maxDuration = powerUp.duration;
+          existingPowerUp.remainingTime = powerUp.duration * (game.powerDuration || 1);
+          existingPowerUp.maxDuration = powerUp.duration * (game.powerDuration || 1);
         } else {
           // Add new power-up
           game.activePowerUps.push({
             type: powerUp.type,
-            remainingTime: powerUp.duration,
-            maxDuration: powerUp.duration,
+            remainingTime: powerUp.duration * (game.powerDuration || 1),
+            maxDuration: powerUp.duration * (game.powerDuration || 1),
             icon: powerUp.getIcon(),
             name: powerUp.getName(),
             color: powerUp.color
@@ -689,12 +803,7 @@ export default function App() {
 
     // Projectiles (Villain)
     for (const proj of game.projectiles) {
-      if (
-        pRect.x < proj.x + proj.radius &&
-        pRect.x + pRect.w > proj.x - proj.radius &&
-        pRect.y < proj.y + proj.radius &&
-        pRect.y + pRect.h > proj.y - proj.radius
-      ) {
+      if (hostileShotTouchesRect(proj, pRect, game.previousProjectileBounds)) {
         if (!takeProjectileHit(game, proj)) continue;
         setHealth(game.health);
         rendererRef.current?.emitBurst(p.x + 20, p.y, '#ff1744', 20, 260);
@@ -702,7 +811,7 @@ export default function App() {
         game.floatingTexts.push({
           x: p.x,
           y: p.y,
-          text: `-${ENEMY_HIT_DAMAGE} HP`,
+          text: `-${Number(game.projectileDamage.toFixed(1))} HP`,
           color: '#ffa1b1',
           life: 1.0
         });
@@ -714,64 +823,28 @@ export default function App() {
       }
     }
 
-    // Player Projectiles vs Villain
-    if (game.villain) {
-      const v = game.villain;
-      const hitEnemy = damage => {
-        const died = v.takeDamage(damage); // Use weapon damage
-        if (died) {
-          if (soundRef.current) soundRef.current.playExplosion();
-          game.floatingTexts.push({
-            x: v.x,
-            y: v.y,
-            text: 'BOSS DEFEATED!',
-            color: '#ffa1b1',
-            life: 2.0
-          });
-          game.floatingTexts.push({
-            x: v.x,
-            y: v.y + 30,
-            text: `+${BOSS_REWARD.toLocaleString()} credits`,
-            color: '#ffd700', // Gold color
-            life: 2.0
-          });
-          setCurrency(c => c + BOSS_REWARD); // Bonus for killing boss
-          game.sessionCurrency = (game.sessionCurrency || 0) + BOSS_REWARD; // Add boss bonus to session currency
-          game.bossesDefeated = (game.bossesDefeated || 0) + 1;
-          rendererRef.current?.emitBurst(v.x + v.width / 2, v.y + v.height / 2, '#ff2d95', 42, 360);
-          setSessionCurrency(game.sessionCurrency); // Sync with React state
-        } else {
-          if (soundRef.current) soundRef.current.playShoot(); // Hit sound
-        }
-      };
-      game.playerProjectiles.forEach(proj => {
-        if (v.markedForDeletion || proj.markedForDeletion) return;
-        if (
-          proj.x < v.x + v.width &&
-          proj.x + 15 > v.x &&
-          proj.y < v.y + v.height &&
-          proj.y + 4 > v.y
-        ) {
-          proj.markedForDeletion = true;
-          hitEnemy(proj.damage || 10);
-        }
-      });
-    }
-  }, [handleGameOver]);
+    resolveFriendlyHits(game);
+    consumeCombatEvents(game);
+  }, [handleGameOver, consumeCombatEvents]);
 
   const update = React.useCallback((deltaTime) => {
     const game = gameRef.current;
     if (game.gameOver) return;
     const previousPhase = game.phase;
     const simulate = advanceFlightStart(game, deltaTime, flightInputRef.current.sources.size > 0);
-    constrainFlightPlayer(game, window.innerWidth);
+    constrainFlightPlayer(game, viewportRef.current.width);
     if (game.phase !== previousPhase) {
       setFlightPhase(game.phase);
       if (game.phase === 'FLYING') setTutorialBoosted(true);
     }
     if (!simulate) return;
+    game.previousProjectileBounds = transformationHitbox(game);
+    game.previousObstacleBounds = obstacleCollisionBounds(game);
+    const previousTransformation = game.transformation;
     // Advance the capsule before the vehicle so pickup and protection start in this frame.
-    if (advanceTransformationCapsule(game, transformationWorldDelta(game, deltaTime), window.innerWidth, window.innerHeight)) {
+    if (advanceTransformationCapsule(game, transformationWorldDelta(game, deltaTime), viewportRef.current.width, viewportRef.current.height)) {
+      soundRef.current?.playTransformationPickup(game.transformation.id);
+      if (game.eventFlight) game.eventFlight.capsules++;
       setTransformationView(transformationHud(game));
     }
     const realDelta = deltaTime;
@@ -779,7 +852,7 @@ export default function App() {
     game.worldTimeScale = realDelta > 0 ? worldDelta / realDelta : 1;
     if (game.transformation) {
       const previousTransformationPhase = game.transformation.phase;
-      const result = advanceTransformation(game, realDelta, window.innerWidth, window.innerHeight,
+      const result = advanceTransformation(game, realDelta, viewportRef.current.width, viewportRef.current.height,
         flightInputRef.current.sources.size > 0);
       for (const cue of result.cues) soundRef.current?.playTransformationCue(game.transformation?.id, cue);
       game.transformationUiTimer = (game.transformationUiTimer || 0) + realDelta;
@@ -794,18 +867,23 @@ export default function App() {
         else soundRef.current?.playCollect();
       }
     }
+    // Shape changes are not movement through the intervening space.
+    if (previousTransformation !== game.transformation) {
+      game.previousObstacleBounds = obstacleCollisionBounds(game);
+      game.previousProjectileBounds = transformationHitbox(game);
+    }
     // One world delta drives scenery, enemies, projectiles, spawns, rewards and resource clocks.
     deltaTime = worldDelta;
+    if (game.eventFlight) { game.eventFlight.seconds += deltaTime; game.eventCheckpoint=(game.eventCheckpoint||0)+deltaTime; if(game.eventCheckpoint>=10){queueEventFlight(game);game.eventCheckpoint=0;} }
     game.transformationSafety = Math.max(0, (game.transformationSafety || 0) - deltaTime);
     advanceHitProtection(game, deltaTime);
 
     // Update Player
     if (!game.transformation) game.player.update(deltaTime);
-    constrainFlightPlayer(game, window.innerWidth);
+    constrainFlightPlayer(game, viewportRef.current.width);
 
     // Update Speed & Distance
-    game.speed += deltaTime * 10; // Accelerate over time
-    game.distance += game.speed * deltaTime / 10; // 10x faster distance accumulation (approx 30m/s)
+    advanceFlightPace(game, deltaTime);
 
     // Throttle UI updates to ~10fps (every 100ms) to prevent React render overload
     game.uiTimer = (game.uiTimer || 0) + deltaTime;
@@ -816,15 +894,7 @@ export default function App() {
     }
 
     // Ammo Regeneration
-    game.ammoTimer += deltaTime;
-    const regenTime = game.ammoRegenTime || 2.0;
-    if (game.ammoTimer > regenTime) {
-      game.ammoTimer = 0;
-      if (game.ammo < game.maxAmmo) {
-        game.ammo++;
-        setAmmo(game.ammo);
-      }
-    }
+    if (advanceAmmoRecharge(game, deltaTime)) setAmmo(game.ammo);
 
     if (game.comboTimer > 0) {
       game.comboTimer -= deltaTime;
@@ -840,96 +910,64 @@ export default function App() {
       if (game.health > game.maxHealth) game.health = game.maxHealth;
     }
 
-    // Spawn Obstacles
-    if (Math.random() < frameChance(0.02, deltaTime)) {
-      const h = Math.random() * 60 + 40; // Smaller obstacles (40-100 instead of 50-150)
-      const y = Math.random() > 0.5 ? 0 : window.innerHeight - h; // Top or Bottom
-      game.obstacles.push(new Obstacle(window.innerWidth, y, 50, h));
-    }
-
-    // Spawn Fuel (Less common)
-    if (Math.random() < frameChance(0.01, deltaTime)) { // Calibrated to the original 60fps rate
-      const y = Math.random() * (window.innerHeight - 100) + 50;
-      game.fuels.push(new Fuel(window.innerWidth, y));
-    }
-
-    // A single medical pack can appear every 12 seconds of active flight.
-    if (advanceHealthPickupSpawn(game, deltaTime)) {
-      const y = window.innerHeight * (.4 + Math.random() * .2) - 16;
-      game.healthPickups.push(new HealthPickup(window.innerWidth, y));
-    }
-
-    // Spawn Power-Ups (Rare)
-    if (Math.random() < frameChance(0.003, deltaTime)) {
-      const y = Math.random() * (window.innerHeight - 100) + 50;
-      game.powerUps.push(new PowerUp(window.innerWidth, y));
-    }
-
-    // Spawn Villain
-    const villainChance = game.villainChance || 0.005;
-    if (!game.villain && game.distance > 500 && Math.random() < frameChance(villainChance, deltaTime)) {
-      const rand = Math.random();
-      if (rand < 0.4) {
-        game.villain = new Villain(window.innerWidth, window.innerHeight / 2);
-      } else if (rand < 0.7) {
-        game.villain = new SpeedsterVillain(window.innerWidth, window.innerHeight / 2);
-      } else {
-        game.villain = new JuggernautVillain(window.innerWidth, window.innerHeight / 2);
+    // Edge hazards retain generous spacing; later pressure comes from encounters.
+    advanceBossEncounter(game);
+    for (const event of drainEncounterEvents(game)) {
+      trackMonetizationEvent(event.name, event.data);
+      if (event.name === 'boss_incoming') soundRef.current?.playBossCue(event.data.boss, 'incoming');
+      if (event.name === 'boss_warning') soundRef.current?.playBossCue(event.data.boss, 'warning');
+      if (event.name === 'boss_attack') soundRef.current?.playBossCue(event.data.boss, 'attack');
+      if (event.name === 'boss_started') soundRef.current?.playBossCue(event.data.boss, 'arrival');
+      if (event.name === 'boss_ended') {
+        setBossView(null);
+        game.floatingTexts.push({ x: viewportRef.current.width * .5, y: 120, text: event.data.outcome === 'defeated' ? 'SECTOR CLEAR' : 'BOSS RETREATED', color: '#b8e8d7', life: 2 });
       }
+    }
+    if (!encounterRestrictsSpawns(game)) advanceHazardSpawns(game, deltaTime, viewportRef.current.width, viewportRef.current.height);
 
+    // Support pickups use bounded cooldowns that lengthen as the flight progresses.
+    if (advanceSupportDrop(game, 'fuel', deltaTime)) {
+      const y = Math.random() * (viewportRef.current.height - 100) + 50;
+      game.fuels.push(new Fuel(viewportRef.current.width, y));
+    }
+
+    // Medical packs are also sparse and never stack on screen.
+    if (advanceHealthPickupSpawn(game, deltaTime)) {
+      const y = viewportRef.current.height * (.4 + Math.random() * .2) - 16;
+      game.healthPickups.push(new HealthPickup(viewportRef.current.width, y));
+    }
+
+    if (advanceSupportDrop(game, 'power', deltaTime)) {
+      const y = Math.random() * (viewportRef.current.height - 100) + 50;
+      game.powerUps.push(new PowerUp(viewportRef.current.width, y));
     }
 
     // Update Entities (apply time slow if active)
-    const effectiveSpeed = game.speed;
-    game.obstacles.forEach(obs => obs.update(deltaTime, effectiveSpeed));
+    const effectiveSpeed = flightScrollSpeed(game);
+    game.obstacles.forEach(obs => { obs.previousX = obs.x; obs.update(deltaTime, effectiveSpeed); });
     game.collectibles.forEach(col => col.update(deltaTime, effectiveSpeed));
-    game.collectibles.push(...advanceCoinTrails(game.coinTrails, effectiveSpeed * deltaTime,
-      window.innerWidth, window.innerHeight, game.obstacles));
+    game.collectibles.push(...advanceCoinTrails(game.coinTrails, game.speed * deltaTime,
+      viewportRef.current.width, viewportRef.current.height, game.obstacles, game.viewport.paceScale));
     game.fuels.forEach(fuel => fuel.update(deltaTime, effectiveSpeed));
     game.healthPickups.forEach(pickup => pickup.update(deltaTime, effectiveSpeed));
     game.powerUps.forEach(powerUp => powerUp.update(deltaTime, effectiveSpeed));
 
-    if (game.villain) {
-      game.villain.update(deltaTime, game.player.y, game.playerProjectiles);
-
-      if (game.villain.markedForDeletion) {
-        game.villain = null;
-      } else {
-        // Villain Attack Logic
-        if (game.villain && game.villain.state === 'ATTACKING') {
-          if (game.villain.type === 'SPEEDSTER') {
-            if (game.villain.attackTimer > 2.0) {
-              game.villain.attackTimer = 0;
-              // SONIC BLADE WAVE (Fast, crescent projectiles)
-              game.projectiles.push(new SonicBladeProjectile(game.villain.x, game.villain.y + 20, -800, 0));      // Straight
-              game.projectiles.push(new SonicBladeProjectile(game.villain.x, game.villain.y + 20, -750, -200));   // Up-Angled
-              game.projectiles.push(new SonicBladeProjectile(game.villain.x, game.villain.y + 20, -750, 200));    // Down-Angled
-              if (soundRef.current) soundRef.current.playShoot();
-            }
-          } else if (game.villain.type === 'JUGGERNAUT') {
-            if (game.villain.attackTimer > 3.5) { // Slower fire rate (was 2.0, now 3.5 seconds)
-              game.villain.attackTimer = 0;
-              // FUSE BOMB (Straight shot, no homing)
-              game.projectiles.push(new FuseProjectile(
-                game.villain.x,
-                game.villain.y
-              ));
-              if (soundRef.current) soundRef.current.playShoot();
-            }
-          } else {
-            // NORMAL VILLAIN - Single shot
-            if (game.villain.attackTimer > 1.5) {
-              game.villain.attackTimer = 0;
-              // SINGLE SHOT (fires one projectile at a time)
-              game.projectiles.push(new Projectile(game.villain.x, game.villain.y, -500, 0));
-              if (soundRef.current) soundRef.current.playShoot();
-            }
-          }
-        }
-      }
+    positionEnemyLanes(game, viewportRef.current.height);
+    for (const enemy of flightEnemies(game)) {
+      if (enemy.markedForDeletion) continue;
+      enemy.update(deltaTime, game.player.y, game.playerProjectiles, game.enemies, game.viewport);
     }
-    game.projectiles.forEach(proj => proj.update(deltaTime));
-    game.playerProjectiles.forEach(proj => proj.update(deltaTime));
+    const previousAims = new Map(flightEnemies(game).map(enemy => [enemy, { active: Boolean(enemy.scoutAim), locked: Boolean(enemy.scoutAim?.locked) }]));
+    const firingEnemies = advanceEnemyAttacks(game, deltaTime);
+    if (flightEnemies(game).some(enemy => enemy.scoutAim && (!previousAims.get(enemy)?.active
+      || (!previousAims.get(enemy)?.locked && enemy.scoutAim.locked)))) soundRef.current?.playScoutLock();
+    for (const enemy of firingEnemies) {
+      game.projectiles.push(...createEnemyVolley(game, enemy));
+      if (isScout(enemy)) soundRef.current?.playScoutBeam();
+      else soundRef.current?.playShoot();
+    }
+    game.projectiles.forEach(proj => proj.update(deltaTime, game.viewport));
+    game.playerProjectiles.forEach(proj => proj.update(deltaTime, game.viewport));
 
     // Update Floating Texts
     game.floatingTexts.forEach(ft => {
@@ -993,14 +1031,7 @@ export default function App() {
       }
     });
 
-    // Energy Drain if boosting
-    if (!game.transformation && game.player.isBoosting) {
-      game.energy -= deltaTime * 10; // Reduced from 20 to 10 for longer flight
-      if (game.energy <= 0) {
-        game.energy = 0;
-        game.player.boost(false);
-      }
-    }
+    advanceEquipmentEnergy(game, deltaTime);
 
     // Refills happen after consumption, leaving the tank exactly full this frame.
     checkCollisions(game, deltaTime);
@@ -1034,8 +1065,9 @@ export default function App() {
       // Destroy Enemy Projectiles
       game.projectiles.forEach(proj => {
         if (proj.markedForDeletion) return;
-        const dx = proj.x - p.x;
-        const dy = proj.y - p.y;
+        const point = proj.type === 'SCOUT_BEAM' ? nearestBeamPoint(proj, p.x, p.y) : proj;
+        const dx = point.x - p.x;
+        const dy = point.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < auraRadius) {
@@ -1045,51 +1077,29 @@ export default function App() {
       });
 
       // Damage Villain
-      if (game.villain && !game.villain.markedForDeletion) {
-        const v = game.villain;
+      for (const v of flightEnemies(game)) {
+        if (v.markedForDeletion) continue;
         const dx = (v.x + v.width / 2) - p.x;
         const dy = (v.y + v.height / 2) - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < auraRadius) {
-          // Apply damage over time (approx 30 DPS)
-          const damage = 30 * deltaTime;
-          const died = v.takeDamage(damage);
-          if (died) {
-            if (soundRef.current) soundRef.current.playExplosion();
-            game.floatingTexts.push({
-              x: v.x,
-              y: v.y,
-              text: 'BOSS DEFEATED!',
-              color: '#ffa1b1',
-              life: 2.0
-            });
-            game.floatingTexts.push({
-              x: v.x,
-              y: v.y + 30,
-              text: `+${BOSS_REWARD.toLocaleString()} credits`,
-              color: '#ffd700',
-              life: 2.0
-            });
-            setCurrency(c => c + BOSS_REWARD);
-            game.sessionCurrency = (game.sessionCurrency || 0) + BOSS_REWARD;
-            setSessionCurrency(game.sessionCurrency);
-            game.bossesDefeated = (game.bossesDefeated || 0) + 1;
-            rendererRef.current?.emitBurst(v.x + v.width / 2, v.y + v.height / 2, '#ff2d95', 42, 360);
-          }
+          damageEnemy(game, v, 30 * deltaTime);
         }
       }
     }
 
+    consumeCombatEvents(game);
     syncEncounterMusic(game, soundRef.current);
 
     // Keep the HUD responsive without forcing a React render every animation frame.
     game.energyUiTimer = (game.energyUiTimer || 0) + deltaTime;
     if (game.energyUiTimer >= 0.1) {
       setEnergy(Math.max(0, Math.min(100, (game.energy / game.maxEnergy) * 100)));
+      setBossView(bossHud(game));
       game.energyUiTimer = 0;
     }
-  }, [checkCollisions]);
+  }, [checkCollisions, consumeCombatEvents]);
 
   const draw = React.useCallback((deltaTime) => {
     const renderer = rendererRef.current;
@@ -1108,7 +1118,7 @@ export default function App() {
   }, [update, draw]);
 
   const handleInputStart = React.useCallback((event) => {
-    if (gameState !== 'PLAYING') return;
+    if (gameState !== 'PLAYING' || !['LAUNCH', 'READY', 'FLYING'].includes(gameRef.current.phase)) return;
     if (event.pointerId !== undefined && event.button !== 0) return;
     event.preventDefault();
     const source = event.pointerId !== undefined ? `pointer:${event.pointerId}` : `key:${event.code}`;
@@ -1119,7 +1129,7 @@ export default function App() {
       setFlightPhase('FLYING');
       if (game.transformation) transformationPrimary(game);
     }
-    constrainFlightPlayer(game, window.innerWidth);
+    constrainFlightPlayer(game, viewportRef.current.width);
     if (game.phase === 'FLYING') setTutorialBoosted(true);
   }, [gameState]);
 
@@ -1138,7 +1148,7 @@ export default function App() {
   const resumeGame = () => {
     const game = gameRef.current;
     resumeFlight(game);
-    constrainFlightPlayer(game, window.innerWidth);
+    constrainFlightPlayer(game, viewportRef.current.width);
     setFlightPhase(game.phase);
     if (game.phase === 'COUNTDOWN') {
       setCountdown(3);
@@ -1146,7 +1156,7 @@ export default function App() {
       return;
     }
     setGameState('PLAYING');
-    syncEncounterMusic(game, soundRef.current, { allowEntrance: false });
+    syncEncounterMusic(game, soundRef.current);
     loopRef.current?.start();
   };
 
@@ -1159,33 +1169,20 @@ export default function App() {
   }, [gameState]);
 
   const handleShoot = React.useCallback(() => {
+    if (gameState !== 'PLAYING' || gameRef.current.phase !== 'FLYING' || gameRef.current.gameOver) return;
     if (gameRef.current.transformation) {
       if (transformationSecondary(gameRef.current)) {
         setTransformationView(transformationHud(gameRef.current));
+        soundRef.current?.playControlPress('fire');
         soundRef.current?.playShoot();
       }
       return;
     }
-    const hasUnlimitedAmmo = gameRef.current.rapidFire;
-
-    if (gameState === 'PLAYING' && gameRef.current.phase === 'FLYING' && (gameRef.current.ammo > 0 || hasUnlimitedAmmo)) {
-      // Only decrease ammo if not in unlimited mode
-      if (!hasUnlimitedAmmo) {
-        gameRef.current.ammo--;
-        setAmmo(gameRef.current.ammo);
-      }
-
-      gameRef.current.playerProjectiles.push(new PlayerProjectile(
-        gameRef.current.player.x + 50,
-        gameRef.current.player.y + 25,
-        gameRef.current.weaponType,
-        gameRef.current.cosmeticId
-      ));
-
+    if (gameState === 'PLAYING' && fireNormalWeapon(gameRef.current)) {
+      setAmmo(gameRef.current.ammo);
       setTutorialFired(true);
-      if (soundRef.current) {
-        soundRef.current.playShoot();
-      }
+      soundRef.current?.playControlPress('fire');
+      soundRef.current?.playShoot();
     }
   }, [gameState]);
 
@@ -1201,35 +1198,45 @@ export default function App() {
     };
     const handleKeyUp = event => handleInputEnd(event);
     const releaseInputs = () => flightInputRef.current.reset();
+    const refreshPurchaseOwnership = () => {
+      if (startupComplete && !document.hidden) {
+        void refreshStorePurchases().catch(error => trackMonetizationEvent('store_delivery_retry_needed', { message: error.message }));
+      }
+    };
     const onVisibility = () => {
       if (document.hidden) {
         releaseInputs();
         pauseGame();
         soundRef.current?.stopMusic();
       } else {
-        void refreshStorePurchases().catch(error => trackMonetizationEvent('store_delivery_retry_needed', { message: error.message }));
-        if (['MENU', 'SHOP', 'CAREER'].includes(gameState)) void soundRef.current?.startMenuMusic();
+        if (startupComplete) {
+          refreshPurchaseOwnership();
+          if (menuMusicStates.has(gameState)) void soundRef.current?.startMenuMusic();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('blur', releaseInputs);
+    window.addEventListener('online', refreshPurchaseOwnership);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', releaseInputs);
+      window.removeEventListener('online', refreshPurchaseOwnership);
       document.removeEventListener('visibilitychange', onVisibility);
       releaseInputs();
     };
-  }, [gameState, handleInputStart, handleInputEnd, handleShoot, pauseGame]);
+  }, [gameState, startupComplete, handleInputStart, handleInputEnd, handleShoot, pauseGame]);
 
   const buyUpgrade = (id, cost, type = 'upgrade') => {
     if (type === 'cosmetic') {
-      const productId = `cosmetic_${id}`;
+      const cosmetic = getCosmetic(id);
+      const productId = cosmetic?.kind === 'skin' ? getCosmetic(cosmetic.setId).productId : cosmetic?.productId;
       if (pendingProducts.includes(productId)) return;
       try {
-        unlockCreditCosmetic(id);
+        unlockCreditCosmetic(id, { expectedPrice: cost });
         setOwnedCosmetics(safeCosmeticOwnership());
         setEquippedCosmetic(id);
       } catch (error) {
@@ -1237,9 +1244,14 @@ export default function App() {
       }
       return;
     }
+    if (!['upgrade', 'ship', 'weapon'].includes(type)) return;
+    const catalogItem = (type === 'ship' ? SHIPS : type === 'weapon' ? WEAPONS : UPGRADES).find(item => item.id === id);
+    if (!catalogItem) return;
+    if (type === 'ship' && ownedShips.includes(id) || type === 'weapon' && ownedWeapons.includes(id)) return;
     if (type === 'upgrade' && id === 'multiplier' && (upgradesRef.current.multiplier || 1) >= MULTIPLIER_MAX_LEVEL) return;
     const currentBalance = loadWallet();
-    const itemCost = parseInt(cost) || 0;
+    const offer = type === 'upgrade' ? upgradeOffer(id, upgradesRef.current, equippedShipRef.current, profileRef.current.level || 1) : null;
+    const itemCost = offer ? offer.cost : catalogItem.cost;
 
 
 
@@ -1266,7 +1278,7 @@ export default function App() {
         setUpgrades(u => {
           return {
             ...u,
-            [id]: (u[id] || 1) + 1
+            [id]: offer.nextLevel
           };
         });
       }
@@ -1356,18 +1368,8 @@ export default function App() {
       if (await showRewardedAd('game_over_continue')) {
         if (!isCurrent()) return;
         flightInputRef.current.reset();
-        resetTransformations(game);
+        if (!prepareRewardedContinue(game, viewportRef.current)) return;
         setTransformationView(null);
-        game.phase = 'COUNTDOWN';
-        game.gameOver = false;
-        game.health = Math.max(1, Math.ceil(game.maxHealth * 0.5));
-        game.hitProtection = HIT_PROTECTION_SECONDS;
-        game.energy = Math.max(game.energy, game.maxEnergy * 0.5);
-        game.projectiles = [];
-        game.obstacles = game.obstacles.filter(obs => obs.x > game.player.x + 160);
-        game.player.y = window.innerHeight / 2;
-        game.player.velocity = 0;
-        constrainFlightPlayer(game, window.innerWidth);
         setHealth(game.health);
         setEnergy((game.energy / game.maxEnergy) * 100);
         setContinueUsed(true);
@@ -1388,8 +1390,8 @@ export default function App() {
 
   const handleBoostEarnings = async () => {
     const game = gameRef.current;
-    if (rewardOperationRef.current || game.phase !== 'ENDED' || game.earningsBonusClaimed || game.sessionCurrency <= 0) return;
-    const snapshot = game.sessionCurrency;
+    if (rewardOperationRef.current || game.phase !== 'ENDED' || game.earningsBonusClaimed || distanceAdReward(game.distance) <= 0) return;
+    const snapshotDistance = game.distance;
     const request = { token: runTokenRef.current, game };
     rewardOperationRef.current = request;
     setRewardBusy(true);
@@ -1397,10 +1399,10 @@ export default function App() {
     setRewardMessage('');
     const isCurrent = () => rewardOperationRef.current === request && request.token === runTokenRef.current && game === gameRef.current && game.phase === 'ENDED';
     try {
-      const rewarded = await showRewardedAd('double_flight_credits');
+      const rewarded = await showRewardedAd('flight_distance_bonus');
       if (!isCurrent()) return;
       if (rewarded) {
-        const bonus = claimEarningsBonus(game, snapshot);
+        const bonus = claimDistanceAdBonus(game, snapshotDistance);
         if (bonus > 0) {
           setCurrency(value => value + bonus);
           setEarningsBonus(bonus);
@@ -1444,6 +1446,9 @@ export default function App() {
 
   const leaveRun = (screen) => {
     runTokenRef.current++;
+    abandonBossEncounter(gameRef.current);
+    for (const event of drainEncounterEvents(gameRef.current)) trackMonetizationEvent(event.name, event.data);
+    setBossView(null);
     gameRef.current.phase = 'ENDED';
     flightInputRef.current.reset();
     loopRef.current?.stop();
@@ -1454,29 +1459,15 @@ export default function App() {
 
   return (
     <div className="game-shell">
+      <div ref={flightStageRef} className="flight-stage">
       <canvas ref={canvasRef} className="game-canvas" aria-label="Flight playfield — hold to boost" onPointerDown={handleInputStart} onPointerUp={handleInputEnd} onPointerCancel={handleInputEnd} onLostPointerCapture={handleInputEnd}/>
       {['PLAYING', 'COUNTDOWN', 'PAUSED'].includes(gameState) && (
-        <HUD distance={distance} currency={sessionCurrency} energy={energy} ammo={ammo} maxAmmo={10}
+        <HUD distance={distance} currency={sessionCurrency} energy={energy} ammo={ammo} maxAmmo={maxAmmo}
           activePowerUps={activePowerUps} health={health} maxHealth={maxHealth} combo={combo} transformation={transformationView}
           onShoot={handleShoot} onBoostStart={handleInputStart} onBoostEnd={handleInputEnd}
           onPause={pauseGame} flightPhase={flightPhase} paused={gameState === 'PAUSED'} countdown={gameState === 'COUNTDOWN' ? countdown : null}/>
       )}
-      {gameState === 'PAUSED' && <section className="screen-overlay pause-overlay" aria-label="Flight paused"><div className="pause-board"><span className="eyebrow">TAKE A BREATHER</span><h2>Flight paused</h2><p>Your next adventure can wait a moment.</p><button className="arcade-button primary" onClick={resumeGame}><Play size={22} fill="currentColor"/>Keep flying</button><button className="arcade-button secondary" onClick={() => { handleGameOver(); leaveRun('MENU'); }}><Home size={20}/>Back to home</button></div></section>}
-
-      {gameState === 'MENU' && <HomeScreen stageId={equippedStage} onGalaxies={() => { setShopInitialTab('stages'); setGameState('SHOP'); }} profile={profile} currency={currency} ship={equippedShip} cosmeticId={equippedCosmetic} upgrades={upgrades}
-        audioPreferences={audioPreferences} onAudioPreferenceChange={(key, value) => setAudioPreferences(current => ({ ...current, [key]: value }))}
-        onPlay={() => startGame()} onGarage={() => { setShopInitialTab('upgrades'); setGameState('SHOP'); }} onCareer={() => setGameState('CAREER')}
-        onHelp={replayTutorial} adPrivacyAvailable={adPrivacyAvailable} adPrivacyBusy={adPrivacyBusy}
-        adPrivacyMessage={adPrivacyMessage} onPrivacy={handleAdPrivacyChoices}/>}
-
-      {gameState === 'GAMEOVER' && <RunResults distance={distance} bestDistance={profile.bestDistance} isNewBest={newBest}
-        coins={sessionCurrency} distanceBonus={distanceBonus} xp={lastRunXp} onRetry={() => startGame()} onHome={() => leaveRun('MENU')}
-        onGarage={() => leaveRun('SHOP')} onContinue={handleRewardContinue} continueUsed={continueUsed}
-        rewardBusy={rewardBusy} rewardAction={rewardAction} rewardMessage={rewardMessage}
-        onBoostEarnings={handleBoostEarnings} earningsBonus={earningsBonus} earningsBonusClaimed={earningsBonusClaimed}
-        levelBonus={levelBonus} wallet={currency} nextShip={SHIPS.find(model => !ownedShips.includes(model.id))}
-        fleetComplete={SHIPS.every(model => ownedShips.includes(model.id))}/>}
-
+      {['PLAYING', 'COUNTDOWN', 'PAUSED'].includes(gameState) && <BossStatus boss={bossView} transformed={Boolean(transformationView)} />}
       {gameState === 'PLAYING' && ['LAUNCH', 'READY'].includes(flightPhase) && (
         <div className={`launch-caption ${flightPhase === 'READY' ? 'launch-ready' : ''}`} role="status" aria-live="polite">
           <span className="eyebrow">{transformationView ? 'VEHICLE READY' : flightPhase === 'LAUNCH' ? 'HANGAR 01 / DEPARTURE' : 'ALL SYSTEMS READY'}</span>
@@ -1493,6 +1484,28 @@ export default function App() {
           onSkip={handleTutorialSkip}
         />
       )}
+
+      </div>
+      {gameState === 'PAUSED' && <section className="screen-overlay pause-overlay" aria-label="Flight paused"><div className="pause-board"><span className="eyebrow">TAKE A BREATHER</span><h2>Flight paused</h2><p>Adjust your sound, then keep flying.</p><div className="pause-audio" role="group" aria-label="Flight audio preferences"><AudioControls preferences={audioPreferences} onChange={(key, value) => setAudioPreferences(current => ({ ...current, [key]: value }))}/></div><div className="pause-actions"><button className="arcade-button primary" onClick={resumeGame}><Play size={22} fill="currentColor"/>Keep flying</button><button className="arcade-button secondary" onClick={() => { handleGameOver(); leaveRun('MENU'); }}><Home size={20}/>Back to home</button></div></div></section>}
+
+
+      {gameState === 'EVENTS' && <Events ownedCosmetics={ownedCosmetics} onEquip={id => setEquippedCosmetic(id)} onClose={() => setGameState('MENU')} onAccount={() => setGameState('ACCOUNT')}/>}
+      {gameState === 'MENU' && <HomeScreen stageId={equippedStage} onGalaxies={() => { setShopInitialTab('stages'); setGameState('SHOP'); }} profile={profile} currency={currency} ship={equippedShip} cosmeticId={equippedCosmetic} upgrades={upgrades}
+        audioPreferences={audioPreferences} onAudioPreferenceChange={(key, value) => setAudioPreferences(current => ({ ...current, [key]: value }))}
+        onPlay={() => startGame()} onGarage={() => { setShopInitialTab('featured'); setGameState('SHOP'); }} onCareer={() => setGameState('CAREER')}
+        onHelp={replayTutorial} adPrivacyAvailable={adPrivacyAvailable} adPrivacyBusy={adPrivacyBusy}
+        adPrivacyMessage={adPrivacyMessage} onPrivacy={handleAdPrivacyChoices}
+        onLegal={document => { setLegalDocument(document); setGameState('LEGAL'); }}/>}
+
+      {gameState === 'LEGAL' && <LegalPanel document={legalDocument} onClose={() => setGameState('MENU')}/>}
+
+      {gameState === 'GAMEOVER' && <RunResults onEvents={() => leaveRun('EVENTS')} eventProgress={gameRef.current.eventFlight?.instances?.length ? gameRef.current.eventFlight : null} distance={distance} bestDistance={profile.bestDistance} isNewBest={newBest}
+        coins={sessionCurrency} distanceBonus={distanceBonus} xp={lastRunXp} onRetry={() => startGame()} onHome={() => leaveRun('MENU')}
+        onGarage={() => leaveRun('SHOP')} onContinue={onlineServicesAllowed() ? handleRewardContinue : null} continueUsed={continueUsed}
+        rewardBusy={rewardBusy} rewardAction={rewardAction} rewardMessage={rewardMessage}
+        onBoostEarnings={onlineServicesAllowed() ? handleBoostEarnings : null} earningsBonus={earningsBonus} earningsBonusClaimed={earningsBonusClaimed}
+        levelBonus={levelBonus} wallet={currency} nextShip={SHIPS.find(model => !ownedShips.includes(model.id))}
+        fleetComplete={SHIPS.every(model => ownedShips.includes(model.id))}/>}
 
       {gameState === 'SHOP' && (
         <Shop
@@ -1523,8 +1536,8 @@ export default function App() {
         />
       )}
 
-      {gameState === 'CAREER' && (
-        <Career profile={profile} onClaim={handleClaimMission} onClose={() => setGameState('MENU')} />
+      {(gameState === 'CAREER' || gameState === 'ACCOUNT') && (
+        <Career profile={profile} onRename={value => setProfile(updatePilotName(value))} onClaim={handleClaimMission} initialTab={gameState === 'ACCOUNT' ? 'account' : 'career'} onClose={() => setGameState('MENU')} />
       )}
 
       {gameState === 'UPDATE_REQUIRED' && (

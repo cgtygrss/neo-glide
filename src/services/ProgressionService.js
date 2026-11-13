@@ -1,4 +1,6 @@
+import { profileStorage } from '../account/ProfileStorage.js';
 import { CREDIT_SCALE, runXp } from '../game/Economy.js';
+import { validatePilotName } from '../account/PilotIdentity.js';
 
 const PROFILE_KEY = 'neon_glide_pilot_profile_v2';
 
@@ -10,6 +12,7 @@ export const CAREER_MISSIONS = [
 ];
 
 export const defaultProfile = {
+  displayName: '',
   level: 1,
   xp: 0,
   totalDistance: 0,
@@ -24,9 +27,9 @@ export const xpForNextLevel = level => 400 + (level - 1) * 175;
 
 export function loadProfile() {
   try {
-    const current = localStorage.getItem(PROFILE_KEY);
+    const current = profileStorage.getItem(PROFILE_KEY);
     if (current !== null) return { ...defaultProfile, ...(JSON.parse(current) || {}) };
-    const legacy = JSON.parse(localStorage.getItem('neon_glide_pilot_profile'));
+    const legacy = JSON.parse(profileStorage.getItem('neon_glide_pilot_profile'));
     return legacy ? { ...defaultProfile, ...legacy, totalCoins: Math.max(0, Number(legacy.totalCoins) || 0) * CREDIT_SCALE } : { ...defaultProfile };
   } catch {
     return { ...defaultProfile };
@@ -34,8 +37,15 @@ export function loadProfile() {
 }
 
 export function saveProfile(profile) {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  profileStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   return profile;
+}
+
+// Read the latest account-scoped save so a rename cannot overwrite new progress.
+// null restores the platform name; it does not rename the platform account.
+export function updatePilotName(value) {
+  const displayName = value === null ? '' : validatePilotName(value);
+  return saveProfile({ ...loadProfile(), displayName });
 }
 
 export function recordRun(profile, { distance, coins, bosses }, previous = null) {

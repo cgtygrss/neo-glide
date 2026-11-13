@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Player, Collectible } from '../src/game/Entities.js';
 import { takeProjectileHit } from '../src/game/PlayerHealth.js';
+import { ScoutBeam, trackScoutAim } from '../src/game/ScoutAttack.js';
+import { Villain } from '../src/game/Entities.js';
 import { FlightInput } from '../src/game/FlightInput.js';
 import { pauseFlight, resumeFlight, takeFlightControl } from '../src/game/FlightStart.js';
 import { TRANSFORMATIONS, ENTRY_SECONDS, EXIT_SECONDS } from '../src/game/TransformationCatalog.js';
@@ -32,15 +34,37 @@ function active(id,width=800,height=600) {
   return game;
 }
 
+test('sphere pulse clears the nearby ray segment and striker missiles intercept its actual path', () => {
+  const game = active('sphere');
+  const form = game.transformation;
+  const enemy = new Villain(700, form.y + 50);
+  trackScoutAim(enemy, { x: form.x - 20, y: form.y + 50 }, 1);
+  const near = new ScoutBeam(enemy);
+  enemy.y = form.y + 220; enemy.scoutAim = null; trackScoutAim(enemy, { x: form.x - 20, y: form.y + 220 });
+  const far = new ScoutBeam(enemy);
+  game.projectiles = [near, far];
+  transformationSecondary(game, 800, 600);
+  assert.equal(near.markedForDeletion, true);
+  assert.equal(far.markedForDeletion, false);
+  const striker = active('striker');
+  const raySource = new Villain(700, striker.transformation.y);
+  trackScoutAim(raySource, { x: 100, y: striker.transformation.y }, 1);
+  striker.projectiles = [new ScoutBeam(raySource)];
+  transformationSecondary(striker, 800, 600);
+  striker.playerProjectiles[1].update(1 / 60);
+  assert.equal(striker.projectiles[0].markedForDeletion, true);
+  assert.equal(striker.playerProjectiles[1].markedForDeletion, true);
+});
+
 test('capsules run during ordinary encounters without clearing hazards, and missed capsules preserve the bag',()=>{
   const game=flight(); game.player.y=0;
   game.phase='PAUSED'; advanceTransformationCapsule(game,30,800,600); assert.equal(game.transformationDirector.normalTime,0);
   game.phase='FLYING'; game.villain={}; game.projectiles=[{}]; game.obstacles=[{x:700,y:0,width:50,height:100}];
-  advanceTransformationCapsule(game,15,800,600); // Oversized test step misses this capsule.
+  advanceTransformationCapsule(game,28,800,600); // Oversized test step misses this capsule.
   assert.equal(game.projectiles.length,1); assert.equal(game.obstacles.length,1);
   assert.equal(game.transformationDirector.capsule,null); assert.deepEqual(game.transformationDirector.bag,[]);
-  assert.equal(game.transformationDirector.nextAt,game.transformationDirector.normalTime+12);
-  advanceTransformationCapsule(game,12,800,600);
+  assert.equal(game.transformationDirector.nextAt,game.transformationDirector.normalTime+24);
+  advanceTransformationCapsule(game,24,800,600);
   advanceTransformationCapsule(game,0,800,600);
   game.transformationDirector.nextAt=game.transformationDirector.normalTime;
   advanceTransformationCapsule(game,0,800,600); assert.ok(game.transformationDirector.capsule);
@@ -69,7 +93,7 @@ test('entry and exit preserve the world, location and current speed; flight loop
   assert.equal(result.exits,1); assert.equal(game.transformation,null); assert.equal(game.distance,distance);
   assert.equal(game.player.velocity,0); assert.equal(game.player.isBoosting,true);
   assert.equal(game.hitProtection,1); assert.equal(game.transformationSafety,1);
-  assert.equal(game.transformationDirector.nextAt,30); assert.equal(game.speed,750);
+  assert.equal(game.transformationDirector.nextAt,45); assert.equal(game.speed,750);
   assert.equal(game.player.y,exitY); assert.equal(game.collectibles[0],coin); assert.equal(game.projectiles.length,1); assert.equal(game.villain.health,30);
 });
 test('ordinary projectile or obstacle consumes only the vehicle, including timeout in the same frame',()=>{
@@ -304,7 +328,7 @@ class ArtContext {
   save(){this.stack.push(Object.fromEntries(Object.entries(this).filter(([key])=>!['ops','stack'].includes(key))));}
   restore(){Object.assign(this,this.stack.pop());}
 }
-for(const name of ['beginPath','moveTo','lineTo','closePath','stroke','fill','translate','rotate','arc','fillRect','fillText','scale','quadraticCurveTo']) ArtContext.prototype[name]=function(...args){
+for(const name of ['beginPath','moveTo','lineTo','closePath','stroke','fill','translate','rotate','arc','fillRect','fillText','scale','quadraticCurveTo','clip']) ArtContext.prototype[name]=function(...args){
   for(const arg of args) if(typeof arg==='number')assert.ok(Number.isFinite(arg));
   this.ops.push([name,...args]);
 };

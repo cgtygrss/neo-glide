@@ -1,0 +1,9 @@
+{
+  "source": "AdMob console signed transport test, 22 October 2026; public test fields and public verifier key only.",
+  "raw": "ad_network=5450213213286189855&ad_unit=1234567890&custom_data=admob-console-validation&reward_amount=100&reward_item=%24&timestamp=1792645947051&transaction_id=123456789&user_id=admob-console-validation&signature=MEQCIBRavpJ0nIsPk5bub1zbNR7wJuBhjKREINUJFLu6V7SbAiAiDCKd3XLCD4dzHyt5tyd2LNtCACaCs0jXCRG31PIhNQ&key_id=3335741209",
+  "key": {
+    "keyId": 3335741209,
+    "pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+nzvoGqvDeB9+SzE6igTl7TyK4JB\nbglwir9oTcQta8NuG26ZpZFxt+F2NDk7asTE6/2Yc8i1ATcGIqtuS5hv0Q==\n-----END PUBLIC KEY-----",
+    "base64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+nzvoGqvDeB9+SzE6igTl7TyK4JBbglwir9oTcQta8NuG26ZpZFxt+F2NDk7asTE6/2Yc8i1ATcGIqtuS5hv0Q=="
+  }
+}

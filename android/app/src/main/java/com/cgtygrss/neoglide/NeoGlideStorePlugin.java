@@ -46,16 +46,32 @@ import java.util.Set;
 @CapacitorPlugin(name = "NeoGlideStore")
 public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListener {
     private static final Set<String> PRODUCT_IDS = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(
-        "cosmetic_void_pilot",
-        "cosmetic_solar_forge",
+        "cosmetic_copper_horizon",
         "cosmetic_arctic_pulse",
         "cosmetic_cyber_current",
-        "cosmetic_rose_circuit",
         "cosmetic_jade_drift",
+        "cosmetic_rose_circuit",
+        "cosmetic_solar_forge",
         "cosmetic_pearl_comet",
+        "cosmetic_void_pilot",
         "cosmetic_cobalt_storm",
-        "cosmetic_copper_horizon",
-        "cosmetic_prism_voyager"
+        "cosmetic_prism_voyager",
+        "cosmetic_mint_condition",
+        "cosmetic_scarlet_comet",
+        "cosmetic_amber_signal",
+        "cosmetic_lunar_silver",
+        "cosmetic_ocean_depth",
+        "cosmetic_lavender_dream",
+        "cosmetic_toxic_bloom",
+        "cosmetic_desert_mirage",
+        "cosmetic_ruby_eclipse",
+        "cosmetic_glacier_blue",
+        "cosmetic_saffron_sky",
+        "cosmetic_midnight_gold",
+        "cosmetic_coral_reef",
+        "cosmetic_ultraviolet",
+        "cosmetic_nebula_circuit",
+        "cosmetic_aurora_pathfinder"
     )));
 
     private static final int MAX_CONNECTION_ATTEMPTS = 3;
@@ -68,6 +84,7 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
     private final Set<String> acknowledgementsInProgress = new HashSet<>();
 
     private BillingClient billingClient;
+    private boolean storeRequested;
     private PublicKey verificationKey;
     private String verificationKeyError;
     private boolean connecting;
@@ -92,6 +109,8 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
     @Override
     protected void handleOnResume() {
         super.handleOnResume();
+        // No billing connection before an adult explicitly reaches the store.
+        if (!storeRequested) return;
         // queryPurchasesAsync is Google's in-app reconciliation path for
         // purchases completed, cancelled, refunded, or restored while away.
         runOnUiThread(() -> {
@@ -117,6 +136,7 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
 
     @PluginMethod
     public void products(PluginCall call) {
+        storeRequested = true;
         runOnUiThread(call, () -> productsOnUi(call));
     }
 
@@ -178,6 +198,9 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
                 JSObject result = new JSObject();
                 result.put("productIds", productIds);
                 result.put("pendingProductIds", toJSArray(pendingIds));
+                JSArray receipts = new JSArray();
+                for (Purchase purchase : purchasesByTransactionId.values()) { JSObject receipt = transactionPayload(purchase); if (receipt != null) receipts.put(receipt); }
+                result.put("transactions", receipts);
                 call.resolve(result);
             }, call::reject),
             call::reject
@@ -218,6 +241,9 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
                 JSObject result = new JSObject();
                 result.put("productIds", toJSArray(ids));
                 result.put("pendingProductIds", toJSArray(pendingIds));
+                JSArray receipts = new JSArray();
+                for (Purchase purchase : purchasesByTransactionId.values()) { JSObject receipt = transactionPayload(purchase); if (receipt != null) receipts.put(receipt); }
+                result.put("transactions", receipts);
                 call.resolve(result);
             }, call::reject),
             call::reject
@@ -320,6 +346,7 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
                 JSObject product = new JSObject();
                 product.put("id", id);
                 product.put("displayPrice", offer.getFormattedPrice());
+                product.put("priceAmount", offer.getPriceAmountMicros() / 1_000_000.0);
                 resultProducts.put(product);
             }
             JSObject result = new JSObject();
@@ -498,6 +525,8 @@ public class NeoGlideStorePlugin extends Plugin implements PurchasesUpdatedListe
         transaction.put("transactionId", GooglePlayPurchaseVerifier.transactionId(token));
         transaction.put("productId", productId);
         transaction.put("verified", true);
+        transaction.put("platform", "android");
+        transaction.put("purchaseToken", token);
         return transaction;
     }
 

@@ -15,6 +15,7 @@
   <meta name="screen-orientation" content="landscape" />
   <meta name="orientation" content="landscape" />
   <title>Neo Glide</title>
+  <link rel="preload" href="/brand/neo-glide-mark.svg" as="image" type="image/svg+xml" />
   <style>
     /* Ensure fullscreen */
     html,
@@ -27,11 +28,13 @@
       overflow: hidden;
       position: fixed;
     }
+    #startup-poster { position: fixed; inset: 0; background: #0b1725; }
+    #startup-poster img { position: absolute; left: 50%; top: 50%; width: 120px; height: 97px; transform: translate(-50%, -50%); opacity: .18; }
   </style>
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root"><div id="startup-poster" aria-hidden="true"><img src="/brand/neo-glide-mark.svg" alt="" width="120" height="97" /></div></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

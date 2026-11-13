@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Neo Glide, a neon arcade space shooter by Çağatay Gürses. Pilot your ship, dodge obstacles, and keep going.">
+  <meta name="theme-color" content="#090b18">
+  <title>Neo Glide — Çağatay Gürses</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <style>
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #090b18; color: #f1f5ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100svh; background: radial-gradient(ellipse at 85% 20%, #19323d 0, transparent 50%), radial-gradient(ellipse at 10% 85%, #271737 0, transparent 48%); }
+    main { max-width: 1000px; margin: auto; padding: 48px 28px; }
+    header { display: flex; justify-content: space-between; gap: 20px; align-items: center; color: #b7c3d9; font-size: 14px; }
+    .brand { font-weight: 800; color: #fff; letter-spacing: .12em; }
+    .hero { display: grid; grid-template-columns: 1fr 260px; align-items: center; gap: 64px; padding: 110px 0 100px; }
+    .eyebrow { color: #60efdf; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { font-size: clamp(56px, 9vw, 88px); line-height: 1; letter-spacing: -.06em; margin: 20px 0 24px; }
+    .intro { color: #bdc8de; font-size: 20px; line-height: 1.65; max-width: 510px; }
+    .icon { display: block; width: 100%; border-radius: 24%; box-shadow: 0 24px 80px #0008; }
+    .download { display: inline-block; margin-top: 18px; padding: 16px 24px; border-radius: 12px; background: #72f2e0; color: #071510; text-decoration: none; font-weight: 700; }
+    a:focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
+    .details { border-top: 1px solid #ffffff20; padding: 32px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    h2 { margin: 0 0 10px; font-size: 17px; }
+    .details p { margin: 0; color: #a9b7d0; line-height: 1.65; }
+    footer { padding-top: 40px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; font-size: 13px; color: #a9b7d0; }
+    footer a { color: #c9d4eb; }
+    @media (max-width: 650px) { main { padding: 30px 24px; } header { align-items: flex-start; } .hero { grid-template-columns: 1fr; padding: 64px 0; gap: 40px; } .icon { width: 150px; grid-row: 1; } .details { grid-template-columns: 1fr; gap: 28px; } .intro { font-size: 18px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><span class="brand">NEO GLIDE</span><span>By Çağatay Gürses</span></header>
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="eyebrow">Neon arcade · Space shooter</p>
+        <h1 id="title">Keep gliding.</h1>
+        <p class="intro">Pilot your ship through a neon universe. Dodge obstacles, battle enemies, and upgrade your way to a longer run.</p>
+        <a class="download" href="https://apps.apple.com/app/id6755588297">Download on the App Store ↗</a>
+      </div>
+      <img class="icon" src="/icon.png" width="260" height="260" alt="Neo Glide app icon">
+    </section>
+    <section class="details" aria-label="About the game">
+      <div><h2>Find your flow</h2><p>Fast arcade action with simple controls, built for mobile.</p></div>
+      <div><h2>Build your ship</h2><p>Explore 16 ships, 16 weapons and 26 visual kits, with upgrades for your next run.</p></div>
+      <div><h2>Go a little further</h2><p>Dodge, collect, survive. Your next best run is waiting.</p></div>
+    </section>
+    <footer><span>© 2026 Çağatay Gürses · Neo Glide</span><a href="/privacy.html">Privacy policy</a><a href="/support.html">Support</a><a href="/accessibility.html">Accessibility</a><a href="/delete-account.html">Delete account</a><a href="/notices.html">Licenses</a></footer>
+  </main>
+</body>
+</html>

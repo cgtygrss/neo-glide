@@ -11,5 +11,18 @@ export const STAGES = [
   { id:'centaurus_a', name:'Centaurus Ember', price:130000, description:'Glowing lava fissures light a fiery world.', colors:['#2a1720','#a23a28','#ffd080'] },
   { id:'bode', name:'Bode Aurora', price:160000, description:'Green auroras ripple above an ice world.', colors:['#102b37','#22765e','#baffdd'] },
   { id:'pinwheel', name:'Pinwheel Prism', price:200000, description:'A multicolored spiral turns among the stars.', colors:['#1b1735','#574e8c','#f4bdff'] },
+  {"id": "orion", "name": "Orion Nursery", "price": 240000, "description": "Rose clouds cradle newborn stars.", "colors": ["#27172f", "#874e73", "#ffd1e8"], "scene": "clouds"},
+  {"id": "pleiades", "name": "Pleiades Sisters", "price": 290000, "description": "Seven blue stars rise above a silver horizon.", "colors": ["#091d38", "#325890", "#c6eaff"], "scene": "cluster"},
+  {"id": "crab", "name": "Crab Filaments", "price": 340000, "description": "Amber filaments stretch across a shattered nebula.", "colors": ["#25191d", "#8c4d35", "#ffd297"], "scene": "filaments"},
+  {"id": "helix", "name": "Helix Eye", "price": 390000, "description": "A turquoise ring surrounds a quiet violet pupil.", "colors": ["#112b38", "#3c6f7c", "#b8ffee"], "scene": "eye"},
+  {"id": "eagle", "name": "Eagle Pillars", "price": 440000, "description": "Towering dust columns climb into a golden sky.", "colors": ["#302231", "#946b59", "#ffe4b3"], "scene": "pillars"},
+  {"id": "lagoon", "name": "Lagoon Mist", "price": 490000, "description": "Pink mist drifts over a still celestial sea.", "colors": ["#2b1b34", "#7c4b80", "#ffbde0"], "scene": "sea"},
+  {"id": "rosette", "name": "Rosette Garden", "price": 540000, "description": "Petals of starlight unfold around an empty center.", "colors": ["#321b2a", "#994b65", "#ffd7d9"], "scene": "petals"},
+  {"id": "carina", "name": "Carina Peaks", "price": 590000, "description": "Serrated clouds glow beneath distant sapphire stars.", "colors": ["#152738", "#477c8c", "#d5faff"], "scene": "peaks"},
+  {"id": "tarantula", "name": "Tarantula Web", "price": 640000, "description": "A luminous web of gas links distant star clusters.", "colors": ["#20182f", "#6f527f", "#ead0ff"], "scene": "web"},
+  {"id": "horsehead", "name": "Horsehead Veil", "price": 690000, "description": "A dark dust ridge crosses a crimson nebula.", "colors": ["#2d1420", "#8c3757", "#ffc5cc"], "scene": "ridge"},
+  {"id": "vega", "name": "Vega Observatory", "price": 740000, "description": "A lone blue sun lights a ring of orbital stations.", "colors": ["#101b31", "#354c7c", "#c5ddff"], "scene": "stations"},
+  {"id": "magellanic", "name": "Magellanic Clouds", "price": 790000, "description": "Twin dwarf galaxies glow beyond the frontier.", "colors": ["#172e35", "#4c7b80", "#e1fff1"], "scene": "twins"},
+  {"id": "quasar", "name": "Quasar Beacon", "price": 840000, "description": "Brilliant polar jets light the edge of the unknown.", "colors": ["#201433", "#704b98", "#f0d4ff"], "scene": "jets"},
 ];
 export const getStage = id => STAGES.find(stage => stage.id === id) || STAGES[0];

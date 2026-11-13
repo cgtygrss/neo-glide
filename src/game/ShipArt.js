@@ -1,12 +1,14 @@
 import { getEngineFlame, getShip } from "./ShipCatalog.js";
 import { drawCosmeticMark, drawCosmeticShot } from "./CosmeticEffects.js";
-import { getCosmetic, getCosmeticPalette } from "./CosmeticsCatalog.js";
+import { getCosmeticEffects, getCosmeticPalette } from "./CosmeticsCatalog.js";
+import { drawCosmeticLayer, drawCosmeticSurface } from './CosmeticArt.js';
 
 const cachedArt = new Map();
 
 function getArt(ship) {
   if (!cachedArt.has(ship.id)) {
     cachedArt.set(ship.id, {
+      surfaceMask: new Path2D(ship.parts.filter(part => part.fill === 'body' || part.fill === 'shade').map(part => part.d).join(' ')),
       parts: ship.parts.map((part) => ({ ...part, path: new Path2D(part.d) })),
       engines: ship.engines.map((port) => ({
         ...port,
@@ -19,7 +21,7 @@ function getArt(ship) {
 }
 
 // Draws in catalog coordinates. Caller controls position/scale and owns world effects.
-export function drawShipArt(ctx, shipId, { boosting = false, time = 0, cosmeticId = null, lowPower = false } = {}) {
+export function drawShipArt(ctx, shipId, { boosting = false, time = 0, cosmeticId = null, lowPower = false, reducedMotion = false } = {}) {
   const ship = getShip(shipId);
   const art = getArt(ship);
   const palette = getCosmeticPalette(ship.palette, cosmeticId);
@@ -43,7 +45,7 @@ export function drawShipArt(ctx, shipId, { boosting = false, time = 0, cosmeticI
     ctx.globalAlpha = inheritedAlpha * 0.9;
     ctx.fill(boosting ? port.boost : port.idle);
     ctx.restore();
-    const cosmetic = getCosmetic(cosmeticId);
+    const cosmetic = getCosmeticEffects(cosmeticId);
     if (cosmetic) {
       ctx.save(); ctx.globalAlpha *= boosting ? .7 : .4;
       ctx.translate(port.x, port.y); ctx.scale(boosting ? 1.4 : .9, 1.4);
@@ -55,6 +57,8 @@ export function drawShipArt(ctx, shipId, { boosting = false, time = 0, cosmeticI
       ctx.restore();
     }
   }
+  const costume = { boosting, time, lowPower, reducedMotion };
+  drawCosmeticLayer(ctx, cosmeticId, palette, 'back', costume);
   for (const part of art.parts) {
     ctx.save();
     ctx.globalAlpha *= part.opacity ?? 1;
@@ -69,5 +73,7 @@ export function drawShipArt(ctx, shipId, { boosting = false, time = 0, cosmeticI
     }
     ctx.restore();
   }
+  drawCosmeticSurface(ctx, cosmeticId, palette, art.surfaceMask);
+  drawCosmeticLayer(ctx, cosmeticId, palette, 'front', costume);
   ctx.restore();
 }

@@ -1,0 +1,284 @@
+{
+  "status": "Local configuration targets; console registration and pricing must be verified before release.",
+  "pricingReference": {
+    "id": "credits_15000",
+    "credits": 1500000,
+    "usdCents": 799
+  },
+  "creditRounding": {
+    "direction": "down",
+    "step": 250000
+  },
+  "creditPricing": {
+    "minimumCosmeticCredits": 1000000,
+    "setCreditOffset": 1500000,
+    "standaloneSkin": {
+      "shareOfSet": 0.6,
+      "direction": "down",
+      "step": 250000
+    },
+    "dailySetDiscountPercent": 20
+  },
+  "products": [
+    {
+      "productId": "cosmetic_copper_horizon",
+      "name": "Copper Horizon",
+      "type": "non_consumable",
+      "usdPrice": "$2.99",
+      "creditPrice": 2000000,
+      "appleId": "6824532867",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_arctic_pulse",
+      "name": "Arctic Pulse",
+      "type": "non_consumable",
+      "usdPrice": "$3.49",
+      "creditPrice": 2000000,
+      "appleId": "6824532851",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_cyber_current",
+      "name": "Cyber Current",
+      "type": "non_consumable",
+      "usdPrice": "$3.99",
+      "creditPrice": 2250000,
+      "appleId": "6824532780",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_jade_drift",
+      "name": "Jade Drift",
+      "type": "non_consumable",
+      "usdPrice": "$4.49",
+      "creditPrice": 2250000,
+      "appleId": "6824532930",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_rose_circuit",
+      "name": "Rose Circuit",
+      "type": "non_consumable",
+      "usdPrice": "$4.99",
+      "creditPrice": 2250000,
+      "appleId": "6824532524",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_solar_forge",
+      "name": "Solar Forge",
+      "type": "non_consumable",
+      "usdPrice": "$5.99",
+      "creditPrice": 2500000,
+      "appleId": "6824532910",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_pearl_comet",
+      "name": "Pearl Comet",
+      "type": "non_consumable",
+      "usdPrice": "$6.99",
+      "creditPrice": 2750000,
+      "appleId": "6824532939",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_void_pilot",
+      "name": "Void Pilot",
+      "type": "non_consumable",
+      "usdPrice": "$7.99",
+      "creditPrice": 3000000,
+      "appleId": "6824531841",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_cobalt_storm",
+      "name": "Cobalt Storm",
+      "type": "non_consumable",
+      "usdPrice": "$8.99",
+      "creditPrice": 3000000,
+      "appleId": "6824532897",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_prism_voyager",
+      "name": "Prism Voyager",
+      "type": "non_consumable",
+      "usdPrice": "$9.99",
+      "creditPrice": 3250000,
+      "appleId": "6824532974",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_mint_condition",
+      "name": "Mint Condition",
+      "type": "non_consumable",
+      "usdPrice": "$1.99",
+      "creditPrice": 1750000,
+      "appleId": "6826233342",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_scarlet_comet",
+      "name": "Scarlet Comet",
+      "type": "non_consumable",
+      "usdPrice": "$2.99",
+      "creditPrice": 2000000,
+      "appleId": "6826233799",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_amber_signal",
+      "name": "Amber Signal",
+      "type": "non_consumable",
+      "usdPrice": "$2.49",
+      "creditPrice": 1750000,
+      "appleId": "6826233803",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_lunar_silver",
+      "name": "Lunar Silver",
+      "type": "non_consumable",
+      "usdPrice": "$2.99",
+      "creditPrice": 2000000,
+      "appleId": "6826233956",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_ocean_depth",
+      "name": "Ocean Depth",
+      "type": "non_consumable",
+      "usdPrice": "$3.49",
+      "creditPrice": 2000000,
+      "appleId": "6826233792",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_lavender_dream",
+      "name": "Lavender Dream",
+      "type": "non_consumable",
+      "usdPrice": "$3.99",
+      "creditPrice": 2250000,
+      "appleId": "6826233928",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_toxic_bloom",
+      "name": "Toxic Bloom",
+      "type": "non_consumable",
+      "usdPrice": "$3.49",
+      "creditPrice": 2000000,
+      "appleId": "6826234076",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_desert_mirage",
+      "name": "Desert Mirage",
+      "type": "non_consumable",
+      "usdPrice": "$3.99",
+      "creditPrice": 2250000,
+      "appleId": "6826233933",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_ruby_eclipse",
+      "name": "Ruby Eclipse",
+      "type": "non_consumable",
+      "usdPrice": "$4.99",
+      "creditPrice": 2250000,
+      "appleId": "6826234086",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_glacier_blue",
+      "name": "Glacier Blue",
+      "type": "non_consumable",
+      "usdPrice": "$4.99",
+      "creditPrice": 2250000,
+      "appleId": "6826234132",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_saffron_sky",
+      "name": "Saffron Sky",
+      "type": "non_consumable",
+      "usdPrice": "$4.49",
+      "creditPrice": 2250000,
+      "appleId": "6826234088",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_midnight_gold",
+      "name": "Midnight Gold",
+      "type": "non_consumable",
+      "usdPrice": "$5.49",
+      "creditPrice": 2500000,
+      "appleId": "6826233946",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_coral_reef",
+      "name": "Coral Reef",
+      "type": "non_consumable",
+      "usdPrice": "$4.49",
+      "creditPrice": 2250000,
+      "appleId": "6826234211",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_ultraviolet",
+      "name": "Ultraviolet",
+      "type": "non_consumable",
+      "usdPrice": "$5.99",
+      "creditPrice": 2500000,
+      "appleId": "6826234212",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_nebula_circuit",
+      "name": "Nebula Circuit",
+      "type": "non_consumable",
+      "usdPrice": "$4.99",
+      "creditPrice": 2250000,
+      "appleId": "6826234093",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    },
+    {
+      "productId": "cosmetic_aurora_pathfinder",
+      "name": "Aurora Pathfinder",
+      "type": "non_consumable",
+      "usdPrice": "$5.99",
+      "creditPrice": 2500000,
+      "appleId": "6826234282",
+      "appleAction": "verify_existing_product_and_price",
+      "googlePlayAction": "verify_or_create_product_and_set_price"
+    }
+  ]
+}

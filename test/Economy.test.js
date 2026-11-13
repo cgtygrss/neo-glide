@@ -1,6 +1,7 @@
+import { profileStorage } from '../src/account/ProfileStorage.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadWallet, saveWallet, WALLET_KEY, ACCOUNT_KEY, runXp, claimEarningsBonus, claimDistanceCredits, flightEarningsBreakdown, SHIP_PRICES, UPGRADE_PRICES, CREDIT_PACKS, STARTER_CREDITS, coinMultiplier, BOSS_REWARD, LEVEL_REWARD } from '../src/game/Economy.js';
+import { loadWallet, saveWallet, WALLET_KEY, ACCOUNT_KEY, runXp, distanceAdReward, claimDistanceAdBonus, claimDistanceCredits, flightEarningsBreakdown, SHIP_PRICES, UPGRADE_PRICES, CREDIT_PACKS, STARTER_CREDITS, coinMultiplier, BOSS_REWARD, ENEMY_REWARD, LEVEL_REWARD } from '../src/game/Economy.js';
 import { loadProfile, saveProfile, recordRun, defaultProfile, claimMission, CAREER_MISSIONS } from '../src/services/ProgressionService.js';
 
 function storage() {
@@ -35,8 +36,8 @@ test('versioned records convert legacy balances once, even after interrupted or 
   assert.equal(data.get('neon_glide_owned_ships'),'["default","cruiser"]');
   assert.equal(data.get('neon_glide_upgrades'),'{"hull":3}');
   saveWallet(80000); assert.equal(loadWallet(),80000);
-  data.set(WALLET_KEY,'Infinity');assert.equal(loadWallet(),80000,'The committed v3 wallet is authoritative');
-  data.delete(ACCOUNT_KEY);assert.equal(loadWallet(),0);
+  profileStorage.setItem(WALLET_KEY,'"Infinity"');assert.equal(loadWallet(),80000,'The committed v3 wallet is authoritative');
+  profileStorage.removeItem(ACCOUNT_KEY);assert.equal(loadWallet(),0);
 });
 
 test('revived runs commit only new progress and normalized XP without counting the run twice', () => {
@@ -57,23 +58,59 @@ test('revived runs commit only new progress and normalized XP without counting t
   assert.equal(runXp({coins:10000}),20);
 });
 
-test('an optional ad credits base earnings once, excluding level rewards and future revive earnings', () => {
-  const game={phase:'ENDED',gameOver:true,sessionCurrency:12000,levelBonus:12500};
-  assert.equal(claimEarningsBonus(game,12000),12000);
+test('an optional ad pays twice completed meters once, excluding collected credits, level rewards and future revive distance', () => {
+  const game={phase:'ENDED',gameOver:true,distance:1000.9,sessionCurrency:12000,levelBonus:12500};
+  assert.equal(claimDistanceAdBonus(game,1000.9),2000);
   assert.equal(game.sessionCurrency,12000);
-  assert.equal(claimEarningsBonus(game,12000),0);
+  assert.equal(claimDistanceAdBonus(game,1000.9),0);
   game.phase='FLYING';game.gameOver=false;
-  assert.equal(claimEarningsBonus(game,12000),0);
-  game.sessionCurrency=18000;game.phase='ENDED';game.gameOver=true;
-  assert.equal(claimEarningsBonus(game,18000),0);
-  assert.equal(game.earningsBonus,12000);
-  assert.equal(claimEarningsBonus({phase:'ENDED',gameOver:true,sessionCurrency:0},0),0);
+  assert.equal(claimDistanceAdBonus(game,1000.9),0);
+  game.sessionCurrency=18000;game.distance=1500;game.phase='ENDED';game.gameOver=true;
+  assert.equal(claimDistanceAdBonus(game,1500),0);
+  assert.equal(game.earningsBonus,2000);
+  assert.equal(claimDistanceAdBonus({phase:'ENDED',gameOver:true,sessionCurrency:0},0),0);
+});
+
+test('distance ad quotes use displayed whole meters and reject invalid or unsafe amounts', () => {
+  for (const [distance, reward] of [[0, 0], [.9, 0], [1, 2], [123.9, 246], [1000, 2000], [1000.99, 2000]]) {
+    assert.equal(distanceAdReward(distance), reward);
+  }
+  for (const distance of [undefined, null, '1000', NaN, Infinity, -1, Number.MAX_SAFE_INTEGER]) {
+    assert.equal(distanceAdReward(distance), 0);
+  }
+});
+
+test('distance ad payout ignores pickup balance and caps the rewarded snapshot at actual flight distance', () => {
+  for (const sessionCurrency of [0, 50, 1000000]) {
+    const game = { phase: 'ENDED', gameOver: true, distance: 600.8, sessionCurrency, levelBonus: 10000 };
+    assert.equal(claimDistanceAdBonus(game, 1000), 1200);
+    assert.equal(game.sessionCurrency, sessionCurrency);
+    assert.equal(game.distance, 600.8);
+    assert.equal(game.levelBonus, 10000);
+  }
+  const game = { phase: 'ENDED', gameOver: true, distance: 1000, sessionCurrency: 50000 };
+  assert.equal(claimDistanceAdBonus(game, 250.9), 500);
+  assert.equal(claimDistanceAdBonus(game, 1000), 0);
+});
+
+test('invalid ad snapshots and active runs do not consume the once-per-flight claim', () => {
+  const game = { phase: 'ENDED', gameOver: true, distance: 1000, sessionCurrency: 0 };
+  for (const snapshot of [NaN, Infinity, undefined, '1000', -1, 0]) {
+    assert.equal(claimDistanceAdBonus(game, snapshot), 0);
+    assert.equal(game.earningsBonusClaimed, undefined);
+  }
+  for (const phase of ['FLYING', 'PAUSED', 'COUNTDOWN']) {
+    assert.equal(claimDistanceAdBonus({ ...game, phase }, 1000), 0);
+  }
+  assert.equal(claimDistanceAdBonus({ ...game, gameOver: false }, 1000), 0);
+  assert.equal(claimDistanceAdBonus(null, 1000), 0);
+  assert.equal(claimDistanceAdBonus(game, 1000), 2000);
 });
 
 test('entry upgrades and ship goals use the same high-credit economy as packs', () => {
   assert.equal(UPGRADE_PRICES.battery,5000);
-  assert.deepEqual(Object.values(SHIP_PRICES),[0,60000,180000,400000,900000,1800000]);
-  assert.deepEqual(Object.values(CREDIT_PACKS),[100000,550000,1500000]);
+  assert.deepEqual(['default','interceptor','cruiser','stealth','void_runner','plasma_breaker'].map(id => SHIP_PRICES[id]),[0,60000,180000,400000,900000,1800000]);
+  assert.deepEqual(Object.values(CREDIT_PACKS),[50000,100000,250000,550000,1000000,1500000]);
   assert.equal(STARTER_CREDITS,200000);
 });
 
@@ -81,7 +118,8 @@ test('entry upgrades and ship goals use the same high-credit economy as packs', 
 test('saved high multiplier levels cannot inflate coin payouts beyond 2x', () => {
   assert.deepEqual([1,2,3,4,5,20,1000].map(coinMultiplier), [1,1.25,1.5,1.75,2,2,2]);
   assert.equal(coinMultiplier(0),1);
-  assert.equal(BOSS_REWARD,10000);
+  assert.equal(BOSS_REWARD,25000);
+  assert.equal(ENEMY_REWARD,5000);
   assert.equal(LEVEL_REWARD,10000);
 });
 
@@ -114,20 +152,20 @@ test('missions pay updated rewards once without changing existing claims', () =>
   }
 });
 
-test('distance earnings enter an ad snapshot once and do not become collected-credit progression', () => {
+test('distance ad bonus uses flight meters independently of ordinary distance earnings and progression', () => {
   storage();
   const game = { phase: 'ENDED', gameOver: true, distance: 500.9, distanceBonus: 0, sessionCurrency: 10000, levelBonus: 10000 };
   assert.equal(claimDistanceCredits(game), 5000);
   const result = recordRun({ ...defaultProfile }, { distance: game.distance, coins: game.sessionCurrency - game.distanceBonus, bosses: 0 });
   assert.equal(result.profile.totalCoins, 10000); assert.equal(result.xpEarned, 82);
-  assert.equal(claimEarningsBonus(game, game.sessionCurrency), 15000);
+  assert.equal(claimDistanceAdBonus(game, game.distance), 1000);
   game.phase = 'FLYING'; game.gameOver = false; game.distance = 600;
   game.phase = 'ENDED'; game.gameOver = true;
   assert.equal(claimDistanceCredits(game), 1000);
-  assert.equal(claimEarningsBonus(game, game.sessionCurrency), 0);
-  assert.equal(game.earningsBonus, 15000);
+  assert.equal(claimDistanceAdBonus(game, game.distance), 0);
+  assert.equal(game.earningsBonus, 1000);
 });
 
  test('flight results split distance out of flight credits without adding it twice', () => {
-  assert.deepEqual(flightEarningsBreakdown(15000, 5000, 10000, 15000), { collected: 10000, distance: 5000, total: 40000 });
+  assert.deepEqual(flightEarningsBreakdown(15000, 5000, 10000, 1000), { collected: 10000, distance: 5000, total: 26000 });
 });

@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { UPGRADES, WEAPONS, upgradeOffer, weaponDetails } from '../src/game/ShopCatalog.js';
 import { PlayerProjectile, Player } from '../src/game/Entities.js';
+import { roundUpgradeCreditCost } from '../backend/shared/store-catalog.js';
 
 test('every upgrade preview matches the existing purchase result, price and gameplay formulas', () => {
-  for (const item of UPGRADES) for (const stored of [undefined, 2, 5]) {
+  for (const item of UPGRADES.filter(item => item.startingLevel !== 0)) for (const stored of [undefined, 2, 5]) {
     const upgrades = stored === undefined ? {} : {[item.id]:stored};
     const offer = upgradeOffer(item.id,upgrades,'cruiser',11);
     const next = item.id === 'multiplier' && stored >= 5 ? stored : (stored || 1) + 1;
     assert.equal(offer.nextLevel,next);
-    assert.equal(offer.cost,Math.floor(item.cost*1.5**((stored||1)-1)));
+    assert.equal(offer.cost,roundUpgradeCreditCost(Math.floor(item.cost*1.5**((stored||1)-1))));
     const actualNext = {
       battery:100+(next-1)*20+20,
       thruster:Math.abs(new Player(next).lift),
@@ -25,7 +26,21 @@ test('every upgrade preview matches the existing purchase result, price and game
   assert.equal(upgradeOffer('battery',{},'default',2).beforeLabel,'10.2s');
 });
 
-test('all six weapon previews use real damage, speed and ammo without modifying saved inputs', () => {
+test('upgrade costs keep entry prices and round later levels down to clean credit amounts', () => {
+  for (const item of UPGRADES) assert.equal(upgradeOffer(item.id).cost,item.cost);
+  assert.equal(upgradeOffer('battery',{battery:3}).cost,11000);
+  assert.equal(upgradeOffer('energy_recovery',{energy_recovery:1}).cost,65000);
+  assert.equal(upgradeOffer('hull',{hull:5}).cost,125000);
+  assert.equal(upgradeOffer('shield_gen',{shield_gen:5}).cost,500000);
+  for (const item of UPGRADES) for (let level=1;level<=12;level++) {
+    const raw=Math.floor(item.cost*1.5**(level-(item.startingLevel===0?0:1)));
+    const offer=upgradeOffer(item.id,{[item.id]:level});
+    assert.ok(offer.cost<=raw);
+    assert.equal(offer.cost%(raw>=250000?50000:raw>=50000?5000:500),0);
+  }
+});
+
+test('all weapon previews use real damage, speed and ammo without modifying saved inputs', () => {
   const inputs = Object.freeze({ battery:2, hull:3 });
   for(const item of WEAPONS) {
     const actual=new PlayerProjectile(0,0,item.id), preview=weaponDetails(item.id);

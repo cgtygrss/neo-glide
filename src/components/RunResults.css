@@ -73,10 +73,10 @@
 .earnings-ad-action strong { display: block; font-size: 11px; line-height: 1.4; font-weight: 750; }
 .earnings-ad-action small { display: block; color: #91adb9; font-size: 9px; margin-top: 3px; line-height: 1.4; }
 .earnings-ad-action:hover:not(:disabled) { border-color: #a0c6d056; background: #a0c6d00c; }
-.earnings-double { margin-top: 19px; border-color: #e9c78435; background: #e1b36308; color: #f1d7a3; }
-.earnings-double > svg { color: #dcbd83; }
-.earnings-double small { color: #bca487; }
-.earnings-double:hover:not(:disabled) { border-color: #edcf855c; background: #e1b36310; }
+.earnings-distance { margin-top: 19px; border-color: #e9c78435; background: #e1b36308; color: #f1d7a3; }
+.earnings-distance > svg { color: #dcbd83; }
+.earnings-distance small { color: #bca487; }
+.earnings-distance:hover:not(:disabled) { border-color: #edcf855c; background: #e1b36310; }
 .earnings-board button:disabled { cursor: default; opacity: .45; box-shadow: none; }
 .earnings-board button:focus-visible { outline: 2px solid #b2e8d7; outline-offset: 3px; }
 .earnings-feedback { margin: 0; color: #f0cf9c; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
@@ -91,7 +91,7 @@
   .earnings-wallet { margin-top: 10px; padding-top: 9px; }
   .earnings-flight-stats { margin-top: 13px; }
   .earnings-flight-stats strong { font-size: 15px; margin-top: 3px; }
-  .earnings-double { margin-top: 13px; }
+  .earnings-distance { margin-top: 13px; }
   .earnings-next-flight { gap: 12px; padding-left: 23px; }
   .earnings-goal { padding: 12px; }
   .earnings-goal-title { margin-top: 7px; }
@@ -105,7 +105,7 @@
   .earnings-total strong { font-size: clamp(47px, 16vw, 65px); }
   .earnings-next-flight { gap: 14px; padding-left: 0; border-left: 0; padding-top: 20px; border-top: 1px solid #a2c4cf1b; }
   .earnings-flight-stats { margin-top: 18px; }
-  .earnings-double { margin-top: 18px; }
+  .earnings-distance { margin-top: 18px; }
 }
 @media (max-width: 350px) and (orientation: portrait) {
   .earnings-overlay { padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right)); }

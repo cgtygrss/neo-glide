@@ -19,7 +19,7 @@
 - 👾 **3 Enemy Types** - Speedster, Standard Fighter, and Juggernaut with unique behaviors
 - 💎 **Roguelike Progression** - Permanent upgrades that carry between runs
 - 🎨 **Stunning Neon Visuals** - Cyberpunk-inspired graphics with particle effects
-- 🎵 **Dynamic Soundtrack** - Retro-style music that adapts to gameplay
+- 🎵 **Dynamic Soundtrack** - Guitar, bass and drum recordings licensed for commercial use under CC BY 4.0, with in-game credits, distinct menu/flight/villain themes and quiet music behind the sound effects. See [music licensing](docs/MUSIC_LICENSING.md).
 - 📱 **Mobile-Optimized** - Portrait mode, one-handed controls, responsive UI
 - 🏆 **Leaderboard System** - Compete globally and track your best scores
 
@@ -75,6 +75,20 @@
    Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 📱 iOS Build
+
+Version 1.3.0 adds a local age-group choice. Under-18 and unknown-age players use
+local family play, without accounts, online events, ads or real-money purchases.
+An adult selection enables the existing online services. See the
+[release/compliance status](docs/COMMERCIAL_REMEDIATION_2026-11-12.md) and
+[Android setup](ANDROID_BILLING.md) before preparing a store submission.
+
+`npm run legal:build` generates the offline privacy/support/deletion pages and
+full third-party notices; production builds run it automatically. The canonical
+policy snippets are in `docs/legal/`. Native dependency updates also require
+refreshing `docs/legal/native-notices.json`: run Gradle's
+`exportRuntimeLicenseInputs` using `scripts/export-android-licenses.gradle`, then
+`python3 scripts/collect-native-notices.py <SwiftPM-checkouts-directory>`.
+The legal build rejects a stale native snapshot.
 
 ### Build for iOS
 
@@ -204,27 +218,18 @@ npm run cap:open     # Open iOS project in Xcode
 
 ## Cosmetics store setup
 
-The Garage includes ten permanent visual cosmetics. They apply a shared hull
-palette, an engine-history trail, and friendly projectile tint to every ship
-and weapon; they never affect stats or hitboxes. Each can also be unlocked for
-1,200,000 to 6,000,000 earned credits, depending on the theme. Store ownership and credit ownership are recorded
-separately, so a store refund only removes the store right and never removes a
-theme earned with credits.
+The Garage includes 26 permanent visual kits, each with an earned-credit unlock
+and a native one-time purchase. Hull ornaments, engine wakes and signature fire
+apply across the fleet without changing stats or hitboxes. The two event skins
+also remain earnable through Events. Store and credit ownership are recorded
+separately, so a store refund never removes a credit unlock.
 
-Configure these non-consumable products in App Store Connect and Google Play using the listed USD base prices and localized storefront prices:
-
-| Rank | Theme | Tier | Credits | USD base | SKU |
-| --- | --- | --- | ---: | ---: | --- |
-| 01 | Copper Horizon | Classic | 1,200,000 | $2.99 | `cosmetic_copper_horizon` |
-| 02 | Arctic Pulse | Classic | 1,500,000 | $3.49 | `cosmetic_arctic_pulse` |
-| 03 | Cyber Current | Signature | 1,800,000 | $3.99 | `cosmetic_cyber_current` |
-| 04 | Jade Drift | Signature | 2,200,000 | $4.49 | `cosmetic_jade_drift` |
-| 05 | Rose Circuit | Elite | 2,600,000 | $4.99 | `cosmetic_rose_circuit` |
-| 06 | Solar Forge | Elite | 3,000,000 | $5.99 | `cosmetic_solar_forge` |
-| 07 | Pearl Comet | Prestige | 3,600,000 | $6.99 | `cosmetic_pearl_comet` |
-| 08 | Void Pilot | Prestige | 4,200,000 | $7.99 | `cosmetic_void_pilot` |
-| 09 | Cobalt Storm | Legendary | 5,000,000 | $8.99 | `cosmetic_cobalt_storm` |
-| 10 | Prism Voyager | Legendary | 6,000,000 | $9.99 | `cosmetic_prism_voyager` |
+Prices range from 370,000 to 1,880,000 credits (USD 1.99–9.99 base targets), using
+the best-value pack's USD 7.99 / 1,500,000-credit ratio and rounding to 10,000
+credits. The [complete price table](release/1.2.0/metadata/store-prices.csv) and
+[console manifest](release/1.2.0/metadata/store-catalog.json) list every SKU.
+`backend/shared/store-catalog.js` is the shared source; run `npm run store:sync`
+to regenerate native lists, fixtures and release metadata.
 
 `ios/StoreKitTests/NeoGlide.storekit` has matching sandbox products. Android
 release builds require a configured Play public key for signature verification;

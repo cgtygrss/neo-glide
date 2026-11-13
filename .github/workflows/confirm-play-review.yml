@@ -1,0 +1,39 @@
+name: Confirm Play review result
+
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: VersionCode whose review result you checked in Play Console (initially 5)
+        required: true
+        type: string
+      result:
+        description: Approved and available on its track, or rejected
+        required: true
+        type: choice
+        options: [approved, rejected]
+      console_checked:
+        description: I checked this exact build's final review result in Play Console
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  confirm:
+    if: github.ref == 'refs/heads/main' && inputs.console_checked
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+      - run: node scripts/ci/store-state.mjs acknowledge android
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEWED_BUILD: ${{ inputs.build }}
+          REVIEW_RESULT: ${{ inputs.result }}
+          CONSOLE_CHECKED: ${{ inputs.console_checked }}

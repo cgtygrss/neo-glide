@@ -1,20 +1,26 @@
-Hold to boost. Release to glide. Find your rhythm in space.
+Hold to boost. Release to glide. Make the next flight yours.
 
-Neo Glide is an arcade flying game where every run is a chance to go further, collect credits and build your fleet. Dodge solid obstacles, battle enemy ships and keep an eye on your fuel and hull.
+Neo Glide is an arcade space adventure built around quick runs, readable combat and a growing collection of ships, equipment and visual kits. Dodge obstacles, follow credit trails and find the loadout that fits your flying style.
 
-FIND YOUR SHIP
-Explore six distinct spacecraft, from the balanced Standard Glider to the powerful Plasma Breaker. See each ship in flight before you unlock it, and choose abilities that suit your play style.
+BUILD YOUR FLEET
+Discover 16 ships with distinct silhouettes and abilities. Preview any ship before unlocking it, then pair it with one of 16 weapons and develop your equipment through 16 upgrade paths.
 
-BUILD YOUR LOADOUT
-Preview six weapons and permanent upgrades in the Garage. Improve your boost capacity, lift, hull strength, magnet range, hull recovery and credit collection as you progress.
+EXPRESS YOUR STYLE
+Explore 26 complete cosmetic kits with sculpted wings, ornaments, engine wakes and signature fire. Discover butterfly and fairy designs, dragons, mechanical guardians and cosmic showpieces. Every skin can be unlocked with earned game credits or a one-time in-app purchase. Cosmetic kits change appearance, never flight statistics.
 
-KEEP THE FLIGHT ALIVE
-Enemy hits reduce your health instead of immediately ending the run. Collect health packs to recover, and grab fuel to refill your tank. Solid obstacles and falling to the bottom still end the flight, with special ship abilities changing how you handle certain obstacles.
+EXPLORE YOUR UNIVERSE
+Choose from 24 galaxy destinations, including the free Milky Way. Preview the scenery in the Garage and carry your favourite destination into the next run.
 
-MAKE EVERY RUN COUNT
-Follow coin trails, claim career rewards and work toward your next unlock. The results screen shows exactly what you earned and how close you are to your next ship.
+TRANSFORM YOUR FLIGHT
+Collect capsules that temporarily assemble one of five special vehicles. Each brings a different way to move, defend or attack before your normal ship returns.
 
-A CLEARER SPACE ADVENTURE
-Enjoy a cleaner interface, distinct ship silhouettes, readable pickups and enemy attacks, and a rhythmic soundtrack that changes during enemy encounters.
+KEEP GOING
+Collect health packs and fuel, avoid solid obstacles and battle enemy ships. Improve your personal best, progress through your pilot career and put every run's earnings toward your next unlock.
 
-Neo Glide includes optional rewarded ads and in-app purchases. You can choose to watch an ad for an extra flight-credit reward or one continue.
+YOUR PILOT, YOUR PROGRESS
+Choose your pilot name and manage your career and account from one place. Play without manual registration, or connect Game Center and optionally Google to recover your cloud progress. Daily, weekly and expedition challenges appear when events are available. Ordinary flights remain playable offline.
+
+A FRESH GARAGE
+Swipe through animated previews, compare equipment and browse products from lower to higher prices. Own a visual kit once and use it across your fleet.
+
+Neo Glide includes optional rewarded advertising and in-app purchases. Ads can provide an additional flight reward or a continue when available. You choose whether to watch. Purchases are optional, and permanent store purchases can be restored from Garage > Store.

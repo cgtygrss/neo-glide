@@ -1,3 +1,4 @@
+import { flightEquipment } from './FlightEquipment.js';
 import { CREDIT_PACKS, STARTER_CREDITS } from './Economy.js';
 import { Renderer } from './Renderer.js';
 import { Collectible, Player, PlayerProjectile } from './Entities.js';
@@ -32,15 +33,9 @@ function adBadge(ctx, x, y, size = 45) {
 
 // An isolated demonstration scene. It has no connection to gameplay, audio or saves.
 export class ShopPreviewScene {
-  constructor(canvas, { pixelRatio = 1 } = {}) {
+  constructor(canvas, resolutionOptions) {
     this.renderer = new Renderer(canvas);
-    this.renderer.resize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
-    this.renderer.planets = [];
-    if (pixelRatio !== 1) {
-      canvas.width = PREVIEW_WIDTH * pixelRatio;
-      canvas.height = PREVIEW_HEIGHT * pixelRatio;
-      this.renderer.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    }
+    this.resize(resolutionOptions);
     this.flightDemo = null;
     this.shipTime = 0;
     this.thrusterLevel = null;
@@ -53,7 +48,12 @@ export class ShopPreviewScene {
     this.cosmeticPreviewPlayer = { x: 230, y: 119, rotation: 0, isBoosting: true };
   }
 
-  draw({ kind, itemId, ship = 'default', cosmeticId = '', upgrades = {}, pilotLevel = 1 }, time = 0, playing = false) {
+  resize(resolutionOptions) {
+    this.renderer.resize(PREVIEW_WIDTH, PREVIEW_HEIGHT, resolutionOptions);
+    this.renderer.planets = [];
+  }
+
+  draw({ kind, itemId, ship = 'default', cosmeticId = '', upgrades = {}, pilotLevel = 1, cosmeticBoost = true }, time = 0, playing = false) {
     const r = this.renderer, ctx = r.ctx;
     const thrusterLevel = upgrades.thruster || 1;
     if (kind === 'ship' && (!this.flightDemo || this.thrusterLevel !== thrusterLevel)) {
@@ -87,6 +87,7 @@ export class ShopPreviewScene {
       const shots = [];
       for (let i = 0; i < 3; i++) {
         const shot = new PlayerProjectile(0, 111, itemId);
+        shot.speed *= flightEquipment({}, ship).shotSpeed;
         const age = (time - i * .55) % 2.4;
         shot.x = playing ? 164 + shot.speed * age * .35 : 230 + i * 100;
         if (!playing || (age >= 0 && shot.x < 550)) shots.push(shot);
@@ -125,7 +126,7 @@ export class ShopPreviewScene {
         const previewDelta = Math.max(0, Math.min(.1, time - this.cosmeticPreviewTime));
         this.cosmeticPreviewTime = time;
         this.cosmeticEffectTime += previewDelta;
-        Object.assign(previewPlayer, { rotation: -4, isBoosting: true });
+        Object.assign(previewPlayer, { rotation: cosmeticBoost ? -4 : 0, isBoosting: cosmeticBoost });
         Object.assign(this.cosmeticPreviewGame, { phase: 'FLYING', shipType: ship, speed: 95, player: previewPlayer });
         this.cosmeticPreviewDistance += this.cosmeticPreviewGame.speed * previewDelta;
         this.cosmeticPreviewGame.distance = this.cosmeticPreviewDistance;
@@ -134,6 +135,7 @@ export class ShopPreviewScene {
         this.cosmeticPreviewGame.phase = 'PAUSED';
         advanceCosmeticTrail(this.cosmeticTrail, { game: this.cosmeticPreviewGame, cosmetic, deltaTime: 0, scale: trailScale });
       }
+      previewPlayer.isBoosting = cosmeticBoost;
       r.cosmeticEffectTime = this.cosmeticEffectTime;
       const points = this.cosmeticTrail.points;
       drawCosmeticTrail(ctx, points, cosmetic, getCosmeticPalette(getShip(ship).palette, cosmetic.id), r.lowPowerMode, scale);
@@ -144,12 +146,22 @@ export class ShopPreviewScene {
         shot.visualAge = age; shot.visualMuzzleOffset = -age * 205 / 1.5; return shot;
       });
       for (const shot of shots) { ctx.save(); ctx.translate(shot.x, shot.y); ctx.scale(1.5, 1.5); r.drawPlayerProjectiles([{ ...shot, x: 0, y: 0 }], cosmetic.id); ctx.restore(); }
-      text(ctx, 'HULL · ENGINE WAKE · FRIENDLY SHOTS', 260, 207, cosmetic.colors.shine, 10);
+      text(ctx, cosmetic.kind === 'skin' ? 'SHIP APPEARANCE ONLY · STANDARD ENGINE & FIRE' : cosmeticBoost ? 'BOOST · VISUAL KIT ACTIVE · SIGNATURE FIRE' : 'GLIDE · VISUAL KIT AT REST · SIGNATURE FIRE', 260, 207, cosmetic.colors.shine, 10);
       return;
     }
     if (kind === 'upgrade') {
       const offer = upgradeOffer(itemId, upgrades, ship, pilotLevel);
-      if (itemId === 'thruster') {
+      if (offer.startingLevel === 0) {
+        shipAt(r, ship, 110, 110, 1.7, playing, 0, cosmeticId);
+        const reducing = ['ammo_regen', 'boost_efficiency', 'armor'].includes(itemId);
+        const span = Math.max(offer.before, offer.after, 1);
+        text(ctx, offer.metric.toUpperCase(), 330, 41, '#96bacb', 10);
+        text(ctx, `CURRENT · ${offer.beforeLabel}`, 330, 72, '#9bb9c8', 12);
+        gauge(ctx, 234, 85, 190, offer.before / span, '#748f9d');
+        text(ctx, `UPGRADED · ${offer.afterLabel}`, 330, 124, '#80ddc6', 12);
+        gauge(ctx, 234, 137, 190, offer.after / span);
+        text(ctx, reducing ? 'LESS PER SHOT / SECOND' : 'MORE CAPACITY / EFFECT', 330, 171, '#96bacb', 9);
+      } else if (itemId === 'thruster') {
         const t = playing ? (time % 1.6) / 1.6 * .45 : .32;
         const rise = level => { const p = new Player(level); p.boost(true); for(let i=0;i<Math.floor(t*60);i++)p.update(1/60); return Math.max(-70, (p.y-300) * .45); };
         shipAt(r, ship, 132, 135 + rise(offer.level), 1.7, playing, playing ? -5 : 0, cosmeticId);
@@ -208,7 +220,8 @@ export class ShopPreviewScene {
         text(ctx,'NO FORCED AD BREAKS',260,200,'#80ddc6',13);
       } else {
         const totals=CREDIT_PACKS;
-        const stacks = itemId === 'credits_1000' ? [1,1] : itemId === 'credits_5500' ? [3,3,3,2] : [6,6,6,6,6];
+        const tier = Math.max(0, Object.keys(totals).indexOf(itemId));
+        const stacks = Array.from({length: Math.min(5, 1 + Math.floor(tier * .8))}, () => Math.min(6, tier + 1));
         for(let column=0;column<stacks.length;column++)for(let row=0;row<stacks[column];row++) {
           const coin=new Collectible(260-(stacks.length-1)*29+column*58,128-row*12,10000);
           r.drawCollectibles([coin]);

@@ -1,5 +1,5 @@
 import { getTransformation, TRANSFORMATION_ASSEMBLIES, transformationProgress, transformationCapsuleClosure } from './TransformationCatalog.js';
-import { getCosmetic } from './CosmeticsCatalog.js';
+import { getCosmeticEffects } from './CosmeticsCatalog.js';
 import { drawShipArt } from './ShipArt.js';
 
 const INK = '#06121f';
@@ -122,7 +122,7 @@ export function drawTransformationCinematic(ctx, game, width, height, lowPower =
   if (!form || form.phase !== 'ENTERING' || form.reducedMotion) return;
   const pose = transformationCinematicPose(form, width, height);
   const t = form.transitionTime, arrival = smooth(t / .25), departure = smooth((t - 1.35) / .25);
-  const accent = getCosmetic(game.cosmeticId)?.colors.accent || getTransformation(form.id).color;
+  const accent = getCosmeticEffects(game.cosmeticId)?.colors.accent || getTransformation(form.id).color;
   ctx.save(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0;
   ctx.fillStyle = `rgba(2, 8, 22, ${pose.dim})`; ctx.fillRect(0, 0, width, height);
   ctx.translate(pose.x, pose.y); ctx.scale(pose.scale, pose.scale);
@@ -195,7 +195,7 @@ function drawTransformationEnclosure(ctx, form, accent, core, time, lowPower) {
 }
 
 export function drawTransformationVehicle(ctx, form, cosmeticId = '', lowPower = false, reducedMotion = false, shipType = 'default') {
-  const model = getTransformation(form.id), cosmetic = getCosmetic(cosmeticId);
+  const model = getTransformation(form.id), cosmetic = getCosmeticEffects(cosmeticId);
   const accent = cosmetic?.colors.accent || model.color, core = cosmetic?.colors.core || '#fff3cc';
   const time = reducedMotion ? 0 : form.phase === 'ENTERING' ? Math.max(0, form.transitionTime - 1.1) : form.elapsed + (form.reducedMotion ? 0 : .5);
   ctx.save(); ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 0; ctx.lineCap = 'round'; ctx.lineJoin = 'round';

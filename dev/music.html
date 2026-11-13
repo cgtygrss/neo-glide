@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Neo Glide · Music preview</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0b1725; color: #edf6e7; }
+    * { box-sizing: border-box; }
+    body { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+    header > span { color: #b8e9a1; font-size: 12px; letter-spacing: .16em; }
+    h1 { font-size: clamp(36px, 7vw, 64px); letter-spacing: -.05em; margin: 14px 0; }
+    p { color: #a4bdc5; line-height: 1.7; max-width: 680px; }
+    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin: 36px 0; }
+    article { background: linear-gradient(150deg, #1d3844, #122330); border: 1px solid #486360; border-radius: 22px; padding: 24px; }
+    article > span { color: #e6d287; font-size: 12px; }
+    h2 { font-size: 26px; margin: 14px 0 0; }
+    article p { font-size: 13px; min-height: 66px; }
+    button, a { font: inherit; font-size: 13px; }
+    button { width: 100%; min-height: 44px; padding: 12px 16px; border-radius: 12px; cursor: pointer; border: 1px solid #bbde9a66; color: #dcf5c6; background: #a2d78d14; margin-top: 10px; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #e6d287; outline-offset: 4px; }
+    button:disabled { opacity: .5; cursor: wait; }
+    a { color: #b8e9a1; display: inline-block; margin-top: 16px; }
+    audio { width: 100%; margin-top: 16px; }
+    output { display: block; font-size: 11px; color: #a4bdc5; line-height: 1.7; margin-top: 12px; }
+    #status { min-height: 28px; color: #e6d287; }
+    footer { border-top: 1px solid #48636066; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <header><span>NEO GLIDE · SOUNDTRACK</span><h1>Guitar. Drums. Takeoff.</h1><p>Commercial-use guitar, bass and drum music. A bright acoustic theme welcomes you to the menus; surf rock carries the flight. Villains switch to a third, more intense theme. All three themes play quietly behind the effects, with smooth crossfades.</p></header>
+  <main>
+    <article data-track="menu"><span>MENU · GUITAR, BASS & DRUMS</span><h2>Happy Alley</h2><p>Kevin MacLeod's bright acoustic guitar theme, edited into a menu loop.</p><button data-play="menu">Play Menu</button><a href="/audio/music/happy-alley.m4a" download>Download menu music</a></article>
+    <article data-track="flight"><span>GAMEPLAY · GUITAR, BASS & DRUMS</span><h2>Beach Bum</h2><p>Kevin MacLeod's driving surf rock continues throughout the flight, outside encounters.</p><button data-play="flight">Play Flight</button><a href="/audio/music/beach-bum.m4a" download>Download flight music</a></article>
+    <article data-track="boss"><span>VILLAIN · GUITAR, BASS & DRUMS</span><h2>The Whip</h2><p>A separate, driving encounter loop plays until the last villain leaves. Flight music then resumes where it paused.</p><button data-play="boss">Play Villain</button><a href="/audio/music/the-whip.m4a" download>Download villain music</a></article>
+  </main>
+  <p id="status" role="status">Choose a track to listen.</p><button id="effects">Test sound effects over music</button><button id="stop">Stop music</button>
+  <section aria-label="Transformation pickup sounds"><h2>Transformation sound design</h2><p>Impact, textured power-up, assembly locks and activation. Each preview follows the game's actual transformation cue timing and sound engine.</p><div id="capsule-effects"></div></section>
+  <footer><p>“Happy Alley”, “Beach Bum” and “The Whip” by <a href="https://incompetech.com/">Kevin MacLeod (incompetech.com)</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0</a>. Excerpted into loops, boundary blended, level adjusted and AAC encoded. No artist endorsement is implied. <a href="/audio/music/CREDITS.txt">Sources and full credits</a>. This preview uses the game's player; your saved audio preferences are unchanged.</p><a href="/">Back to the game →</a></footer>
+  <script type="module" src="/dev/music.js"></script>
+</body>
+</html>

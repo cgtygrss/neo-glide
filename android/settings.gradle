@@ -1,3 +1,13 @@
+// Google identity/Firebase libraries carry Kotlin 2.4 metadata. Keep AGP 8's
+// Capacitor integration while using the compatible stable D8/R8 compiler.
+// https://developer.android.com/build/kotlin-support
+pluginManagement {
+    buildscript {
+        repositories { google(); mavenCentral() }
+        dependencies { classpath 'com.android.tools:r8:9.1.57' }
+    }
+}
+
 include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')

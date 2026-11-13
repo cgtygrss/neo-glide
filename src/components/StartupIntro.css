@@ -1,0 +1,26 @@
+.startup-screen { position: fixed; inset: 0; z-index: 10000; background: #0b1725; opacity: 1; isolation: isolate; }
+.startup-screen .startup-surface { display: block; position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 0; color: #d6fff4; background: transparent; box-shadow: none; transform: none; touch-action: manipulation; -webkit-appearance: none; appearance: none; }
+.startup-screen .startup-surface:hover, .startup-screen .startup-surface:active { background: transparent; box-shadow: none; transform: none; }
+.startup-screen .startup-surface:focus-visible { outline: 1px solid #79ddd44d; outline-offset: -10px; }
+.startup-mark { position: absolute; left: 50%; top: 50%; width: 120px; height: 97px; transform: translate(-50%, -50%); }
+.startup-mark > img, .startup-mark > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.startup-base { opacity: .18; }
+.startup-orbit ellipse { stroke-dasharray: 100; stroke-dashoffset: 100; animation: startup-orbit-draw 450ms cubic-bezier(.22,.61,.36,1) both; }
+.startup-ship { opacity: 0; transform-origin: 50% 50%; animation: startup-ship-arrive 450ms 450ms cubic-bezier(.22,1,.36,1) both; }
+.startup-wordmark { position: absolute; top: calc(50% + 68px); left: 50%; display: block; white-space: nowrap; font: 800 clamp(26px, 4vw, 40px)/1.15 system-ui, sans-serif; letter-spacing: .19em; text-indent: .19em; color: #d6fff4; opacity: 0; transform: translate(-50%, 5px); animation: startup-title-arrive 220ms 900ms ease-out both; }
+.startup-wordmark > span { color: #79ddd4; font-weight: 500; }
+.startup-skip-hint { position: absolute; right: max(24px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 10px; color: #9ab4c1; font: 500 10px/1.4 system-ui, sans-serif; letter-spacing: .06em; opacity: 0; animation: startup-hint-arrive 200ms 500ms both; }
+.startup-skip-hint > span { color: #79ddd4; font-size: 17px; }
+.startup-screen.startup-exit { animation: startup-screen-exit 250ms ease-in both; }
+.startup-screen.startup-reduced .startup-orbit ellipse { animation: none; stroke-dashoffset: 0; }
+.startup-screen.startup-reduced .startup-ship { animation: none; opacity: 1; transform: none; }
+.startup-screen.startup-reduced .startup-wordmark { animation: none; opacity: 1; transform: translate(-50%, 0); }
+.startup-screen.startup-reduced .startup-skip-hint { animation: none; opacity: 0; }
+.startup-screen.startup-reduced.startup-exit { animation-duration: 300ms; }
+@keyframes startup-orbit-draw { to { stroke-dashoffset: 0; } }
+@keyframes startup-ship-arrive { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes startup-title-arrive { to { opacity: 1; transform: translate(-50%,0); } }
+@keyframes startup-hint-arrive { to { opacity: 1; } }
+@keyframes startup-screen-exit { to { opacity: 0; } }
+@media (max-height: 280px) { .startup-wordmark { top: calc(50% + 57px); font-size: 26px; } .startup-skip-hint { bottom: 12px; } }
+@media (prefers-reduced-motion: reduce) { .startup-orbit ellipse { animation: none; stroke-dashoffset: 0; } .startup-ship { animation: none; opacity: 1; } .startup-wordmark { animation: none; opacity: 1; transform: translate(-50%,0); } }

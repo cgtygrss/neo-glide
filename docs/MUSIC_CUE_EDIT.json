@@ -1,0 +1,6 @@
+{
+  "status": "retired",
+  "replacement": "Separate looping villain music: The Whip by Kevin MacLeod (CC BY 4.0)",
+  "asset": "public/audio/music/the-whip.m4a",
+  "behavior": "Crossfade between flight and encounter music; no arrival one-shot"
+}

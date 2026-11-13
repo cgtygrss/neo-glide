@@ -1,5 +1,8 @@
 # Payments release status — 2026-10-20
 
+> Historical build 3 / Android v4 record. The current iOS candidate and
+> submission (1.2.0 build 7 plus 30 IAPs, Waiting for Review) is tracked in [1.2.0/BUILD7_STATUS.md](1.2.0/BUILD7_STATUS.md).
+
 Payment code is implemented and verified. The release web build, Capacitor
 copies, Android debug APK and unsigned release AAB, and iOS simulator build all
 completed. Validation also passed: 98 JavaScript tests, lint, and four Android
@@ -138,3 +141,14 @@ Comet Drill, Storm Sphere, Volt Ray and Aegis Orb. Capsules and ordinary flight 
 economy; no store products or entitlements were added. This update is local
 source only: the uploaded iOS 1.2.0 (3) and signed Android v4 artifacts do not
 contain the vehicles. No native rebuild or upload was performed.
+
+## Dual skin pricing — 2026-10-23
+
+Current source offers all 26 skins with earned credits and one-time store
+purchases, including the two event rewards. Credit prices now follow the
+USD 7.99 / 1,500,000-credit pack ratio and range from 370,000 to 1,880,000.
+This supersedes the earlier credit price tables above. See
+[DUAL_SKIN_PRICING.md](1.2.0/DUAL_SKIN_PRICING.md) for validation and release
+status, and [store-prices.csv](1.2.0/metadata/store-prices.csv) for all targets.
+The new 16 cash SKUs, console prices, backend deployment and new native builds
+are still release work; this update did not submit or publish store products.

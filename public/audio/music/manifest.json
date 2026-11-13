@@ -1,0 +1,68 @@
+{
+  "verified_date": "2026-10-22",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "artist": "Kevin MacLeod (incompetech.com)",
+  "assets": {
+    "menu": {
+      "title": "Happy Alley",
+      "file": "happy-alley.m4a",
+      "license": "CC-BY-4.0",
+      "source_file": "happy-alley.mp3",
+      "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100482",
+      "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Happy%20Alley.mp3",
+      "source_sha256": "f598c8ee624f1db9a2cd38886524a40baff4ce730dcf999c0763791268fa8265",
+      "changes": "Excerpted into a loop, boundary blended, level adjusted, encoded as AAC.",
+      "edit": {
+        "start_seconds": 5.89,
+        "end_seconds": 40.26424036281179,
+        "duration_seconds": 34.37424036281179,
+        "boundary_blend_seconds": 0.04,
+        "gain": 0.35186814387435444,
+        "pcm_rms_dbfs": -23.741732867142886,
+        "pcm_peak_dbfs": -9.222933627737568
+      },
+      "sha256": "8189704fe5b71febee7309d5919639ca643f64d36946f47e13b94e4f50d33dbb"
+    },
+    "flight": {
+      "title": "Beach Bum",
+      "file": "beach-bum.m4a",
+      "license": "CC-BY-4.0",
+      "source_file": "beach-bum.mp3",
+      "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100347",
+      "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Beach%20Bum.mp3",
+      "source_sha256": "2c92107d1df98ac337cc89db54149e75b6e9a3b3439872b921bab49fb428246f",
+      "changes": "Excerpted into a loop, boundary blended, level adjusted, encoded as AAC.",
+      "edit": {
+        "start_seconds": 2.02,
+        "end_seconds": 31.7874375,
+        "duration_seconds": 29.7674375,
+        "boundary_blend_seconds": 0.04,
+        "gain": 0.6,
+        "pcm_rms_dbfs": -26.238169745149595,
+        "pcm_peak_dbfs": -4.436974992327128
+      },
+      "sha256": "229436be7435eb7c5a8a4ccce2252864bf35cc3f347ecb943c5261b07ab9b936"
+    },
+    "boss": {
+      "title": "The Whip",
+      "file": "the-whip.m4a",
+      "license": "CC-BY-4.0",
+      "source_file": "the-whip.mp3",
+      "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100543",
+      "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Whip%20Theme.mp3",
+      "source_sha256": "3fbed81e89b7c5e55e4dc819ae3e4721bc5db9a0265943dd245d88b19655bda4",
+      "changes": "Excerpted into a loop, boundary blended, level adjusted, encoded as AAC.",
+      "edit": {
+        "start_seconds": 4.0,
+        "end_seconds": 19.737278911564626,
+        "duration_seconds": 15.737278911564626,
+        "boundary_blend_seconds": 0.04,
+        "gain": 0.25977304357452496,
+        "pcm_rms_dbfs": -23.741732867142886,
+        "pcm_peak_dbfs": -12.280293056509763
+      },
+      "sha256": "d4d585292bae4a69b3b08e8e83825abc57a0590f8fe817947c675306f5f10286"
+    }
+  }
+}

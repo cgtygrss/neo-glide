@@ -40,3 +40,11 @@ test('switching owners during upload never sends the old queue under the new acc
   await flushEventFlights({ ...f, isCurrent: () => current, send: async () => { calls++; current = false; } });
   assert.equal(calls, 1); assert.deepEqual(f.read(), [{ runId: 'two' }]);
 });
+
+ test('authentication failures preserve flight checkpoints for retry', async () => {
+  for (const message of ['Firebase ID token has expired.', 'Invalid authorization signature.', 'Session expired.']) {
+    const f = fixture();
+    await assert.rejects(flushEventFlights({ ...f, send: async () => { throw new Error(message); } }), { message });
+    assert.equal(f.read().length, 1);
+  }
+});

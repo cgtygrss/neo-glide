@@ -7,7 +7,9 @@ import { randomUUID, createHash } from 'node:crypto';
 import { DAY, STATS, dayOf, windowFor, createInstance, validateRun, deltaRun, contribute, claim, validateTemplate } from './shared/events.js';
 import { validateSave, preserveReceipts, applyGrant, protectServerFields } from './shared/save.js';
 import { verifySsv,isConsoleSsvValidation } from './ssv.js';
-import { verifyStorePurchase } from './purchases.js';
+import { verifyStorePurchase, googlePurchaseRevoked } from './purchases.js';
+import { verifyAppleReceipt } from './apple-receipts.js';
+import { reconcileEntitlements } from './shared/entitlements.js';
 initializeApp();
 const db=getFirestore('events'), auth=getAuth();
 const hash=value=>createHash('sha256').update(value).digest('hex');
@@ -124,6 +126,7 @@ export const api=onRequest({region:'europe-west3',cors:true,maxInstances:10,time
    const verified=await verifyStorePurchase(body);
    result=await transact(uid,async(state,tx)=>{
     const ref=db.doc(`purchases/${hash(verified.id)}`);let old=(await tx.get(ref)).data();
+    if(old?.revoked)throw new Error('This purchase has been revoked.');
     if(old?.ownerDeleted&&!verified.consumable)old=null;
     if(old&&old.uid!==uid&&!state.mergedUids?.includes(old.uid))throw new Error('This purchase belongs to another game account.');
     if(old)return;
@@ -134,6 +137,37 @@ export const api=onRequest({region:'europe-west3',cors:true,maxInstances:10,time
     if(!alreadyApplied&&!body.restore)wallet.balance+=verified.credits;
     const previousRevision=state.revision;
     updateSave(state,{...(state.save||{}),neon_glide_wallet_v3:JSON.stringify(wallet)},now);tx.set(ref,{uid,...verified,at:now});return {...serverResult(state),previousRevision};
+   });
+  } else if(action==='reconcilePurchases') {
+   if(!Array.isArray(body.revocations)||body.revocations.length>200)throw new Error('Invalid revocation records.');
+   const revoked=new Set();
+   for(const proof of body.revocations) {
+    const receipt=await verifyAppleReceipt(proof,{allowRevoked:true});
+    if(!receipt.revocationDate)throw new Error('Missing signed revocation.');
+    revoked.add(`apple:${receipt.environment}:${receipt.transactionId}`);
+   }
+   // Read only receipts owned by this account (including verified account merges).
+   const owner=(await playerRef(uid).get()).data();
+   const owners=[...new Set([uid,...(owner?.mergedUids||[])])];
+   for(const id of owners) {
+    const records=await db.collection('purchases').where('uid','==',id).get();
+    for(const record of records.docs) {
+     const purchase=record.data();
+     if(!purchase.consumable&&!purchase.revoked&&purchase.id.startsWith('google:') &&
+        await googlePurchaseRevoked({productId:purchase.productId,purchaseToken:purchase.id.slice(7)}))revoked.add(purchase.id);
+    }
+   }
+   result=await transact(uid,async(state,tx)=>{
+    const records=[];
+    for(const id of [uid,...(state.mergedUids||[])]) {
+     records.push(...(await tx.get(db.collection('purchases').where('uid','==',id))).docs);
+    }
+    const purchases=records.map(record=>({...record.data(),revoked:record.data().revoked||revoked.has(record.data().id)}));
+    const previousRevision=state.revision;
+    const next=reconcileEntitlements(state.save||{},purchases);
+    if(JSON.stringify(next)!==JSON.stringify(state.save))updateSave(state,next,now);
+    for(const record of records)if(revoked.has(record.data().id))tx.update(record.ref,{revoked:true,revokedAt:now});
+    return {...serverResult(state),previousRevision};
    });
   } else if(action==='merge') {
    checkRecent(token);const source=await auth.verifyIdToken(body.sourceToken,true);if(source.firebase?.sign_in_provider!=='anonymous')checkRecent(source);
@@ -184,7 +218,7 @@ export const api=onRequest({region:'europe-west3',cors:true,maxInstances:10,time
     for(const collection of ['leases','adIntents','adTransactions','purchases']){
      const documents=await db.pipeline().collection(collection).where(Pipelines.field('uid').equal(owner)).execute();
      const writer=db.bulkWriter();
-     for(const document of documents.results){if(collection==='purchases')writer.set(document.ref,{uid:null,ownerDeleted:true,productId:document.get('productId'),consumable:document.get('consumable'),at:document.get('at')});else writer.delete(document.ref);}
+     for(const document of documents.results){if(collection==='purchases')writer.set(document.ref,{uid:null,ownerDeleted:true,revoked:Boolean(document.get('revoked')),productId:document.get('productId'),consumable:document.get('consumable'),at:document.get('at')});else writer.delete(document.ref);}
      await writer.close();
     }
     await db.recursiveDelete(playerRef(owner));await db.doc(`accountMerges/${owner}`).delete();

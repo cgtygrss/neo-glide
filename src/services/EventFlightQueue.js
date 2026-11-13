@@ -1,4 +1,8 @@
 const requests = new Map();
+const terminalFlightErrors = new Set([
+  'Offline authorization expired.', 'Invalid event period.', 'Flight authorization changed.',
+  'Flight duration exceeds authorization.', 'Offline flight time exceeds authorization.'
+]);
 
 export function flushEventFlights({ uid, isCurrent, send, storage = localStorage }) {
   if (requests.has(uid)) return requests.get(uid);
@@ -8,7 +12,7 @@ export function flushEventFlights({ uid, isCurrent, send, storage = localStorage
       if (!isCurrent()) return;
       try { await send(flight); }
       catch (error) {
-        if (!/expired|authorization|period/.test(error.message)) throw error;
+        if (!terminalFlightErrors.has(error.message)) throw error;
       }
       // A running/revived flight can persist a newer checkpoint while this
       // request is in flight. Only acknowledge the exact checkpoint we sent.

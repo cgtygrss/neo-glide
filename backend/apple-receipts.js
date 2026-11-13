@@ -19,6 +19,6 @@ export async function verifyAppleReceipt(input, options = {}) {
   if (primary !== Environment.PRODUCTION || error.status !== VerificationStatus.INVALID_ENVIRONMENT) throw error;
   receipt = await verify(Environment.SANDBOX, input.signedTransaction);
  }
- if (receipt.productId !== input.productId || receipt.transactionId !== input.transactionId || receipt.revocationDate) throw new Error('App Store transaction does not match.');
+ if (receipt.productId !== input.productId || receipt.transactionId !== input.transactionId || (receipt.revocationDate && !options.allowRevoked)) throw new Error('App Store transaction does not match.');
  return receipt;
 }

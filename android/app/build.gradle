@@ -22,6 +22,11 @@ if (!playBillingPublicKey) {
 }
 def escapedPlayBillingPublicKey = playBillingPublicKey.replace("\\", "\\\\").replace("\"", "\\\"")
 
+def playGamesAppId = providers.gradleProperty("NEO_GLIDE_PLAY_GAMES_APP_ID")
+        .orElse(providers.environmentVariable("NEO_GLIDE_PLAY_GAMES_APP_ID"))
+        .map { it.trim() ?: "0" }.getOrElse("0")
+if (!(playGamesAppId ==~ /[0-9]+/)) throw new GradleException("Invalid Play Games application ID.")
+
 android {
     namespace "com.cgtygrss.neoglide"
     compileSdk rootProject.ext.compileSdkVersion
@@ -33,8 +38,8 @@ android {
         versionCode providers.gradleProperty("NEO_GLIDE_BUILD_NUMBER").map { it.toInteger() }.getOrElse(5)
         versionName new groovy.json.JsonSlurper().parse(rootProject.file("../package.json")).version
         buildConfigField "String", "PLAY_BILLING_PUBLIC_KEY", "\"${escapedPlayBillingPublicKey}\""
-        resValue "string", "game_services_project_id", providers.gradleProperty("NEO_GLIDE_PLAY_GAMES_APP_ID").getOrElse("0")
-        manifestPlaceholders["neoGlideGamesEnabled"] = providers.gradleProperty("NEO_GLIDE_PLAY_GAMES_APP_ID").map { it != "0" }.getOrElse(false)
+        resValue "string", "game_services_project_id", playGamesAppId
+        manifestPlaceholders["neoGlideGamesEnabled"] = playGamesAppId != "0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

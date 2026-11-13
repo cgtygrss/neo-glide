@@ -288,6 +288,19 @@ private actor NeoGlideStore {
         return receipts
     }
 
+    func revokedTransactions() async -> [[String: Any]] {
+        var receipts: [[String: Any]] = []
+        // Refunded products are absent from currentEntitlements. Keep their
+        // signed historical transactions so the server can verify revocation.
+        for await result in StoreKit.Transaction.all {
+            if case .verified(let transaction) = result,
+               transaction.revocationDate != nil, permanentIDs.contains(transaction.productID) {
+                receipts.append(["transactionId": String(transaction.id), "productId": transaction.productID, "signedTransaction": result.jwsRepresentation])
+            }
+        }
+        return receipts
+    }
+
     func restore() async throws -> [String: Any] {
         guard !purchaseActive else { throw failure("Another store request is still in progress.") }
         purchaseActive = true
@@ -366,7 +379,7 @@ public class NeoGlideStorePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func currentEntitlements(_ call: CAPPluginCall) {
         startUpdates()
-        Task { call.resolve(["productIds": await store.entitlements(), "transactions": await store.entitlementTransactions()]) }
+        Task { call.resolve(["productIds": await store.entitlements(), "transactions": await store.entitlementTransactions(), "revocations": await store.revokedTransactions()]) }
     }
 
     @objc func finishTransaction(_ call: CAPPluginCall) {

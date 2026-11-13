@@ -74,8 +74,26 @@ test('authenticated server transactions, offline authorization, quotas and rules
  const merged=await call('merge',{sourceToken:a.idToken,sourceRevision:origin.revision,targetRevision:target.revision,choice:'source'},b.idToken);
  assert.equal(merged.status,200,JSON.stringify(merged.body));assert.equal(JSON.parse(merged.body.save.neon_glide_wallet_v3).balance,10100);
  assert.ok(merged.body.instances.find(i=>i.instanceId===id).claims[0]);
+ // Reconciliation uses owned server receipts, ignores client omission/revoked flags,
+ // honors already verified tombstones, and includes receipts of merged accounts.
+ const stateRef=db.doc(`players/${b.localId}`), purchaseState=(await stateRef.get()).data();
+ const purchaseWallet=JSON.parse(purchaseState.save.neon_glide_wallet_v3);
+ purchaseWallet.cloudEntitlements={cosmetic_void_pilot:true,cosmetic_jade_drift:true};
+ purchaseWallet.creditCosmetics={void_pilot:true};purchaseWallet.eventCosmetics={jade_drift:true};
+ await stateRef.update({save:{...purchaseState.save,neon_glide_wallet_v3:JSON.stringify(purchaseWallet)}});
+ await db.doc('purchases/revoked-test').set({uid:a.localId,id:'apple:Production:1',productId:'cosmetic_void_pilot',consumable:false,revoked:true,at:Date.now()});
+ await db.doc('purchases/valid-test').set({uid:b.localId,id:'apple:Production:2',productId:'cosmetic_jade_drift',consumable:false,at:Date.now()});
+ const reconciled=await call('reconcilePurchases',{revocations:[],productIds:[],revoked:true},b.idToken);
+ assert.equal(reconciled.status,200,JSON.stringify(reconciled.body));
+ const reconciledWallet=JSON.parse(reconciled.body.save.neon_glide_wallet_v3);
+ assert.deepEqual(reconciledWallet.cloudEntitlements,{cosmetic_jade_drift:true});
+ assert.deepEqual(reconciledWallet.creditCosmetics,{void_pilot:true});
+ assert.deepEqual(reconciledWallet.eventCosmetics,{jade_drift:true});
+ assert.equal((await call('reconcilePurchases',{revocations:[{productId:'cosmetic_jade_drift',transactionId:'2',signedTransaction:'forged'}]},b.idToken)).status,400);
+ assert.equal((await db.doc('purchases/valid-test').get()).data().revoked,undefined);
  const deleted=await call('deleteAccount',{},b.idToken);assert.equal(deleted.status,200,JSON.stringify(deleted.body));
  assert.equal((await db.doc(`players/${b.localId}`).get()).exists,false);
+ assert.equal((await db.doc('purchases/revoked-test').get()).data().revoked,true);
  assert.equal((await db.doc(`leases/${first.lease.id}`).get()).exists,false);
  assert.equal((await db.doc(`adIntents/${bonus.body.id}`).get()).exists,false);
  await assert.rejects(()=>getAuth().getUser(a.localId),error=>error.code==='auth/user-not-found');

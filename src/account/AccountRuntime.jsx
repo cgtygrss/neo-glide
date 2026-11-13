@@ -43,6 +43,8 @@ const storeAccounts = {
     if (!error.message.includes('another game account')) throw error;
    }
   }
+  const result = await callServer('reconcilePurchases', { revocations: snapshot.revocations || [] }, token);
+  integrateOwnership(context.owner, result);
  }
 };
 export default function AccountRuntime({ startupComplete = true }) {

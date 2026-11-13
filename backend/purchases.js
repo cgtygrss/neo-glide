@@ -8,11 +8,7 @@ export async function verifyStorePurchase(input) {
  if(!product||typeof input.transactionId!=='string')throw new Error('Unknown store product.');
  if(input.platform==='android') {
   if(!cosmetics.has(input.productId)||typeof input.purchaseToken!=='string')throw new Error('Product unavailable on Android.');
-  const auth=new GoogleAuth({scopes:['https://www.googleapis.com/auth/androidpublisher']});
-  const token=await auth.getAccessToken(),pkg=process.env.ANDROID_PACKAGE||'com.cgtygrss.neoglide';
-  const response=await fetch(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(pkg)}/purchases/products/${encodeURIComponent(input.productId)}/tokens/${encodeURIComponent(input.purchaseToken)}`,{headers:{Authorization:`Bearer ${token}`}});
-  if(!response.ok)throw new Error('Google Play could not verify this purchase.');
-  const receipt=await response.json();if(receipt.purchaseState!==0)throw new Error('Purchase is not completed.');
+  if(await googlePurchaseRevoked(input))throw new Error('Purchase is not completed.');
   return {id:`google:${input.purchaseToken}`,productId:input.productId,...product};
  }
  if(input.platform==='ios') {
@@ -21,4 +17,17 @@ export async function verifyStorePurchase(input) {
   return {id:`apple:${receipt.environment}:${receipt.transactionId}`,environment:receipt.environment,productId:input.productId,...product};
  }
  throw new Error('A native store receipt is required.');
+}
+
+// Only Google's explicit canceled state revokes ownership. Pending purchases,
+// unavailable APIs and missing responses never erase an existing entitlement.
+export async function googlePurchaseRevoked(input, options = {}) {
+ const token=await (options.accessToken || (()=>new GoogleAuth({scopes:['https://www.googleapis.com/auth/androidpublisher']}).getAccessToken()))();
+ const pkg=process.env.ANDROID_PACKAGE||'com.cgtygrss.neoglide';
+ const response=await (options.fetch || fetch)(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(pkg)}/purchases/products/${encodeURIComponent(input.productId)}/tokens/${encodeURIComponent(input.purchaseToken)}`,{headers:{Authorization:`Bearer ${token}`}});
+ if(!response.ok)throw new Error('Google Play could not verify this purchase.');
+ const receipt=await response.json();
+ if(receipt.purchaseState===1)return true;
+ if(receipt.purchaseState!==0)throw new Error('Purchase is not completed.');
+ return false;
 }

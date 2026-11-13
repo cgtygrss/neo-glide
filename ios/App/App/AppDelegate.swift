@@ -80,6 +80,13 @@ class GameBridgeViewController: CAPBridgeViewController {
         poster?.accessibilityElementsHidden = true
         if let poster { view.addSubview(poster) }
         startupPoster = poster
+        // The web-ready notification uses animation frames. On a cold WKWebView
+        // those frames can be delayed while this native view covers the page.
+        // Never let the decorative cover prevent the underlying age/error UI
+        // from becoming visible when that notification is delayed or lost.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.revealStartupContent()
+        }
     }
 
     func revealStartupContent() {

@@ -39,7 +39,7 @@ lane :publish_android do
     aab: snapshot.fetch('androidExists') ? nil : File.join(ROOT, 'ci-output/NeoGlide.aab'),
     skip_upload_aab: snapshot.fetch('androidExists'), version_code: identity.fetch('build').to_i,
     track: config.fetch('androidTrack'), release_status: 'completed',
-    release_name: "#{identity.fetch('version')} (#{identity.fetch('build')})",
+    version_name: "#{identity.fetch('version')} (#{identity.fetch('build')})",
     metadata_path: File.join(ROOT, 'ci-output/play-metadata'),
     skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true,
     changes_not_sent_for_review: false, rescue_changes_not_sent_for_review: false
@@ -76,7 +76,7 @@ lane :test_android do
     aab: snapshot.fetch('androidExists') ? nil : File.join(ROOT, 'ci-output/NeoGlide.aab'),
     skip_upload_aab: snapshot.fetch('androidExists'), version_code: identity.fetch('build').to_i,
     track: 'internal', release_status: 'completed',
-    release_name: "Device verification #{identity.fetch('version')} (#{identity.fetch('build')})",
+    version_name: "Device verification #{identity.fetch('version')} (#{identity.fetch('build')})",
     skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true,
     changes_not_sent_for_review: false, rescue_changes_not_sent_for_review: false
   )

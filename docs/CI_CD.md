@@ -107,7 +107,13 @@ OIDC provider and additive IAM bindings, preserving existing policies/etags:
 - `neo-glide-firebase-deployer@neo-glide-live.iam.gserviceaccount.com` receives
   Cloud Functions Developer, Firebase Hosting Admin, Firebase Rules Admin,
   Datastore Index Admin, Service Usage Consumer and Firebase Viewer in this
-  project. Service Account User applies only to the existing runtime account.
+  project. The custom `neoGlideFunctionAccessPublisher` role adds only
+  `cloudfunctions.functions.setIamPolicy` and `run.services.setIamPolicy`,
+  required to create public HTTPS functions. It permits changing access policies
+  on this project's functions/Cloud Run services; no Cloud Functions Admin role
+  is granted. Service Account User is bound separately to the existing compute
+  runtime account and the App Engine default account required by the pinned
+  Firebase CLI's preflight, never at project scope.
   As expected, ability to deploy server code also allows acting through that
   server's runtime identity; this account is restricted to trusted main jobs.
 - Trust is bound to immutable GitHub repository/owner IDs, refs/heads/main and
@@ -169,6 +175,16 @@ success is not a legal-compliance or error-free-game guarantee. A partial store
 submission cannot be rolled back atomically: preserve its successful submission,
 fix the failing step and rerun failed jobs. For a released defect, prepare a new
 version on Dev; do not reuse an old build number or automatically withdraw an app.
+
+Reruns use the original workflow commit. If delivery code itself is broken, fix
+it through Dev → main. An owner can recover the missing store submission using
+the exact retained signed artifact after matching its SHA-256, source/main
+identity, passing checks and review gates. Preserve the successful other-store
+submission. Check the exact Play build's Console availability before acknowledging
+it on the correct channel; a manual recovery does not turn the failed Actions run
+green. Build 103 used this path for Android after Fastlane rejected an unsupported
+option before any upload. The lane contract test now validates options against
+the installed locked Fastlane schemas as well as executing distribution guards.
 
 First activation: obtain a passing signed dry run and resolve outstanding review
 gates, then set repository variable `AUTO_PUBLISH_ENABLED=true`. Until then every

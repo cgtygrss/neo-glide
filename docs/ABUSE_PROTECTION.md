@@ -1,10 +1,19 @@
 # Abuse protection — implementation and activation
 
-Prepared on **Dev, 2026-11-16**. Source changes are prepared on Dev and are **not deployed**.
-App Attest was enabled for the existing Apple bundle and its replacement App Store
-profile was validated and stored in `store-release/IOS_PROFILE_BASE64`. The
-existing Functions environment secret explicitly selects `APP_CHECK_MODE=monitor`.
-These account changes do not deploy the new backend or prove real device attestation.
+Staged on **2026-11-16** through Dev → main. Signed dry run **102** passed.
+Device-validation run **43871744579** deployed only `apiSandbox` and
+`appStoreSandboxNotifications`, with `APP_CHECK_MODE=enforce`; the refund index is
+READY. The existing production API/SSV build revisions and update times were
+unchanged. Real deployed checks reject missing/forged App Check tokens (401) and
+unsigned Apple notifications (400). TestFlight and Play internal **1.3.0 (103)**
+are available; this is not public availability or proof of real-device attestation.
+
+App Attest and Play Integrity are registered in Firebase; Play Integrity is linked
+to the correct Cloud project and the actual Play signing SHA-1/SHA-256 certificates
+are registered. The replacement Apple profile signs production App Attest.
+Apple's Sandbox V2 callback URL is configured. Signed callback delivery, physical
+device tests and production activation remain pending. Public publishing stays
+paused; the stored production Functions environment still selects `monitor`.
 
 ## Online economy and retained saves
 
@@ -163,7 +172,7 @@ Local verification on 2026-11-16: 393 game tests, 42 backend unit tests,
 The backend unit command skips the emulator-only test; it passed in that separate
 integration run. Lint, web/admin builds, Android unit/lint/release and iOS Release
 simulator compilation passed. The eight-capture iOS UI scenario passed on the
-installed **iOS 27.0 runtime with Xcode 27.2 SDK**; hosted CI still targets iOS 27.2.
+installed **iOS 27.0 runtime with Xcode 27.2 SDK** and hosted **iOS 27.2** CI.
 Root/backend npm audits reported no vulnerabilities; the Firebase CLI toolchain
 has 14 moderate transitive advisories and no high/critical findings. A forced
 breaking toolchain downgrade was not applied.

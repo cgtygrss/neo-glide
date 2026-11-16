@@ -148,7 +148,7 @@ Release navigation/flight/pause/background smoke test. Integration covers migrat
 archive retention, separate banks, 426 legacy writes, concurrent spend/retry,
 refund rollback/reversal, account merge/deletion, cross-account rejection,
 request budgets, reward replay, stable leases, no-op allocation and direct DB denial.
-Local verification on 2026-11-16: 393 game tests, 41 backend unit tests,
+Local verification on 2026-11-16: 393 game tests, 42 backend unit tests,
 10 pipeline tests, and the separately required Auth–Firestore integration passed.
 The backend unit command skips the emulator-only test; it passed in that separate
 integration run. Lint, web/admin builds, Android unit/lint/release and iOS Release

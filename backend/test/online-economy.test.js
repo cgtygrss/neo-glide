@@ -18,6 +18,15 @@ test('server prices, insufficient funds, forged prices and paid ownership contro
  assert.throws(()=>spendCredits(start,{kind:'weapon',id:'antimatter',expectedPrice:2000000},0),/Not enough/);
  assert.equal(spendCredits(start,{kind:'upgrade',id:'battery',expectedPrice:5000},0).save.neon_glide_upgrades,'{"battery":2}');
 });
+
+test('prototype names cannot select unowned presentation equipment',()=>{
+ const authoritative=initialOnlineSave(null,[],'Production');
+ for(const id of ['constructor','__proto__','prototype']){
+  const wallet={...walletOf(authoritative),equippedStage:id};
+  const next=protectEconomicSave({...authoritative,neon_glide_equipped_cosmetic:id,neon_glide_wallet_v3:JSON.stringify(wallet)},authoritative);
+  assert.equal(next.neon_glide_equipped_cosmetic,'');assert.equal(walletOf(next).equippedStage,'default');
+ }
+});
 test('validated flight highwater grants loot, distance, combat and levels exactly once',()=>{
  const start=initialOnlineSave(null,[],'Production'),run={seconds:300,distance:3000,coins:20000,bosses:1,eliteBosses:0};
  const first=applyFlightEarnings(start,run,null);assert.equal(walletOf(first).balance,65000);assert.equal(JSON.parse(first.neon_glide_pilot_profile_v2).level,2);

@@ -51,9 +51,10 @@ export function protectEconomicSave(incoming,authoritative) {
  if(typeof nextProfile.displayName==='string'&&nextProfile.displayName.length<=24)profile.displayName=nextProfile.displayName;
  for(const [key,owned] of [['neon_glide_equipped_ship',read(authoritative,'neon_glide_owned_ships',['default'])],['neon_glide_equipped_weapon',read(authoritative,'neon_glide_owned_weapons',['default'])]])if(owned.includes(incoming[key]))result[key]=incoming[key];
  const candidate=incoming.neon_glide_equipped_cosmetic;
- if(candidate===''||ownedCosmetics(wallet)[candidate])result.neon_glide_equipped_cosmetic=candidate;
+ const cosmetics=ownedCosmetics(wallet);
+ if(candidate===''||(Object.hasOwn(cosmetics,candidate)&&cosmetics[candidate]===true))result.neon_glide_equipped_cosmetic=candidate;
  const incomingWallet=walletOf(incoming);
- if(incoming.neon_glide_wallet_v3&&(incomingWallet.equippedStage==='default'||wallet.creditStages[incomingWallet.equippedStage]))wallet.equippedStage=incomingWallet.equippedStage;
+ if(incoming.neon_glide_wallet_v3&&(incomingWallet.equippedStage==='default'||(Object.hasOwn(wallet.creditStages,incomingWallet.equippedStage)&&wallet.creditStages[incomingWallet.equippedStage]===true)))wallet.equippedStage=incomingWallet.equippedStage;
  if(incoming.neon_glide_learned_controls==='true')result.neon_glide_learned_controls='true';
  result.neon_glide_pilot_profile_v2=JSON.stringify(profile);result.neon_glide_wallet_v3=JSON.stringify(wallet);return result;
 }

@@ -5,7 +5,7 @@ import { ScoutBeam, isScout, scoutRay, trackScoutAim, SCOUT_WARNING_SECONDS, SCO
 
 export const START_SPEED = 360;
 export const CRUISE_SPEED = 520;
-export const INITIAL_RAMP_SECONDS = 35;
+const INITIAL_RAMP_SECONDS = 35;
 export const MAX_SPEED = 850;
 export const SPEED_RAMP_SECONDS = 180;
 export const ENEMY_ATTACK_WARNING_SECONDS = .55;

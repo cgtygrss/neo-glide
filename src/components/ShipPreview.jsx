@@ -1,4 +1,4 @@
-import React from "react";
+
 import { getShip, getEngineFlame } from "../game/ShipCatalog";
 import { getCosmeticPalette } from "../game/CosmeticsCatalog";
 import CosmeticAdornment from './CosmeticAdornment';

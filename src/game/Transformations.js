@@ -8,7 +8,7 @@ import { getTransformation, TRANSFORMATIONS, TRANSFORMATION_SECONDS, ENTRY_PROTE
 
 export const createTransformationDirector = () => ({ normalTime: 0, nextAt: FIRST_CAPSULE_SECONDS, capsule: null, bag: [], lastId: null });
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
-export function transformationArena(width, height) {
+function transformationArena(width, height) {
   // These are movement bounds inside the existing flight, not a separate arena.
   const top = Math.min(8, height * .02);
   const bottom = Math.max(top + 60, height - Math.min(80, height * .2));

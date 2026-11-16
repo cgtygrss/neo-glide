@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ArrowUp, Crosshair, X } from "lucide-react";
 
 export default function Tutorial({ boosted, fired, onComplete, onSkip }) {

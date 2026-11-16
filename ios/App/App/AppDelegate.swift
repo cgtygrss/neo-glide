@@ -3,6 +3,7 @@ import Capacitor
 import CapacitorCommunityAdmob
 import FirebaseCore
 import FirebaseAuth
+import FirebaseAppCheck
 import GoogleSignIn
 import GameKit
 import StoreKit
@@ -459,15 +460,23 @@ public class NeoGlidePrivacyPlugin: CAPPlugin, CAPBridgedPlugin {
 
 // Account credentials stay in the native Firebase SDK/Keychain. Candidate
 // sign-ins use a second Firebase app until cloud conflict resolution succeeds.
+private class NeoGlideAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
+    func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
+        // Simulator tests use offline family play. Never embed a debug token or
+        // ship a debug-provider fallback in a store artifact.
+        return AppAttestProvider(app: app)
+    }
+}
 @objc(NeoGlideAuthPlugin)
 public class NeoGlideAuthPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "NeoGlideAuthPlugin"
     public let jsName = "NeoGlideAuth"
-    public let pluginMethods: [CAPPluginMethod] = ["restoreSession", "signInGuest", "getIdToken", "getPlayerProfile", "beginSignIn", "commitSignIn", "autoSignIn", "signOut", "deleteAccount"].map { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
+    public let pluginMethods: [CAPPluginMethod] = ["restoreSession", "signInGuest", "getIdToken", "getAppCheckToken", "getRuntimeEnvironment", "getPlayerProfile", "beginSignIn", "commitSignIn", "autoSignIn", "signOut", "deleteAccount"].map { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
     private var candidate: AuthCredential?
     private func session() throws -> Auth {
         if FirebaseApp.app() == nil {
             guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else { throw NSError(domain: "NeoGlideAuth", code: 1, userInfo: [NSLocalizedDescriptionKey: "Firebase configuration is unavailable."]) }
+            AppCheck.setAppCheckProviderFactory(NeoGlideAppCheckProviderFactory())
             FirebaseApp.configure()
         }
         return Auth.auth()
@@ -477,6 +486,21 @@ public class NeoGlideAuthPlugin: CAPPlugin, CAPBridgedPlugin {
         return ["user": ["uid": user.uid, "name": user.displayName ?? "Guest pilot", "anonymous": user.isAnonymous, "providers": user.providerData.map { $0.providerID }]]
     }
     @objc func restoreSession(_ call: CAPPluginCall) { do { call.resolve(describe(try session().currentUser)) } catch { call.reject(error.localizedDescription) } }
+    @objc func getRuntimeEnvironment(_ call: CAPPluginCall) {
+        Task {
+            if #available(iOS 16.0, *) {
+                do {
+                    let result = try await AppTransaction.shared
+                    guard case .verified(let transaction) = result else { call.reject("App environment could not be verified."); return }
+                    let environment = transaction.environment == .production ? "Production" : transaction.environment == .sandbox ? "Sandbox" : "Xcode"
+                    call.resolve(["environment": environment])
+                } catch { call.reject("App environment could not be verified.") }
+            } else {
+                guard let receipt = Bundle.main.appStoreReceiptURL, FileManager.default.fileExists(atPath: receipt.path) else { call.reject("App environment could not be verified."); return }
+                call.resolve(["environment": receipt.lastPathComponent == "sandboxReceipt" ? "Sandbox" : "Production"])
+            }
+        }
+    }
     @objc func getPlayerProfile(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             let player = GKLocalPlayer.local
@@ -506,6 +530,15 @@ public class NeoGlideAuthPlugin: CAPPlugin, CAPBridgedPlugin {
         do { guard let user = try session().currentUser else { call.reject("Not signed in."); return }
             user.getIDToken { token, error in if let token { call.resolve(["token": token]) } else { call.reject(error?.localizedDescription ?? "Session expired.") } }
         } catch { call.reject(error.localizedDescription) }
+    }
+    @objc func getAppCheckToken(_ call: CAPPluginCall) {
+        do {
+            _ = try session()
+            AppCheck.appCheck().token(forcingRefresh: false) { token, _ in
+                if let token { call.resolve(["token": token.token]) }
+                else { call.reject("App verification is unavailable.") }
+            }
+        } catch { call.reject("App verification is unavailable.") }
     }
     @objc func beginSignIn(_ call: CAPPluginCall) {
         DispatchQueue.main.async {

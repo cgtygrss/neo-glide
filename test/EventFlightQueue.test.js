@@ -35,6 +35,15 @@ test('network errors retain checkpoints for automatic retry; expired leases do n
   assert.deepEqual(f.read(), []);
 });
 
+test('rejected counters do not block later flights; rate limits retain valid checkpoints', async () => {
+  const f=fixture([{runId:'rejected'}, {runId:'valid'}]),sent=[];
+  await flushEventFlights({...f,send:async flight=>{sent.push(flight.runId);if(flight.runId==='rejected')throw new Error('Flight counters exceed limits.');}});
+  assert.deepEqual(sent,['rejected','valid']);assert.deepEqual(f.read(),[]);
+  const retry=fixture();
+  await assert.rejects(flushEventFlights({...retry,send:async()=>{throw new Error('Too many requests. Try again later.');}}));
+  assert.equal(retry.read().length,1);
+});
+
 test('switching owners during upload never sends the old queue under the new account', async () => {
   const f = fixture([{ runId: 'one' }, { runId: 'two' }]); let current = true, calls = 0;
   await flushEventFlights({ ...f, isCurrent: () => current, send: async () => { calls++; current = false; } });

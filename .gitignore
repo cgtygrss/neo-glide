@@ -44,12 +44,8 @@ dist-admin/
 backend/.env.local
 backend/.secret.local
 
-# Swift configuration helper build products
-scripts/ios-accounts/.build/
-
 # Deployment-specific owner configuration stays on this machine.
 backend/.env.*
-!backend/.env.example
 **/xcuserdata/
 
 # CI credentials and generated products

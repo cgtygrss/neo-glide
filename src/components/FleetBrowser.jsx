@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Check, Coins, LockKeyhole, Sparkles, Play, Eye, Heart, Zap, Crosshair } from "lucide-react";
 import { SHIPS, getShip } from "../game/ShipCatalog";
 import ShipPreview from "./ShipPreview";

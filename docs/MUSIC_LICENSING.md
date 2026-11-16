@@ -94,5 +94,4 @@ npx cap copy
 The script verifies the source hashes before preparing assets. AAC encoder
 versions may change output bytes; rebuilding refreshes the output hashes.
 The music-asset tests verify hashes and prevent the removed personal-use assets
-from returning to the public bundle. Preview the actual game player at
-`/dev/music.html` during development.
+from returning to the public bundle. Test playback through the game during development.

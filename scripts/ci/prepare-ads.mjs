@@ -3,8 +3,8 @@ import { execFileSync } from 'node:child_process';
 const platform = process.argv[2];
 if (!['ios', 'android'].includes(platform)) throw new Error('Specify ios or android.');
 const live = platform === 'ios' || process.env.ANDROID_TRACK === 'production';
-const keys = ['REWARDED', 'INTERSTITIAL', 'REWARDED_INTERSTITIAL'].map(format => `VITE_ADMOB_${format}_${platform.toUpperCase()}`);
-writeFileSync('.env.release.local', [`VITE_ADMOB_LIVE_RELEASE=${live}`, ...keys.map(key => `${key}=${process.env[key] || ''}`)].join('\n') + '\n');
+const key = `VITE_ADMOB_REWARDED_${platform.toUpperCase()}`;
+writeFileSync('.env.release.local', [`VITE_ADMOB_LIVE_RELEASE=${live}`, `${key}=${process.env[key] || ''}`].join('\n') + '\n');
 if (live) {
   const appId = process.env[`${platform.toUpperCase()}_ADMOB_APP_ID`];
   if (!appId || !/^ca-app-pub-\d+~\d+$/.test(appId)) throw new Error('Invalid native AdMob app ID.');

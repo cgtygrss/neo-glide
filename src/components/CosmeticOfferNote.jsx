@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { cosmeticCreditOffer, offerDeadline } from '../game/GarageOffers';
 import useOfferClock from './useOfferClock';
 

@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { validateFunctionsEnvironment } from './functions-config.mjs';
 const require = createRequire(new URL('../../backend/package.json', import.meta.url));
 const { GoogleAuth } = require('google-auth-library');
 const config = JSON.parse(readFileSync('ci/release.json'));
@@ -51,9 +52,7 @@ try {
   await status('in_progress', 'Deploying changed components');
   if (changed.includes('functions')) {
     const environment = process.env.FIREBASE_FUNCTIONS_ENV || '';
-    for (const key of ['BOOTSTRAP_ADMIN_EMAIL', 'EVENT_AD_UNITS', 'ANDROID_PACKAGE', 'APPLE_BUNDLE_ID', 'APPLE_APP_ID', 'APPLE_ENVIRONMENT']) {
-      if (!new RegExp(`^${key}=.+$`, 'm').test(environment)) throw new Error(`Missing Functions environment value: ${key}`);
-    }
+    validateFunctionsEnvironment(environment);
     writeFileSync(envFile, environment + '\n', { mode: 0o600 });
   }
   const only = [];

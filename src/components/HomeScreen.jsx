@@ -1,6 +1,6 @@
 import { APP_VERSION } from '../version.js';
 import { flightEquipment } from '../game/FlightEquipment';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Coins, Heart, HelpCircle, Music2, Orbit, Play, Rocket, Settings, ShieldCheck, Sparkles, Trophy, Wrench, X, Zap } from 'lucide-react';
 import ShipPreview from './ShipPreview';
 import { getStage } from '../game/StageCatalog';

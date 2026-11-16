@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Zap, Rocket, ArrowLeft, Crosshair, Star, BadgeDollarSign, Coins, Check, ArrowRight, Sparkles, Play, Eye, ShoppingBag } from 'lucide-react';
 import StageBrowser from './StageBrowser';
 import RealMoneyStore from './RealMoneyStore';

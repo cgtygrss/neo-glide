@@ -24,5 +24,6 @@ PNGs. It does not crop, resize, add artwork, or alter product/progress data.
 Inspect each output before uploading; a failed navigation is not a valid store
 asset. The generated manifest records device IDs, timestamps and hashes.
 
-Build 6 was captured on iPhone 18 Pro Max and iPad Pro 13-inch (M5). The result
-bundle and detailed logs for this release are in /tmp/neo-glide-build6-capture.
+
+`CISmoke.swift` is the current navigation/flight/lifecycle test used by
+`scripts/ci/ios-smoke.sh`. Keep its harness files separate from production sources.

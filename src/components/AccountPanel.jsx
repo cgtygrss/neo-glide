@@ -1,7 +1,10 @@
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowRight, Check, ChevronDown, Cloud, CloudOff, Gamepad2, Link2, Monitor, Pencil, RefreshCw, ShieldCheck, Trash2, UserRound } from 'lucide-react';
 import { accountSnapshot, subscribeAccount, connectAccount, resolveConflict, deleteAccount } from '../account/AccountService';
-import { identity } from '../account/FirebaseClient';
+import { identity,callServer } from '../account/FirebaseClient';
+import { ownerId,getLocalProfile } from '../account/ProfileStorage.js';
+import { runtimeRealm,accountStorage } from '../account/RuntimeRealm.js';
+import { localPlaySelection,selectLocalPlay,returnToOnline } from '../account/LocalPlayMode.js';
 import './AccountPanel.css';
 import { automaticPilotName, pilotDisplayName, PILOT_NAME_LIMIT } from '../account/PilotIdentity';
 import { onlineServicesAllowed } from '../privacy/AudiencePolicy.js';
@@ -25,6 +28,7 @@ export default function AccountPanel({ profile, onRename }) {
   const providers = account.user?.providers || [];
   const connected = !account.user?.anonymous && providers.length > 0;
   const synced = account.status === 'synced';
+  const owner=ownerId(),archive=accountStorage.getItem(`neo_glide_pre_economy_v1:${owner}`),legacyAvailable=Boolean(archive||getLocalProfile().legacyArchiveAvailable);
   const syncing = account.status === 'syncing';
   const cloudTitle = account.conflict ? 'Two saves, one next adventure.' : synced ? 'Your progress is up to date.' : syncing ? 'Saving your latest adventure…' : 'Your device save is ready.';
   const cloudDescription = account.conflict ? 'Choose the progress you want to continue with below.' : synced ? 'Your progress and events sync automatically every minute.' : syncing ? 'Your progress is syncing automatically. You can keep playing.' : 'Your progress is saved on this device. Cloud sync retries automatically when online.';
@@ -37,7 +41,7 @@ export default function AccountPanel({ profile, onRename }) {
     ...(identity.platform === 'ios' ? [{ id: 'gamecenter', provider: 'gc.apple.com', name: 'Game Center', icon: Gamepad2, description: 'Keep your pilot connected on Apple devices.' }] : []),
   ];
 
-  if (!onlineServicesAllowed()) return <section className="pilot-account" aria-label="Family play account"><h2>Saved on this device</h2><p>Family play does not connect to Google, Game Center or cloud accounts. Your progress and earned items stay on this device.</p><p>A parent can find support and deletion information in Home → Settings → Support & parents.</p></section>;
+  if (!onlineServicesAllowed()) return <section className="pilot-account" aria-label="Family play account"><h2>Saved on this device</h2><p>Local play does not connect to Google, Game Center or cloud accounts. Your progress and earned items stay on this device.</p>{localPlaySelection()&&<button onClick={()=>{returnToOnline();window.location.reload();}}>Return to online save</button>}<p>A parent can find support and deletion information in Home → Settings → Support & parents.</p></section>;
   return <section className="pilot-account" aria-label="Pilot account">
     <div className="pilot-identity">
       <div className="pilot-avatar" aria-hidden="true"><UserRound size={31}/><span>LV {profile.level}</span></div>
@@ -55,6 +59,7 @@ export default function AccountPanel({ profile, onRename }) {
       {profile.displayName && <p>Automatic name: {automaticPilotName(account.user)}</p>}
     </form>}
     {nameNotice && <p className="pilot-account-message" role="status">{nameNotice}</p>}
+    {legacyAvailable&&<section className="pilot-cloud" aria-label="Previous local save"><div><h3>Your previous save is retained</h3><p>Online credits and unlocks now use verified server records. You can keep playing your previous save offline; its progress stays separate.</p><button disabled={account.busy} onClick={()=>run(async()=>{const profile=archive?JSON.parse(archive):await callServer('legacySave');selectLocalPlay(owner,runtimeRealm(),profile);window.location.reload();})}>Play previous save offline</button></div></section>}
 
     <section className={`pilot-cloud ${synced ? 'is-synced' : ''} ${account.conflict ? 'has-conflict' : ''}`} aria-label="Save status">
       <span className="account-feature-icon">{synced ? <ShieldCheck size={23}/> : account.status === 'offline' ? <CloudOff size={23}/> : <Cloud size={23}/>}</span>

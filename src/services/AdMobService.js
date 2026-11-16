@@ -4,15 +4,12 @@ import {
   AdmobConsentStatus,
   MaxAdContentRating,
   RewardAdPluginEvents,
-  RewardInterstitialAdPluginEvents,
-  InterstitialAdPluginEvents,
 } from '@capacitor-community/admob';
 import { withAdAudioRecovery } from './AdAudioRecovery.js';
 import { onlineServicesAllowed } from '../privacy/AudiencePolicy.js';
+import { isTestRealm } from '../account/RuntimeRealm.js';
 
 const TEST_REWARDED_IDS = { android: 'ca-app-pub-3940256099942544/5224354917', ios: 'ca-app-pub-3940256099942544/1712485313' };
-const TEST_INTERSTITIAL_IDS = { android: 'ca-app-pub-3940256099942544/1033173712', ios: 'ca-app-pub-3940256099942544/4411468910' };
-const TEST_REWARDED_INTERSTITIAL_IDS = { android: 'ca-app-pub-3940256099942544/5354046379', ios: 'ca-app-pub-3940256099942544/6978759866' };
 const PRIVACY_OPTIONS_REQUIRED = 'REQUIRED';
 
 let privacyOptionsRequired = false;
@@ -20,15 +17,13 @@ const nativePrivacy = registerPlugin('NeoGlidePrivacy');
 
 const platform = () => Capacitor.getPlatform();
 const configuredRewardedId = () => platform() === 'ios' ? import.meta.env.VITE_ADMOB_REWARDED_IOS : import.meta.env.VITE_ADMOB_REWARDED_ANDROID;
-const configuredInterstitialId = () => platform() === 'ios' ? import.meta.env.VITE_ADMOB_INTERSTITIAL_IOS : import.meta.env.VITE_ADMOB_INTERSTITIAL_ANDROID;
-const configuredRewardedInterstitialId = () => platform() === 'ios' ? import.meta.env.VITE_ADMOB_REWARDED_INTERSTITIAL_IOS : import.meta.env.VITE_ADMOB_REWARDED_INTERSTITIAL_ANDROID;
 
 // Live inventory is intentionally opt-in. `npm run build` always compiles test IDs,
 // even if a local .env.production contains live unit IDs.
 const isLiveNativeInventoryEnabled = () => import.meta.env.MODE === 'release' && import.meta.env.VITE_ADMOB_LIVE_RELEASE === 'true';
 const isTestAdsEnabled = () => !isLiveNativeInventoryEnabled();
 
-export const isNativeAdMobAvailable = () => onlineServicesAllowed() && Capacitor.isNativePlatform();
+export const isNativeAdMobAvailable = () => onlineServicesAllowed() && !isTestRealm() && Capacitor.isNativePlatform();
 export const isAdPrivacyOptionsRequired = () => privacyOptionsRequired;
 
 export function updatePrivacyState(consent) {
@@ -198,27 +193,6 @@ const runRewardedAd = createSingleFlightRunner(async (ssv) => {
   });
 
 export const showAdMobRewardedAd = ssv => runRewardedAd(ssv);
-
-export async function showAdMobInterstitial() {
-  const status = await initializeAdMob();
-  if (!status.ready) throw new Error('Advertising consent is required before loading an ad.');
-  const adId = isTestAdsEnabled() ? TEST_INTERSTITIAL_IDS[platform()] : configuredInterstitialId();
-  if (!adId) throw new Error('The interstitial AdMob unit is not configured.');
-  await withAdAudioRecovery(async () => {
-    await AdMob.prepareInterstitial({ adId, isTesting: isTestAdsEnabled(), immersiveMode: true });
-    return presentRewardedAd({ adMob: AdMob, events: InterstitialAdPluginEvents, show: () => AdMob.showInterstitial() });
-  });
-}
-
-const runRewardedInterstitialAd = createSingleFlightRunner(async () => {
-    const status = await initializeAdMob();
-    if (!status.ready) throw new Error('Advertising consent is required before loading an ad.');
-    const adId = isTestAdsEnabled() ? TEST_REWARDED_INTERSTITIAL_IDS[platform()] : configuredRewardedInterstitialId();
-    if (!adId) throw new Error('The rewarded AdMob unit is not configured.');
-    return showConfiguredRewardedAd({ prepare: options => AdMob.prepareRewardInterstitialAd(options), show: () => AdMob.showRewardInterstitialAd(), adId, events: RewardInterstitialAdPluginEvents });
-  });
-
-export const showAdMobRewardedInterstitial = () => runRewardedInterstitialAd();
 
 export async function showAdPrivacyOptions() {
   if (!isNativeAdMobAvailable()) return { required: false };

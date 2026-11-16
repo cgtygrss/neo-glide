@@ -68,7 +68,7 @@ Environment secrets:
 | ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD | Existing upload key passwords |
 | NEO_GLIDE_PLAY_BILLING_PUBLIC_KEY | App's Play licensing public key |
 | IOS_CERTIFICATE_BASE64 / IOS_CERTIFICATE_PASSWORD | Encrypted Apple Distribution PKCS#12 |
-| IOS_PROFILE_BASE64 | App Store provisioning profile for the app and team |
+| IOS_PROFILE_BASE64 | App Store profile for the app/team permitting production App Attest and Game Center |
 | ASC_KEY_ID / ASC_ISSUER_ID / ASC_PRIVATE_KEY_BASE64 | Existing App Store Connect API key with app release permission |
 | FIREBASE_FUNCTIONS_ENV | Complete existing backend/.env.neo-glide-live configuration |
 
@@ -80,9 +80,8 @@ and sent directly to GitHub encrypted secret storage.
 
 Environment variables: `ANDROID_KEY_ALIAS=upload`, `GCP_WORKLOAD_IDENTITY_PROVIDER`,
 `PLAY_PUBLISH_SERVICE_ACCOUNT`, `FIREBASE_DEPLOY_SERVICE_ACCOUNT`,
-`IOS_ADMOB_APP_ID`, `VITE_ADMOB_REWARDED_IOS`, `VITE_ADMOB_INTERSTITIAL_IOS`,
-`VITE_ADMOB_REWARDED_INTERSTITIAL_IOS`. Before Play production, also configure the
-equivalent Android ad variables. Optional `NEO_GLIDE_PLAY_GAMES_APP_ID` defaults
+`IOS_ADMOB_APP_ID` and `VITE_ADMOB_REWARDED_IOS`. Before Play production, also
+configure `ANDROID_ADMOB_APP_ID` and `VITE_ADMOB_REWARDED_ANDROID`. Optional `NEO_GLIDE_PLAY_GAMES_APP_ID` defaults
 to disabled; do not put an empty value into the Gradle property.
 
 ## Cloud identities and store access
@@ -122,11 +121,27 @@ partial failure cannot cause a missed backend change on the next main merge.
 Rules/indexes deploy before functions, indexes must become READY, then both
 Hosting sites deploy. The workflow does not use `--force` to delete functions.
 
-Keep server/rule changes compatible with all installed application versions;
-store approval is asynchronous and either store may release first. Emulator
-tests include the existing 1.2.0 client protocol. Do not combine an incompatible
-server migration with a mobile release. Deploy additive compatibility first.
-No destructive database migration is part of this pipeline.
+Store approval is asynchronous and either store may release first. The online
+security migration deliberately changes compatibility: legacy sync is read-only
+and economic writes return 426. The first protocol-1 sync preserves the previous
+cloud save permanently, then starts a validated bank from server receipt records.
+Do not merge this change into an automatic release until the owner has reviewed
+that update requirement, real test-device checks and outstanding store reviews.
+See [ABUSE_PROTECTION.md](ABUSE_PROTECTION.md) for migration and activation gates.
+
+`FIREBASE_FUNCTIONS_ENV` must explicitly contain `APP_CHECK_MODE=monitor` or
+`enforce`. Deployment rejects emulator/debug-token settings and test receipt
+configuration. Monitor allows missing tokens; it is a rollout state, not enforced
+attestation. Enable enforcement only after real TestFlight/Play device proofs.
+The signed iOS app must carry the production App Attest entitlement. A profile
+may list both development and production; the signing preflight accepts that
+Apple format but still rejects profiles that cannot sign production attestation.
+The current replacement profile is **Neo Glide App Store App Attest 2026**.
+
+Production/Sandbox notification functions and `apiSandbox` are additive endpoints.
+The economy-operation refund index must be READY before deploying Functions.
+Register Apple notification URLs and verify signed delivery separately; deploy
+success does not configure App Store Connect's notification subscription.
 
 GitHub deployment records retain run/commit/build/hash and submission state.
 Apple's actual review state is queried. Play's API cannot reliably establish

@@ -2,7 +2,7 @@ import { getShip } from './ShipCatalog.js';
 import { drawCosmeticMark } from './CosmeticEffects.js';
 import { cosmeticEffectId } from './CosmeticsCatalog.js';
 
-export const TRAIL_SAMPLE_SECONDS = 1 / 30;
+const TRAIL_SAMPLE_SECONDS = 1 / 30;
 export const TRAIL_MAX_POINTS = 144;
 const LIFE = 1.35;
 

@@ -1,6 +1,6 @@
 export const PILOT_NAME_LIMIT = 24;
 
-export function cleanPilotName(value) {
+function cleanPilotName(value) {
   if (typeof value !== 'string') return '';
   return value.normalize('NFC').replace(/[\p{Cc}\p{Cf}]/gu, ' ').replace(/\s+/gu, ' ').trim();
 }

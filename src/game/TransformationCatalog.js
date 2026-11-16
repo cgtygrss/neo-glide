@@ -1,8 +1,8 @@
 export const TRANSFORMATION_SECONDS = 12;
 export const ENTRY_SECONDS = 1.6;
 export const EXIT_SECONDS = .3;
-export const REDUCED_ENTRY_SECONDS = .25;
-export const ASSEMBLY_WORLD_SCALE = .2;
+const REDUCED_ENTRY_SECONDS = .25;
+const ASSEMBLY_WORLD_SCALE = .2;
 export const ENTRY_PROTECTION_SECONDS = .35;
 
 // Offsets are in vehicle coordinates; the renderer fits the whole assembly to the viewport.

@@ -1,3 +1,7 @@
+import { isTestRealm } from './account/RuntimeRealm.js';
+import { onlineEconomyEnabled } from './account/OnlineEconomyMode.js';
+import { spendOnline,claimCareerOnline } from './services/OnlineEconomy.js';
+import { STAGES } from './game/StageCatalog.js';
 import { APP_VERSION } from './version.js';
 import { flightEquipment, getShipTraits, advanceEquipmentEnergy } from './game/FlightEquipment';
 import { UPGRADES, WEAPONS, upgradeOffer } from './game/ShopCatalog';
@@ -1230,7 +1234,14 @@ export default function App({ startupComplete = true }) {
     };
   }, [gameState, startupComplete, handleInputStart, handleInputEnd, handleShoot, pauseGame]);
 
-  const buyUpgrade = (id, cost, type = 'upgrade') => {
+  const buyUpgrade = async (id, cost, type = 'upgrade') => {
+    if(onlineEconomyEnabled()) {
+      try {
+        await spendOnline(type,id,cost);
+        if(type==='ship')setEquippedShip(id);else if(type==='weapon')setEquippedWeapon(id);else if(type==='cosmetic')setEquippedCosmetic(id);
+      }catch(error){setPurchaseMessage(error.message||'Could not complete this purchase.');}
+      return;
+    }
     if (type === 'cosmetic') {
       const cosmetic = getCosmetic(id);
       const productId = cosmetic?.kind === 'skin' ? getCosmetic(cosmetic.setId).productId : cosmetic?.productId;
@@ -1435,7 +1446,10 @@ export default function App({ startupComplete = true }) {
     }
   };
 
-  const handleClaimMission = (missionId) => {
+  const handleClaimMission = async (missionId) => {
+    if(onlineEconomyEnabled()){
+      try{await claimCareerOnline(missionId);}catch(error){setPurchaseMessage(error.message||'Could not claim this reward.');}return;
+    }
     const result = claimMission(profileRef.current, missionId);
     if (!result) return;
     profileRef.current = result.profile;
@@ -1501,9 +1515,9 @@ export default function App({ startupComplete = true }) {
 
       {gameState === 'GAMEOVER' && <RunResults onEvents={() => leaveRun('EVENTS')} eventProgress={gameRef.current.eventFlight?.instances?.length ? gameRef.current.eventFlight : null} distance={distance} bestDistance={profile.bestDistance} isNewBest={newBest}
         coins={sessionCurrency} distanceBonus={distanceBonus} xp={lastRunXp} onRetry={() => startGame()} onHome={() => leaveRun('MENU')}
-        onGarage={() => leaveRun('SHOP')} onContinue={onlineServicesAllowed() ? handleRewardContinue : null} continueUsed={continueUsed}
+        onGarage={() => leaveRun('SHOP')} onContinue={onlineServicesAllowed() && !isTestRealm() ? handleRewardContinue : null} continueUsed={continueUsed}
         rewardBusy={rewardBusy} rewardAction={rewardAction} rewardMessage={rewardMessage}
-        onBoostEarnings={onlineServicesAllowed() ? handleBoostEarnings : null} earningsBonus={earningsBonus} earningsBonusClaimed={earningsBonusClaimed}
+        onBoostEarnings={onlineServicesAllowed() && !isTestRealm() ? handleBoostEarnings : null} earningsBonus={earningsBonus} earningsBonusClaimed={earningsBonusClaimed}
         levelBonus={levelBonus} wallet={currency} nextShip={SHIPS.find(model => !ownedShips.includes(model.id))}
         fleetComplete={SHIPS.every(model => ownedShips.includes(model.id))}/>}
 
@@ -1512,7 +1526,7 @@ export default function App({ startupComplete = true }) {
           initialTab={shopInitialTab}
           equippedStage={equippedStage}
           stageOwnership={getStageOwnership()}
-          onStageUnlock={unlockCreditStage}
+          onStageUnlock={onlineEconomyEnabled() ? id=>spendOnline('stage',id,STAGES.find(stage=>stage.id===id)?.price) : unlockCreditStage}
           onStageEquip={equipStage}
           currency={currency}
           upgrades={upgrades}

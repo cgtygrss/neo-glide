@@ -1,5 +1,6 @@
 export const AUDIENCE_KEY = 'neo_glide_audience_v1';
-export const AGE_GROUPS = ['under13', '13to17', 'adult'];
+import { localPlaySelection } from '../account/LocalPlayMode.js';
+const AGE_GROUPS = ['under13', '13to17', 'adult'];
 
 export function readAudience(storage) {
   try {
@@ -10,7 +11,7 @@ export function readAudience(storage) {
 }
 
 // Missing, unreadable or unrecognized preferences always use local family play.
-export const onlineServicesAllowed = () => readAudience() === 'adult';
+export const onlineServicesAllowed = () => readAudience() === 'adult'&&!localPlaySelection();
 export function requireAdultServices() {
   if (!onlineServicesAllowed()) throw new Error('Online services, ads and purchases are unavailable in family play.');
 }

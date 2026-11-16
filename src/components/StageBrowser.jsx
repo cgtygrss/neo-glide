@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Coins, Pause, Play } from 'lucide-react';
 import { STAGES } from '../game/StageCatalog';
 import { StageBackground } from '../game/StageBackground';
@@ -43,15 +43,16 @@ function StagePreview({ stage, compact = false }) {
 export default function StageBrowser({ currency, equippedStage, ownership, onUnlock, onEquip }) {
   const [selectedId, setSelectedId] = useState(equippedStage);
   const [error, setError] = useState('');
+  const [busy,setBusy]=useState(false);
   const selected = STAGES.find(stage => stage.id === selectedId) || STAGES[0];
   const owned = Boolean(ownership[selected.id]), active = selected.id === equippedStage;
-  const choose = () => { try { if (owned) onEquip(selected.id); else onUnlock(selected.id); setError(''); } catch (e) { setError(e.message || 'Could not select this galaxy.'); } };
+  const choose = async () => { if(busy)return;setBusy(true);try { if (owned) await onEquip(selected.id); else await onUnlock(selected.id); setError(''); } catch (e) { setError(e.message || 'Could not select this galaxy.'); }finally{setBusy(false);} };
   return <div className="shop-item-browser stage-browser">
     <CatalogCarousel items={SORTED_STAGES} selectedId={selected.id} onSelect={id => { setSelectedId(id); setError(''); }} label="Galaxies" itemLabel="galaxy">
     <section className="shop-spotlight cosmetic-spotlight-layout" aria-label={`${selected.name} galaxy preview`}>
       <div className="shop-spotlight-stage stage-spotlight"><StagePreview key={selected.id} stage={selected}/></div>
       <CatalogDetails key={selected.id} className="shop-spotlight-details selection-reveal" actions={
-        <button type="button" className={`arcade-button ${active || (!owned && currency < selected.price) ? 'secondary' : 'primary'}`} disabled={active || (!owned && currency < selected.price)} onClick={choose}>{active ? 'Active galaxy' : owned ? 'Travel here' : <><span>Unlock galaxy</span><Coins size={15}/>{selected.price.toLocaleString()}</>}</button>
+        <button type="button" className={`arcade-button ${active || (!owned && currency < selected.price) ? 'secondary' : 'primary'}`} disabled={busy||active || (!owned && currency < selected.price)} onClick={choose}>{active ? 'Active galaxy' : owned ? 'Travel here' : <><span>Unlock galaxy</span><Coins size={15}/>{selected.price.toLocaleString()}</>}</button>
       }><span className="eyebrow">GALAXY DESTINATION</span><h3>{selected.name}</h3><p>{selected.description}</p>
         <span className="shop-preview-note">4 evolving regions · scenery changes as you fly<br/>Permanent on this device · preview any destination</span>{error && <p role="status">{error}</p>}
       </CatalogDetails>

@@ -8,7 +8,7 @@ test('verified refunds remove store ownership and preserve earned unlocks and ot
  const wallet={version:3,balance:50,cloudEntitlements:{cosmetic_void_pilot:true,cosmetic_jade_drift:true},creditCosmetics:{void_pilot:true},eventCosmetics:{jade_drift:true},transactions:{receipt:'cosmetic_void_pilot'}};
  const save={neon_glide_wallet_v3:JSON.stringify(wallet)};
  const records=[{id:'apple:Production:1',productId:'cosmetic_void_pilot',revoked:true},{id:'google:2',productId:'cosmetic_jade_drift'},{id:'apple:Production:3',productId:'cosmetic_jade_drift',revoked:true},{id:'google:4',productId:'credits_1000',consumable:true}];
- const updated=JSON.parse(reconcileEntitlements(save,records).neon_glide_wallet_v3);
+ const updated=JSON.parse(reconcileEntitlements(save,records.map(p=>({...p,environment:'Production'}))).neon_glide_wallet_v3);
  assert.deepEqual(updated,{...wallet,cloudEntitlements:{cosmetic_jade_drift:true}});
  assert.equal(JSON.parse(save.neon_glide_wallet_v3).cloudEntitlements.cosmetic_void_pilot,true);
 });
@@ -20,6 +20,13 @@ test('Google cancellations are explicit; unavailable and pending receipts cannot
  assert.equal(await googlePurchaseRevoked(input,options(0)),false);
  await assert.rejects(googlePurchaseRevoked(input,options(2)),/not completed/);
  await assert.rejects(googlePurchaseRevoked(input,{...options(0),fetch:async()=>new Response('',{status:503})}),/could not verify/);
+});
+
+test('legacy Sandbox and unknown-environment receipts cannot reappear during live reconciliation',()=>{
+ const save={neon_glide_wallet_v3:JSON.stringify({version:3,balance:0,cloudEntitlements:{}})};
+ const receipts=[{productId:'cosmetic_void_pilot',environment:'Sandbox'},{productId:'cosmetic_jade_drift'},{productId:'cosmetic_solar_forge',environment:'Production'}];
+ assert.deepEqual(JSON.parse(reconcileEntitlements(save,receipts,'Production').neon_glide_wallet_v3).cloudEntitlements,{cosmetic_solar_forge:true});
+ assert.deepEqual(JSON.parse(reconcileEntitlements(save,receipts,'Sandbox').neon_glide_wallet_v3).cloudEntitlements,{cosmetic_void_pilot:true});
 });
 
 test('only signed matching Apple revocations can enter reconciliation; they cannot deliver purchases', async () => {

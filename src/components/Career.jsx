@@ -1,4 +1,4 @@
-import React, { useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { ArrowLeft, ArrowRight, Award, Coins, Rocket, Trophy, Crosshair, Check, Flag, UserRound } from "lucide-react";
 import { CAREER_MISSIONS, xpForNextLevel } from "../services/ProgressionService";
 import { accountSnapshot, subscribeAccount } from "../account/AccountService";

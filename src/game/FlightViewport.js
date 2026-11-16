@@ -1,9 +1,9 @@
 // One authored flight scale on phones, tablets and desktop. Display density is
 // independent of simulation units, so a taller monitor never shrinks hazards.
-export const FLIGHT_HEIGHT = 390;
-export const FLIGHT_WIDTH = 844;
-export const MIN_FLIGHT_ASPECT = 4 / 3;
-export const MAX_FLIGHT_ASPECT = 2.4;
+const FLIGHT_HEIGHT = 390;
+const FLIGHT_WIDTH = 844;
+const MIN_FLIGHT_ASPECT = 4 / 3;
+const MAX_FLIGHT_ASPECT = 2.4;
 export const DEFAULT_FLIGHT_BOUNDS = { width: FLIGHT_WIDTH, height: FLIGHT_HEIGHT, paceScale: 1 };
 export const flightHomeX = (width = FLIGHT_WIDTH) => width * 100 / FLIGHT_WIDTH;
 export const flightScrollSpeed = game => game.speed * (game.viewport?.paceScale ?? 1);

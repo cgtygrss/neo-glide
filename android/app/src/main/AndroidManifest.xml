@@ -12,6 +12,7 @@
         tools:replace="android:usesCleartextTraffic">
         <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="@string/admob_app_id" />
         <meta-data android:name="com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT" android:value="true" />
+        <meta-data android:name="neo_glide_store_environment" android:value="${neoGlideStoreEnvironment}" />
         <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
         <!-- Identity is initialized explicitly after the local adult choice. -->
         <provider android:name="com.google.firebase.provider.FirebaseInitProvider" android:authorities="${applicationId}.firebaseinitprovider" tools:node="remove" />

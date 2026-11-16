@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ArrowRight, Check, Coins, Film, Home, Rocket, RotateCcw, Star, Trophy, Wrench } from 'lucide-react';
 import './RunResults.css';
 import { distanceAdReward, flightEarningsBreakdown } from '../game/Economy';

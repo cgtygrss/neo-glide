@@ -1,3 +1,4 @@
+import { isTestRealm } from '../account/RuntimeRealm.js';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, Gift, Radio, Sparkles, UserRound, Sun, Orbit, Compass, Clock3 } from 'lucide-react';
 import { eventsSnapshot, refreshEvents, joinExpedition, claimEventReward, eventAd } from '../services/EventsService';
@@ -61,19 +62,19 @@ export default function Events({ onClose, onAccount, ownedCosmetics = {}, onEqui
                 <progress aria-label={`${goal.target.toLocaleString()} ${labels[goal.stat]}`} value={Math.min(value, goal.target)} max={goal.target}/>
                 {goal.secondary && <small>Also {instance.stats[goal.secondary.stat] || 0} / {goal.secondary.target} {labels[goal.secondary.stat]}</small>}
                 <div className="mission-reward"><span><Gift size={14}/>{instance.rewards[index].toLocaleString()} credits</span><button disabled={busy || !ready(instance, index, now)} onClick={() => run(() => claimEventReward(instance.instanceId, index))}>{claimed ? 'Claimed' : 'Claim'}</button></div>
-                {claimed && !instance.bonuses[index] && <button className="mission-ad" disabled={busy} onClick={() => run(() => eventAd(instance.instanceId, 'credits', index))}>Watch ad · +{instance.rewards[index].toLocaleString()} credits</button>}
+                {!isTestRealm() && claimed && !instance.bonuses[index] && <button className="mission-ad" disabled={busy} onClick={() => run(() => eventAd(instance.instanceId, 'credits', index))}>Watch ad · +{instance.rewards[index].toLocaleString()} credits</button>}
               </div>;
             })}
             {instance.type === 'daily' && <button disabled={busy || !ready(instance, 3, now)} onClick={() => run(() => claimEventReward(instance.instanceId, 3))}>{instance.claims[3] ? 'Daily bonus claimed' : 'Claim all-missions bonus · 5,000'}</button>}
-            {instance.type === 'daily' && instance.claims[3] && !instance.bonuses[3] && <button className="mission-ad" disabled={busy} onClick={() => run(() => eventAd(instance.instanceId, 'credits', 3))}>Watch ad · +{instance.rewards[3].toLocaleString()} credits</button>}
-            {instance.type === 'weekly' && <button className="mission-ad" disabled={busy || !remaining} onClick={() => run(() => eventAd(instance.instanceId, 'fragments'))}>Watch ad · +3 fragments (max 2/day)</button>}
+            {!isTestRealm() && instance.type === 'daily' && instance.claims[3] && !instance.bonuses[3] && <button className="mission-ad" disabled={busy} onClick={() => run(() => eventAd(instance.instanceId, 'credits', 3))}>Watch ad · +{instance.rewards[3].toLocaleString()} credits</button>}
+            {!isTestRealm() && instance.type === 'weekly' && <button className="mission-ad" disabled={busy || !remaining} onClick={() => run(() => eventAd(instance.instanceId, 'fragments'))}>Watch ad · +3 fragments (max 2/day)</button>}
             {instance.type === 'expedition' && card < 7 && dayOf(now) < instance.nextDay && <p>Next card opens tomorrow. Your progress is safe.</p>}
           </article>;
         })}
           {snapshot?.availableExpedition && !instances.some(instance => instance.type === 'expedition') && <article className="mission-card expedition"><span className="menu-feature-icon"><Compass size={28}/></span><h2>Galaxy Expedition</h2><p>Seven completed days, fourteen days to explore. Earn Aurora Pathfinder.</p><button disabled={busy} onClick={() => run(joinExpedition)}>Begin expedition</button></article>}
           {!instances.length && !snapshot?.availableExpedition && <article className="mission-card events-empty"><div className="events-empty-art" aria-hidden="true"><span/><Radio size={42}/></div><span className="menu-eyebrow">THE NEXT DISCOVERY</span><h2>A new signal is coming</h2><p>Upcoming events will appear here when published. Your regular flights are ready to play.</p><button onClick={onClose}>Return to hangar<ArrowLeft size={16}/></button></article>}
         </div>
-        {instances.length > 0 && <p className="mission-footer">{Math.max(0, 3 - (snapshot?.ads?.[String(dayOf(now))]?.used || 0))} / 3 event ad bonuses remaining today (UTC). Normal rewards never require an ad.</p>}
+        {!isTestRealm() && instances.length > 0 && <p className="mission-footer">{Math.max(0, 3 - (snapshot?.ads?.[String(dayOf(now))]?.used || 0))} / 3 event ad bonuses remaining today (UTC). Normal rewards never require an ad.</p>}
       </div>
     </div>
   </section>;

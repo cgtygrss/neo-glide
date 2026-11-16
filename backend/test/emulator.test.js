@@ -182,6 +182,7 @@ test('authenticated server transactions, offline authorization, quotas and rules
  const {sandboxDatabase}=await import('../realms.js'),sandbox=sandboxDatabase(db);
  await sandbox.doc('purchases/test-credit').set({uid:b.localId,id:'apple:Sandbox:555',environment:'Sandbox',productId:'credits_50000',credits:50000,consumable:true,at:Date.now()});
  const testBank=await call('sandbox/sync',{},b.idToken);assert.equal(testBank.status,200,JSON.stringify(testBank.body));
+ assert.equal(testBank.body.appVerification,'emulator');assert.equal(first.appVerification,undefined);
  assert.equal(JSON.parse(testBank.body.save.neon_glide_wallet_v3).balance,50000);
  assert.equal(JSON.parse((await call('sync',{},b.idToken)).body.save.neon_glide_wallet_v3).balance,75000);
  assert.equal((await call('sandbox/merge',{sourceToken:a.idToken,sourceRevision:1,targetRevision:testBank.body.revision,choice:'source'},b.idToken)).status,403);

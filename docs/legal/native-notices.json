@@ -3,7 +3,7 @@
   "inputs": {
     "ios/App/Podfile.lock": "69f58c9fd4db713c4f784413281b637e8edf0f320a8a537144e13332ecac50a6",
     "ios/App/App.xcworkspace/xcshareddata/swiftpm/Package.resolved": "e9ff56aecb9637ec27beaf072eb7a6bd2848b45c91d1eaea58f39316d8ecab73",
-    "android/app/build.gradle": "b435d219e33ec986dd52d842fcffb5bdfef9be97ffc32694640e38812cc8625b",
+    "android/app/build.gradle": "5419cf01002d7a20c128497fc31da12ece6f83b898f2d2d492e9c8bff280fb4e",
     "android/variables.gradle": "d033257793f552103f8408d2bdeb1156f04c558a388e6d7189cdc4e4a75c7a5d"
   },
   "entries": [

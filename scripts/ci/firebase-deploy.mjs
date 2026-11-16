@@ -2,10 +2,14 @@ import { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { validateFunctionsEnvironment } from './functions-config.mjs';
+import { deploymentFunctionsEnvironment } from './functions-config.mjs';
+import { sandboxFunctionTargets } from './release-mode.mjs';
 const require = createRequire(new URL('../../backend/package.json', import.meta.url));
 const { GoogleAuth } = require('google-auth-library');
 const config = JSON.parse(readFileSync('ci/release.json'));
+const sandboxOnly=process.env.SANDBOX_DEPLOY==='true';
+const ledgerEnvironment=sandboxOnly?'firebase-sandbox-validation':'firebase-live';
+const functionsEnvironment=deploymentFunctionsEnvironment(process.env.FIREBASE_FUNCTIONS_ENV||'',{sandboxOnly});
 const base = `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}`;
 async function github(path, method = 'GET', body) {
   const response = await fetch(`${base}${path}`, { method, headers: { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
@@ -19,7 +23,10 @@ function files(path) {
     return entry.isDirectory() ? files(full) : [full];
   });
 }
-const groups = {
+const groups = sandboxOnly ? {
+  functions: [...files('backend'),'firebase.json'],
+  firestore: ['firestore.rules','firestore.indexes.json','firebase.json']
+} : {
   functions: [...files('backend'), 'firebase.json'],
   firestore: ['firestore.rules', 'firestore.indexes.json', 'firebase.json'],
   admin: [...files('dist-admin'), 'firebase.json'],
@@ -28,12 +35,12 @@ const groups = {
 const hashes = Object.fromEntries(Object.entries(groups).map(([name, paths]) => {
   const hash = createHash('sha256');
   for (const path of paths.sort()) hash.update(path).update(readFileSync(path));
-  if (name === 'functions') hash.update(process.env.FIREBASE_FUNCTIONS_ENV || '');
+  if (name === 'functions') hash.update(functionsEnvironment);
   return [name, hash.digest('hex')];
 }));
 let previous;
 for (let page = 1; !previous; page++) {
-  const deployments = await github(`/deployments?environment=firebase-live&per_page=100&page=${page}`);
+  const deployments = await github(`/deployments?environment=${ledgerEnvironment}&per_page=100&page=${page}`);
   for (const deployment of deployments) {
     const statuses = await github(`/deployments/${deployment.id}/statuses`);
     if (statuses[0]?.state === 'success') { previous = deployment.payload.hashes; break; }
@@ -43,7 +50,7 @@ for (let page = 1; !previous; page++) {
 const changed = Object.keys(groups).filter(name => hashes[name] !== previous?.[name]);
 if (!changed.length) { console.log('Firebase content matches the last verified deployment.'); process.exit(0); }
 console.log(`Changed Firebase components: ${changed.join(', ')}`);
-const deployment = await github('/deployments', 'POST', { ref: process.env.GITHUB_SHA, auto_merge: false, required_contexts: [], environment: 'firebase-live', production_environment: true, payload: { hashes }, description: 'Neo Glide Firebase deployment' });
+const deployment = await github('/deployments', 'POST', { ref: process.env.GITHUB_SHA, auto_merge: false, required_contexts: [], environment: ledgerEnvironment, production_environment: !sandboxOnly, payload: { hashes }, description: sandboxOnly?'Neo Glide Sandbox validation':'Neo Glide Firebase deployment' });
 const status = (state, description) => github(`/deployments/${deployment.id}/statuses`, 'POST', { state, description, auto_inactive: false });
 const cli = `${process.cwd()}/tools/ci/node_modules/.bin/firebase`;
 const envFile = `backend/.env.${config.firebaseProject}`;
@@ -51,9 +58,7 @@ if (existsSync(envFile)) throw new Error('Refusing to overwrite an existing Func
 try {
   await status('in_progress', 'Deploying changed components');
   if (changed.includes('functions')) {
-    const environment = process.env.FIREBASE_FUNCTIONS_ENV || '';
-    validateFunctionsEnvironment(environment);
-    writeFileSync(envFile, environment + '\n', { mode: 0o600 });
+    writeFileSync(envFile, functionsEnvironment + '\n', { mode: 0o600 });
   }
   const only = [];
   if (changed.includes('firestore')) only.push('firestore:rules', 'firestore:indexes');
@@ -75,19 +80,21 @@ try {
       await new Promise(resolve => setTimeout(resolve, 15000));
     }
   }
-  if (changed.includes('functions')) execFileSync(cli, ['deploy', '--only', 'functions:events', '--project', config.firebaseProject, '--non-interactive'], { stdio: 'inherit' });
+  if (changed.includes('functions')) execFileSync(cli, ['deploy', '--only', sandboxOnly?sandboxFunctionTargets().join(','):'functions:events', '--project', config.firebaseProject, '--non-interactive'], { stdio: 'inherit' });
   if (changed.includes('admin')) execFileSync(cli, ['deploy', '--only', 'hosting', '--project', config.firebaseProject, '--non-interactive'], { stdio: 'inherit' });
   if (changed.includes('developer')) execFileSync(cli, ['deploy', '--only', 'hosting:developer', '--project', config.firebaseProject, '--non-interactive'], { cwd: 'developer-site', stdio: 'inherit' });
-  for (const path of ['/privacy.html', '/support.html', '/delete-account.html', '/notices.html', '/app-ads.txt']) {
+  for (const path of sandboxOnly?[]:['/privacy.html', '/support.html', '/delete-account.html', '/notices.html', '/app-ads.txt']) {
     const response = await fetch(`https://neo-glide-live-developer.web.app${path}`, { signal: AbortSignal.timeout(30000) });
     if (!response.ok) throw new Error(`Developer website check failed: ${path}`);
     const text = await response.text();
     if (path.endsWith('.txt') ? !text.includes('google.com,') : !text.includes('Neo Glide')) throw new Error(`Unexpected website content: ${path}`);
   }
-  const api = await fetch('https://europe-west3-neo-glide-live.cloudfunctions.net/api', { signal: AbortSignal.timeout(30000) });
+  const api = await fetch(`https://europe-west3-neo-glide-live.cloudfunctions.net/${sandboxOnly?'apiSandbox':'api'}`, { signal: AbortSignal.timeout(30000) });
   if (api.status !== 405 || !(await api.text()).includes('POST required')) throw new Error('Functions route check failed.');
-  const dashboard = await fetch('https://neo-glide-live.web.app/', { signal: AbortSignal.timeout(30000) });
-  if (!dashboard.ok || !(await dashboard.text()).includes('<html')) throw new Error('Admin hosting check failed.');
+  if(!sandboxOnly){
+    const dashboard = await fetch('https://neo-glide-live.web.app/', { signal: AbortSignal.timeout(30000) });
+    if (!dashboard.ok || !(await dashboard.text()).includes('<html')) throw new Error('Admin hosting check failed.');
+  }
   await status('success', 'Deployment and route checks passed');
 } catch (error) {
   await status('failure', 'Deployment failed; store submission blocked');

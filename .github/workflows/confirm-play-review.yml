@@ -7,6 +7,11 @@ on:
         description: VersionCode whose review result you checked in Play Console (initially 5)
         required: true
         type: string
+      channel:
+        description: Distribution channel whose exact build was checked
+        type: choice
+        default: store
+        options: [store, device-test]
       result:
         description: Approved and available on its track, or rejected
         required: true
@@ -34,6 +39,7 @@ jobs:
       - run: node scripts/ci/store-state.mjs acknowledge android
         env:
           GH_TOKEN: ${{ github.token }}
+          REVIEW_CHANNEL: ${{ inputs.channel }}
           REVIEWED_BUILD: ${{ inputs.build }}
           REVIEW_RESULT: ${{ inputs.result }}
           CONSOLE_CHECKED: ${{ inputs.console_checked }}

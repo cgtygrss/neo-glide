@@ -117,12 +117,22 @@ permanent cosmetic SKUs; their cancellation is checked on server reconciliation.
 A Google RTDN/voided-purchase recovery hook is still needed for prompt revocation
 when a buyer never opens the app again, and before adding Android consumables.
 
+The controlled first-device rollout is documented in
+[DEVICE_SECURITY_TEST.md](DEVICE_SECURITY_TEST.md). It deploys only Sandbox
+functions and distributes only internal store builds while public publishing is
+paused. Sandbox responses expose a bounded verification result; its test banner
+shows Verified only when the server accepted the native token. Device-mode
+deployment forces Sandbox enforcement; normal deployment refuses monitor mode.
+Once enforcement is active, installed clients without native App Check must
+update before cloud access, including the legacy read-only protocol.
+
 ## Required activation and limits
 
 1. Complete a signed **dry run** with the replacement App Attest profile. Exercise
    real TestFlight and Play closed-test devices: sign-in, attestation, isolated
    purchase, restore, spend, offline archive and delete. A simulator does not
-   prove App Attest/Play Integrity. Keep monitor until verified requests succeed.
+   prove App Attest/Play Integrity. Sandbox device-mode deployment enforces tokens
+   from its first request; production activation follows successful device checks.
 2. Review the old-client update requirement and pending store reviews. Stage the
    compatible rollout through Dev → main, do not bypass required checks or
    cancel a review. Source tests alone do not authorize claiming protection live.
@@ -149,7 +159,7 @@ archive retention, separate banks, 426 legacy writes, concurrent spend/retry,
 refund rollback/reversal, account merge/deletion, cross-account rejection,
 request budgets, reward replay, stable leases, no-op allocation and direct DB denial.
 Local verification on 2026-11-16: 393 game tests, 42 backend unit tests,
-10 pipeline tests, and the separately required Auth–Firestore integration passed.
+14 pipeline tests, and the separately required Auth–Firestore integration passed.
 The backend unit command skips the emulator-only test; it passed in that separate
 integration run. Lint, web/admin builds, Android unit/lint/release and iOS Release
 simulator compilation passed. The eight-capture iOS UI scenario passed on the

@@ -7,7 +7,7 @@ import { flushEventFlights } from '../services/EventFlightQueue.js';
 import { onlineServicesAllowed, requireAdultServices } from '../privacy/AudiencePolicy.js';
 import { applyEconomyResponse } from './EconomySync.js';
 const subscribers=new Set();
-let state={user:null,status:'local',message:'',generation:0,conflict:null,busy:false},started,locked=false,timer,syncing,pending,pendingActivation;
+let state={user:null,status:'local',message:'',generation:0,conflict:null,busy:false,appVerification:null},started,locked=false,timer,syncing,pending,pendingActivation;
 const emit=patch=>{state={...state,...patch};for(const fn of subscribers)fn();};
 const switchLocal=(uid,profile)=>{if(profile)putLocalProfile(uid,profile);activateProfile(uid);emit({generation:state.generation+1});};
 export const subscribeAccount=fn=>{subscribers.add(fn);return()=>subscribers.delete(fn);};
@@ -85,7 +85,7 @@ export async function syncAccount() {
    }
    if(uid!==ownerId())return;
    accountStorage.setItem(`neo_glide_events:${uid}`,JSON.stringify({...cloud,receivedAt:Date.now()}));
-   emit({status:deferred?'pending':'synced'});window.dispatchEvent(new Event('neo-events-updated'));
+   emit({status:deferred?'pending':'synced',appVerification:cloud.appVerification||null});window.dispatchEvent(new Event('neo-events-updated'));
   }catch(error){emit({status:'offline',message:error.message});}
   finally{syncing=null;}
  })();return syncing;

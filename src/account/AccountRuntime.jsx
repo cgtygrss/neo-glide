@@ -68,7 +68,7 @@ function BoundAccountRuntime({ startupComplete = true }) {
    }
   });
  }, []);
- return <>{isTestRealm()&&<div role="status" className="test-environment-note">Test play — purchases and progress are separate from the live game.</div>}<App key={account.generation} startupComplete={startupComplete}/></>;
+ return <>{isTestRealm()&&<div role="status" className="test-environment-note">Test play — separate from the live game. Device verification: {account.appVerification==='verified'?'Verified':account.appVerification==='missing'?'Missing':'Waiting'}.</div>}<App key={account.generation} startupComplete={startupComplete}/></>;
 }
 export default function AccountRuntime(props) {
  const [ready,setReady]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);

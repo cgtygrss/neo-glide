@@ -21,7 +21,8 @@ if (!playBillingPublicKey) {
     }
 }
 def escapedPlayBillingPublicKey = playBillingPublicKey.replace("\\", "\\\\").replace("\"", "\\\"")
-def releaseTrack = new groovy.json.JsonSlurper().parse(rootProject.file("../ci/release.json")).androidTrack
+def releaseTrack = providers.environmentVariable("ANDROID_TRACK").orElse(new groovy.json.JsonSlurper().parse(rootProject.file("../ci/release.json")).androidTrack as String).get()
+if (!(releaseTrack in ["internal", "alpha", "production"])) throw new GradleException("Unsupported release track")
 def storeEnvironment = releaseTrack == "production" ? "Production" : "Sandbox"
 
 def playGamesAppId = providers.gradleProperty("NEO_GLIDE_PLAY_GAMES_APP_ID")

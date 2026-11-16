@@ -62,7 +62,7 @@ return async(req,res)=>{
   if(req.method!=='POST') {res.status(405).json({error:'POST required.'});return;}
   const {action,body}=validateRequest(req);
   const adminAction=['adminRead','adminSave','adminPublish'].includes(action);
-  if(!adminAction)await verifyAppRequest(req,token=>getAppCheck().verifyToken(token),{action});
+  const appVerification=adminAction?'admin-auth':await verifyAppRequest(req,token=>getAppCheck().verifyToken(token),{action});
   const authorization=req.headers.authorization;
   if(typeof authorization!=='string'||authorization.length>16384||!/^Bearer [A-Za-z0-9_.-]+$/.test(authorization))throw new RequestError('Sign in again to continue.',401,'unauthenticated');
   const token=await auth.verifyIdToken(authorization.slice(7),true);
@@ -368,7 +368,7 @@ return async(req,res)=>{
     tx.set(ref,registry);return registry;
    });}
   } else throw new RequestError('Unknown action.');
-  res.json(result||{});
+  res.json({...result,...(purchaseEnvironment==='Sandbox'?{appVerification}:{} )});
  } catch(error) {const failure=publicError(error);if(failure.status===429)res.setHeader('Retry-After','60');res.status(failure.status).json(failure.body);}
 };
 }

@@ -9,6 +9,10 @@ on:
         description: Build and verify signed packages without deploying or submitting
         type: boolean
         default: true
+      device_test:
+        description: Upload only to internal TestFlight / Play testing and deploy only Sandbox functions (requires dry_run=false)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -35,6 +39,7 @@ jobs:
       build: ${{ steps.identity.outputs.build }}
       track: ${{ steps.identity.outputs.track }}
       dry_run: ${{ steps.mode.outputs.dry_run }}
+      mode: ${{ steps.mode.outputs.mode }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Require main for signing and distribution
@@ -42,18 +47,16 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version-file: .node-version
-      - id: identity
-        run: node scripts/ci/version.mjs
       - id: mode
         env:
           ENABLED: ${{ vars.AUTO_PUBLISH_ENABLED }}
           MANUAL_DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          if [ "$ENABLED" = true ] && { [ "$GITHUB_EVENT_NAME" = push ] || [ "$MANUAL_DRY_RUN" = false ]; }; then
-            echo 'dry_run=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'dry_run=true' >> "$GITHUB_OUTPUT"
-          fi
+          DEVICE_TEST: ${{ inputs.device_test }}
+        run: node scripts/ci/release-mode.mjs
+      - id: identity
+        env:
+          RELEASE_MODE: ${{ steps.mode.outputs.mode }}
+        run: node scripts/ci/version.mjs
 
   android:
     needs: identity
@@ -61,6 +64,7 @@ jobs:
     environment: store-release
     timeout-minutes: 35
     env:
+      RELEASE_MODE: ${{ needs.identity.outputs.mode }}
       ANDROID_TRACK: ${{ needs.identity.outputs.track }}
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -119,6 +123,7 @@ jobs:
     environment: store-release
     timeout-minutes: 45
     env:
+      RELEASE_MODE: ${{ needs.identity.outputs.mode }}
       DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
       IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
       IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
@@ -245,6 +250,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           FIREBASE_FUNCTIONS_ENV: ${{ secrets.FIREBASE_FUNCTIONS_ENV }}
+          SANDBOX_DEPLOY: ${{ needs.identity.outputs.mode == 'device-test' }}
 
   publish:
     needs: [identity, firebase]
@@ -313,11 +319,18 @@ jobs:
           IOS_ARTIFACT_RESUME: ${{ steps.refreshed_ledger.outputs.ios_resume }}
           ANDROID_ARTIFACT_RESUME: ${{ steps.refreshed_ledger.outputs.android_resume }}
         run: node scripts/ci/store-preflight.mjs
-      - name: Submit and enable release after approval
+      - name: Submit to the selected distribution mode
         if: steps.ledger.outputs.submitted != 'true'
         env:
           STORE: ${{ matrix.store }}
-        run: bundle exec fastlane "publish_$STORE"
+        run: |
+          mode="$(node -p "require('./ci-output/identity.json').mode")"
+          if [ "$mode" = device-test ]; then
+            bundle exec fastlane "test_$STORE"
+            if [ "$STORE" = ios ]; then node scripts/ci/testflight-internal.mjs; fi
+          else
+            bundle exec fastlane "publish_$STORE"
+          fi
       - name: Record submitted status
         env:
           DEPLOYMENT_ID: ${{ steps.ledger.outputs.deployment }}
@@ -336,11 +349,12 @@ jobs:
           BUILD: ${{ needs.identity.outputs.build }}
           DRY_RUN: ${{ needs.identity.outputs.dry_run }}
           TRACK: ${{ needs.identity.outputs.track }}
+          MODE: ${{ needs.identity.outputs.mode }}
         run: |
           python3 - <<'PY'
           import os,json
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-            f.write(f"## Neo Glide {os.environ['VERSION']} ({os.environ['BUILD']})\n\nCommit: `{os.environ['GITHUB_SHA']}`\n\nDry run: `{os.environ['DRY_RUN']}`; Android track: `{os.environ['TRACK']}`\n\n")
+            f.write(f"## Neo Glide {os.environ['VERSION']} ({os.environ['BUILD']})\n\nCommit: `{os.environ['GITHUB_SHA']}`\n\nMode: `{os.environ['MODE']}`; dry run: `{os.environ['DRY_RUN']}`; Android track: `{os.environ['TRACK']}`\n\n")
             for name,job in json.loads(os.environ['RESULTS']).items(): f.write(f"- {name}: {job['result']}\n")
-            f.write('\nStore submission success means submitted for review, not confirmed live. See store consoles for approval and availability.\n')
+            f.write('\nDevice-test mode never submits an App Store version for review and targets only the internal Play track. Production API/hosting are not deployed in that mode. Upload success does not confirm Play availability; verify the exact build in Console.\n')
           PY

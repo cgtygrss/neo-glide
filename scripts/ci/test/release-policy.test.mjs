@@ -24,6 +24,7 @@ test('partial success skips submitted artifact and rejects different bytes', () 
   assert.equal(resumeAction({ ...candidate, submitted: true }, candidate), 'skip');
   assert.equal(resumeAction(candidate, candidate), 'resume');
   assert.throws(() => resumeAction({ ...candidate, sha256: 'other' }, candidate), /identity/);
+  assert.throws(() => resumeAction({ ...candidate, mode:'device-test',track:'internal' }, {...candidate,mode:'publish',track:'production'}),/identity/);
 });
 test('marketing versions compare numerically across major and patch boundaries', () => {
   assert.equal(compareVersions('1.3.10', '1.3.9'), 1);

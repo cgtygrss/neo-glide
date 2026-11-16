@@ -17,3 +17,10 @@ export function validateFunctionsEnvironment(source) {
   assert.ok(['monitor','enforce'].includes(values.get('APP_CHECK_MODE')),'APP_CHECK_MODE must be explicit: monitor or enforce.');
   for(const key of values.keys())assert.ok(!/EMULATOR|DEBUG_TOKEN/.test(key),`Local-only Functions configuration is forbidden: ${key}`);
 }
+
+export function deploymentFunctionsEnvironment(source,{sandboxOnly=false}={}) {
+  validateFunctionsEnvironment(source);
+  if(sandboxOnly)return source.replace(/^APP_CHECK_MODE=.*$/m,'APP_CHECK_MODE=enforce');
+  assert.match(source,/^APP_CHECK_MODE=(?:enforce|"enforce"|'enforce')\s*$/m,'Public deployment requires enforced App Check after real-device validation.');
+  return source;
+}

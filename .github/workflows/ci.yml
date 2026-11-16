@@ -95,6 +95,8 @@ jobs:
         with:
           ruby-version: '3.4.12'
           bundler-cache: true
+      - name: Verify Fastlane test/public distribution boundaries
+        run: ruby scripts/ci/test-fastlane-modes.rb
       - run: npm ci && npm run version:sync && npm run build && bundle exec npx --no-install cap sync ios
       - name: Compile native Release for simulator
         run: >-

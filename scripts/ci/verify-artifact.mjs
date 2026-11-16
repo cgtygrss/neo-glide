@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 const platform = process.argv[2], file = process.argv[3];
 const identity = JSON.parse(readFileSync('ci-output/identity.json'));
 const config = JSON.parse(readFileSync('ci/release.json'));
+const track=identity.track||config.androidTrack;
 if (platform === 'android') {
   const verified = execFileSync('jarsigner', ['-verify', file], { encoding: 'utf8' });
   assert.match(verified, /jar verified/);
@@ -17,12 +18,12 @@ if (platform === 'android') {
   assert.match(manifest, /android:minSdkVersion="24"/);
   assert.match(manifest, /android:targetSdkVersion="36"/);
   const realmTag=(manifest.match(/<meta-data\b[^>]*>/g)||[]).find(tag=>tag.includes('android:name="neo_glide_store_environment"'));
-  assert.ok(realmTag?.includes(`android:value="${config.androidTrack==='production'?'Production':'Sandbox'}"`),'Wrong native store environment');
+  assert.ok(realmTag?.includes(`android:value="${track==='production'?'Production':'Sandbox'}"`),'Wrong native store environment');
   const names = execFileSync('unzip', ['-Z', '-1', file], { encoding: 'utf8' }).split('\n');
   const scripts = names.filter(name => /^base\/assets\/public\/assets\/[^/]+\.js$/.test(name));
   const units = new Set(scripts.flatMap(name => execFileSync('unzip', ['-p', file, name], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).match(/ca-app-pub-\d+\/\d+/g) || []));
   assert.ok(units.size, 'Compiled Android ad inventory is missing');
-  if (config.androidTrack === 'production') {
+  if (track === 'production') {
     assert.ok(manifest.includes(process.env.ANDROID_ADMOB_APP_ID), 'Unexpected native Android AdMob app ID');
     assert.ok(units.has(process.env.VITE_ADMOB_REWARDED_ANDROID), 'Compiled Android rewarded ad unit is missing');
     assert.ok([...units].every(unit => !unit.startsWith('ca-app-pub-3940256099942544/')), 'Demo ads in production Android package');

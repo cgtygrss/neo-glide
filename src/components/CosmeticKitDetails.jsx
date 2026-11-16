@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Crosshair, Sparkles, Wind } from 'lucide-react';
 
 const PARTS = [{ label: 'SHIP DESIGN', Icon: Sparkles }, { label: 'ENGINE TRAIL', Icon: Wind }, { label: 'SHOT EFFECTS', Icon: Crosshair }];

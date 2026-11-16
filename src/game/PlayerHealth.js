@@ -1,11 +1,11 @@
 import { getShipTraits } from './FlightEquipment.js';
 import { absorbTransformationHit, transformationProtected } from './Transformations.js';
-import { BASE_HEALTH_DROP_SECONDS, supportDropPace } from './SupportDrops.js';
+import { supportDropPace } from './SupportDrops.js';
 
 export const BASE_HEALTH = 100;
-export const ENEMY_HIT_DAMAGE = 20;
-export const HEALTH_PICKUP_AMOUNT = 25;
-export const HEALTH_PICKUP_INTERVAL = BASE_HEALTH_DROP_SECONDS;
+const ENEMY_HIT_DAMAGE = 20;
+const HEALTH_PICKUP_AMOUNT = 25;
+
 export const HIT_PROTECTION_SECONDS = .9;
 
 export function maxHullHealth(hullLevel = 1, ship = 'default', pilotLevel = 1) {

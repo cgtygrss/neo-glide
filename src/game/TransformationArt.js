@@ -77,7 +77,7 @@ export function drawVoltLightning(ctx, age, lowPower = false, reducedMotion = fa
 const unit = value => Math.max(0, Math.min(1, value));
 const smooth = value => { const p = unit(value); return p * p * (3 - 2 * p); };
 const lerp = (a, b, p) => a + (b - a) * p;
-export function transformationOpacity(form) {
+function transformationOpacity(form) {
   if (form.phase === 'ACTIVE' || (!form.reducedMotion && form.phase === 'ENTERING')) return 1;
   const progress = transformationProgress(form);
   return form.phase === 'ENTERING' ? progress : 1 - progress;

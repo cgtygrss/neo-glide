@@ -24,6 +24,8 @@ root=pathlib.Path(os.environ['RUNNER_TEMP'])/'neo-glide-signing'
 p=plistlib.loads((root/'profile.plist').read_bytes());c=json.loads(pathlib.Path('ci/release.json').read_text())
 assert p['Entitlements']['application-identifier']==c['appleTeamId']+'.'+c['appleBundle'], 'Wrong provisioning profile'
 assert not p['Entitlements'].get('get-task-allow',False), 'Development profile cannot sign an App Store release'
+attest=p['Entitlements'].get('com.apple.developer.devicecheck.appattest-environment')
+assert attest in ['production','*'] if isinstance(attest,str) else isinstance(attest,list) and 'production' in attest, 'Provisioning profile must permit production App Attest'
 assert 'ProvisionedDevices' not in p and not p.get('ProvisionsAllDevices'), 'Use an App Store profile'
 assert p['ExpirationDate']>datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None), 'Expired provisioning profile'
 shutil.copy(root/'app.mobileprovision',pathlib.Path.home()/'Library/MobileDevice/Provisioning Profiles'/f"{p['UUID']}.mobileprovision")

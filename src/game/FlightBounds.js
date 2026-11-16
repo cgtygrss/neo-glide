@@ -6,7 +6,7 @@ const RIGHT = (440 - 160) * .18 + 1;
 const TOP = -120 * .18 - 1;
 const BOTTOM = (240 - 120) * .18 + 1;
 
-export function flightArtExtents(rotation = 0) {
+function flightArtExtents(rotation = 0) {
   return rotatedExtents(LEFT, TOP, RIGHT, BOTTOM, rotation);
 }
 

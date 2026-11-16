@@ -15,7 +15,7 @@ export function guardOutstanding(records, candidate) {
 
 export function resumeAction(record, candidate) {
   if (!record) return 'upload';
-  for (const field of ['commit', 'build', 'version', 'sha256']) if (record[field] !== candidate[field]) throw new Error('Stored artifact identity does not match this retry.');
+  for (const field of ['commit', 'build', 'version', 'sha256', 'mode', 'track']) if (record[field] !== candidate[field]) throw new Error('Stored artifact identity does not match this retry.');
   return record.submitted ? 'skip' : 'resume';
 }
 

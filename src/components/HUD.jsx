@@ -1,4 +1,4 @@
-import React from "react";
+
 import { ArrowUp, ChevronsRight, Coins, Crosshair, Heart, Pause, Zap, RotateCw, Rocket, CircleDot, Shield } from "lucide-react";
 import { TRANSFORMATION_SECONDS } from '../game/TransformationCatalog';
 import './TransformationHUD.css';

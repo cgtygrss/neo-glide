@@ -1,6 +1,6 @@
-export const INTRO_DURATION = 1800;
-export const INTRO_EXIT_DURATION = 250;
-export const REDUCED_INTRO_DURATION = 300;
+const INTRO_DURATION = 1800;
+const INTRO_EXIT_DURATION = 250;
+const REDUCED_INTRO_DURATION = 300;
 
 // Lives above the account-keyed game. Subscriptions may restart in StrictMode,
 // but the original deadline never moves and completion cannot be undone.

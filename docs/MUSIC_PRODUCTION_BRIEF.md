@@ -99,7 +99,7 @@ does not trigger another. Menu audio also covers Garage, Pilot, Account and Even
 
 Playback uses decoded recordings, cached per audio context, rather than the
 previous procedural melody scheduler. Effects retain their separate volume
-control. The developer preview at `/dev/music.html` uses this same player.
+control.
 
 The personal-use restriction still applies. This is local integration for
 review, not confirmation of commercial publication rights; no licence was

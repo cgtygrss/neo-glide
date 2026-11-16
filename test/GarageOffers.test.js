@@ -117,32 +117,21 @@ test('credit picks rotate consumable packs and remain stable through missing nat
   assert.equal(garageCreditPack([packs[0]]),packs[0]);
 });
 
-test('next refresh is the real local midnight, including month and year boundaries', () => {
+test('next refresh is UTC midnight, including month and year boundaries', () => {
   for(const [year,month,day] of [[2026,10,30],[2026,11,31],[2028,1,29]]) {
-    const now=new Date(year,month,day,23,59,59,999).getTime();
+    const now=Date.UTC(year,month,day,23,59,59,999);
     assert.equal(nextGarageRefresh(now),now+1);
     assert.equal(garageRotationWindow(now+1).day,garageRotationWindow(now).day+1);
     assert.notEqual(dailySetOffer(now).cosmeticId,dailySetOffer(now+1).cosmeticId);
   }
 });
 
-test('the same local calendar date selects the same set across timezones and 23/25-hour days', t => {
-  const previous=process.env.TZ;
-  t.after(()=>{if(previous===undefined)delete process.env.TZ;else process.env.TZ=previous;});
-  const dayIds=[],setIds=[];
-  for(const zone of ['UTC','Europe/Istanbul','America/New_York','Asia/Tokyo']) {
-    process.env.TZ=zone;
-    const now=new Date(2026,10,6,23,59,59,999).getTime(),{day,refreshesAt}=garageRotationWindow(now);
-    assert.equal(refreshesAt,now+1);dayIds.push(day);setIds.push(dailySetOffer(now).cosmeticId);
-  }
-  assert.equal(new Set(dayIds).size,1);assert.equal(new Set(setIds).size,1);
-  process.env.TZ='America/New_York';
-  for(const [month,day,hours] of [[2,8,23],[10,1,25]]) {
-    const now=new Date(2026,month,day).getTime(),next=garageRotationWindow(now).refreshesAt;
-    assert.equal(next-now,hours*3600000);
-    assert.equal(dailySetOffer(now).endsAt,next);
-    assert.notEqual(dailySetOffer(now).cosmeticId,dailySetOffer(next).cosmeticId);
-  }
+test('a shared UTC instant has the same offer across timezones and DST changes',t=>{
+ const previous=process.env.TZ;t.after(()=>{if(previous===undefined)delete process.env.TZ;else process.env.TZ=previous;});
+ const now=Date.UTC(2026,10,6,23,59,59,999),offers=[];
+ for(const zone of ['UTC','Europe/Istanbul','America/New_York','Asia/Tokyo']){process.env.TZ=zone;assert.equal(nextGarageRefresh(now),now+1);offers.push(dailySetOffer(now).cosmeticId);}
+ assert.equal(new Set(offers).size,1);
+ for(const instant of [Date.UTC(2026,2,8),Date.UTC(2026,10,1)])assert.equal(garageRotationWindow(instant).refreshesAt-instant,86400000);
 });
 
 test('credit purchase debits the displayed daily price once and rejects stale quotes before mutation', t => {

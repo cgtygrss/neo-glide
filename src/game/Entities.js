@@ -271,54 +271,7 @@ export class PlayerProjectile {
     }
 }
 
-export class HomingProjectile extends Projectile {
-    constructor(x, y, target) {
-        super(x, y, -300, 0); // Slower base speed
-        this.target = target;
-        this.radius = 10;
-        this.turnRate = 1.2; // Slower turn rate (was 2.0, now 1.2 - less accurate)
-        this.speed = 300; // Slower speed (was 400, now 300)
-        this.life = 5.0; // Expires after 5 seconds
-    }
 
-    update(deltaTime, arena = DEFAULT_FLIGHT_BOUNDS) {
-        this.previousX = this.x; this.previousY = this.y;
-        this.life -= deltaTime;
-        if (this.life <= 0) {
-            this.markedForDeletion = true;
-            return;
-        }
-
-        if (this.target) {
-            const dx = this.target.x - this.x;
-            const dy = this.target.y - this.y;
-            const angle = Math.atan2(dy, dx);
-
-            // Simple homing: adjust velocity towards target
-            // Calculate current velocity angle
-            const currentAngle = Math.atan2(this.vy, this.vx);
-
-            // Smoothly rotate towards target
-            let diff = angle - currentAngle;
-            // Normalize angle to -PI to PI
-            while (diff <= -Math.PI) diff += Math.PI * 2;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-
-            const turn = Math.max(-this.turnRate * deltaTime, Math.min(this.turnRate * deltaTime, diff));
-            const newAngle = currentAngle + turn;
-
-            this.vx = Math.cos(newAngle) * this.speed;
-            this.vy = Math.sin(newAngle) * this.speed;
-        }
-
-        this.x += this.vx * deltaTime;
-        this.y += this.vy * deltaTime;
-
-        if (this.x < -50 || this.y < -50 || this.y > arena.height + 50) {
-            this.markedForDeletion = true;
-        }
-    }
-}
 
 export class FuseProjectile extends Projectile {
     constructor(x, y) {

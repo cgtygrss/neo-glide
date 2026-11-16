@@ -1,1 +1,1 @@
-New ships, transformations, galaxies and cosmetic collections. Improved controls, performance and family play. Added account synchronization and updated privacy and support information.
+New ships, transformations, galaxies and cosmetic collections. Improved controls, performance and family play. Online progress is now separate from offline and store test saves; previous progress remains available in offline play. Improved account and purchase recovery, with updated privacy and support information.

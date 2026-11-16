@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 // Keep the product action in view while long descriptions use their own space.
 export default function CatalogDetails({ className = '', children, actions }) {

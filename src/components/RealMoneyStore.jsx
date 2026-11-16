@@ -1,5 +1,5 @@
 import { STARTER_CREDITS } from '../game/Economy';
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Check, Eye, Sparkles } from 'lucide-react';
 import { getStorePlatform, getStoreProducts, isNativeStorePlatform, subscribeStore, refreshStoreProducts } from '../services/MonetizationService';
 import { sortStoreProducts } from '../game/CatalogSorting';
@@ -22,7 +22,6 @@ const PRODUCT_DETAILS = {
     note: 'Includes the ship, weapon and credits. Rewarded ads remain optional for every pilot.',
   },
 };
-
 
 export default function RealMoneyStore({ initialProductId, currency = 0, onCreditUnlock, purchases = {}, pendingProducts = [], busyProduct, message, onPurchase, onRestore }) {
   const nativeProducts = useSyncExternalStore(subscribeStore, getStoreProducts);

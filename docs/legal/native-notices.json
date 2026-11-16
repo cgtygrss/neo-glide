@@ -2,8 +2,8 @@
   "format": 2,
   "inputs": {
     "ios/App/Podfile.lock": "69f58c9fd4db713c4f784413281b637e8edf0f320a8a537144e13332ecac50a6",
-    "ios/App/App.xcworkspace/xcshareddata/swiftpm/Package.resolved": "a20decc0ae5ac3378e7fa19c5d349af5cdc6d6358276a0ef3c8ae63cdac5e506",
-    "android/app/build.gradle": "76bc9bedd1136efbbb1940b8596ffcfa118b658a413b0d9d1a5ca41582662a97",
+    "ios/App/App.xcworkspace/xcshareddata/swiftpm/Package.resolved": "e9ff56aecb9637ec27beaf072eb7a6bd2848b45c91d1eaea58f39316d8ecab73",
+    "android/app/build.gradle": "5419cf01002d7a20c128497fc31da12ece6f83b898f2d2d492e9c8bff280fb4e",
     "android/variables.gradle": "d033257793f552103f8408d2bdeb1156f04c558a388e6d7189cdc4e4a75c7a5d"
   },
   "entries": [
@@ -51,7 +51,7 @@
     },
     {
       "component": "iOS SwiftPM / app-check",
-      "version": "12.0.0",
+      "version": "12.1.0",
       "source": "https://github.com/google/app-check.git / LICENSE",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
@@ -63,19 +63,19 @@
     },
     {
       "component": "iOS SwiftPM / firebase-ios-sdk",
-      "version": "13.0.1",
+      "version": "13.2.0",
       "source": "https://github.com/firebase/firebase-ios-sdk / LICENSE",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "iOS SwiftPM / google-ads-on-device-conversion-ios-sdk",
-      "version": "3.7.0",
+      "version": "3.8.0",
       "source": "https://github.com/googleads/google-ads-on-device-conversion-ios-sdk / LICENSE",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "iOS SwiftPM / googleappmeasurement",
-      "version": "13.0.1",
+      "version": "13.2.0",
       "source": "https://github.com/google/GoogleAppMeasurement.git / LICENSE",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
@@ -1851,105 +1851,111 @@
     },
     {
       "component": "Android / com.google.android.gms:play-services-base",
-      "version": "18.5.0",
+      "version": "18.9.0",
       "source": "Maven POM",
       "textHash": "ddd60257b751b4d36ae7286224be4aa201c1f03aa74d62d6934a1ee4d4035396"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Animal Sniffer",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "b3202b38f5bd43f92ca9bb55cf82c1e10f9ae4c95670dafabb8968c1b446c09b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Checker Framework Annotations",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "6a0a75a8311d0a968bed620b1faeb31147d05ab92a670e3ca98d49e64fb679f2"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Error Prone",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Guava JDK5",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Guava JDK7",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / J2ObjC",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "7fef2c083dbcc1a67dee5478cba76b734650d4394ee5c8ef54447f71102fed8a"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / JSR 305",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "ae6da0d96b1af43e0e8dd81c799db06c3a45736060b4a51b07b70002f57c2369"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / JSpecify",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / JsInterop Annotations",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "b3e17cd48de9bfefe076d376cc136df378ebfceffbb48069205c0dd0231a0cae"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Kotlin",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
-      "textHash": "4fe7bc606857fd3954bc067fad926e7993ddca7232202969e0dfabe4a9e50fdd"
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
+      "textHash": "8f8bc2664f05846a65c98a4fb0bbc1f0a9a716fbfd70f266a3f69882d72a4461"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / Kotlin coroutines",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / SafeParcelable library",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / apksig",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "f1c19460de3a01d078ee196289e5e2e8c2628490824a8c32446d26ed02247b5b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / gsfclient",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / java_annotations",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "4639054894f3e277b7567e8aed067bf9b66bec85a78ac986dd95b7f04c822d5d"
     },
     {
       "component": "Android / com.google.android.gms:play-services-base / kotlinx_atomicfu",
-      "version": "18.5.0",
-      "source": "play-services-base-18.5.0 / third_party_licenses",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
+    },
+    {
+      "component": "Android / com.google.android.gms:play-services-base / kotlinx_serialization",
+      "version": "18.9.0",
+      "source": "play-services-base-18.9.0 / third_party_licenses",
+      "textHash": "6dc0e068dcf3a5bc8e054205b85b7720e1d49265bbc64bf515d2cf79197df69a"
     },
     {
       "component": "Android / com.google.android.gms:play-services-basement",
@@ -3369,686 +3375,686 @@
     },
     {
       "component": "Android / com.google.android.play:core-common",
-      "version": "2.0.3",
+      "version": "2.0.4",
       "source": "Maven POM",
       "textHash": "d4214fa5892f453016bf188fd80ee8e35dd8136d6fcc75a96f45fc5b6ac34762"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX activity library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX annotation experimental library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
-      "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
-    },
-    {
-      "component": "Android / com.google.android.play:core-common / AndroidX annotation jvm library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX annotation library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX architecture core common library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX architecture core runtime library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX asynclayoutinflater library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
-      "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
-    },
-    {
-      "component": "Android / com.google.android.play:core-common / AndroidX collection jvm library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX concurrent futures library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX coordinatorlayout library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX core ktx library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX core library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX cursoradapter library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX customview library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX documentfile library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX drawerlayout library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX fragment library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX interpolator library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX legacy coreui library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX legacy coreutils library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX legacy v4 library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX lifecycle common library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX lifecycle livedatacore library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX lifecycle runtime library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX lifecycle viewmodel library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX lifecycle viewmodel savedstate library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX loader library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX localbroadcastmanager library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX media base library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX print library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX savedstate library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX swiperefreshlayout library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX tracing library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX versionedparcelable library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "c17226aad8ed1bd1871d2fcf9a70a5f4761796fd9a1377fbdbc0508cdd391c17"
     },
     {
       "component": "Android / com.google.android.play:core-common / AndroidX viewpager library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:core-common / Animal Sniffer",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "b3202b38f5bd43f92ca9bb55cf82c1e10f9ae4c95670dafabb8968c1b446c09b"
     },
     {
       "component": "Android / com.google.android.play:core-common / Checker Framework Annotations",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "6a0a75a8311d0a968bed620b1faeb31147d05ab92a670e3ca98d49e64fb679f2"
     },
     {
       "component": "Android / com.google.android.play:core-common / Dagger",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / Error Prone",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / Google Auto",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / Guava JDK5",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / Guava JDK7",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / J2ObjC",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "7fef2c083dbcc1a67dee5478cba76b734650d4394ee5c8ef54447f71102fed8a"
     },
     {
       "component": "Android / com.google.android.play:core-common / JSR 250",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / JSR 305",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "ae6da0d96b1af43e0e8dd81c799db06c3a45736060b4a51b07b70002f57c2369"
     },
     {
       "component": "Android / com.google.android.play:core-common / JSR 330",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "4c718a6f819abfb005ab05ae98c8493dfa94c1b76f6106756510d19e699f8582"
     },
     {
       "component": "Android / com.google.android.play:core-common / JSpecify",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
+      "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
+    },
+    {
+      "component": "Android / com.google.android.play:core-common / Jakarta Inject",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / JsInterop Annotations",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "b3e17cd48de9bfefe076d376cc136df378ebfceffbb48069205c0dd0231a0cae"
     },
     {
       "component": "Android / com.google.android.play:core-common / Kotlin",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
-      "textHash": "4fe7bc606857fd3954bc067fad926e7993ddca7232202969e0dfabe4a9e50fdd"
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
+      "textHash": "8f8bc2664f05846a65c98a4fb0bbc1f0a9a716fbfd70f266a3f69882d72a4461"
     },
     {
       "component": "Android / com.google.android.play:core-common / Kotlin coroutines",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / Play Core Software Development Kit",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "62eefe4377b4ed9a123f2ec95399acaf9ac1edf99b38c74c471d5db38632464d"
     },
     {
       "component": "Android / com.google.android.play:core-common / SafeParcelable library",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:core-common / apksig",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "f1c19460de3a01d078ee196289e5e2e8c2628490824a8c32446d26ed02247b5b"
     },
     {
       "component": "Android / com.google.android.play:core-common / archive_patcher",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "f88587158735baef36d947835c80be93505770219bf1f87031c7358f1e42bf61"
     },
     {
+      "component": "Android / com.google.android.play:core-common / java_annotations",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
+      "textHash": "4639054894f3e277b7567e8aed067bf9b66bec85a78ac986dd95b7f04c822d5d"
+    },
+    {
       "component": "Android / com.google.android.play:core-common / kotlinx_atomicfu",
-      "version": "2.0.3",
-      "source": "core-common-2.0.3 / third_party_licenses",
+      "version": "2.0.4",
+      "source": "core-common-2.0.4 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "source": "Maven POM",
       "textHash": "c0e8f4c8111786513d958c48d2ba79eee4b790b2b0f1cb6fe1c59dc3704b491b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Android SDK Platforms",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "54b67013db98fed82b57f9959c4f591297f435d73ddc2a74e1d4389e29a13fd0"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX activity library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX annotation experimental library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
-      "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
-    },
-    {
-      "component": "Android / com.google.android.play:integrity / AndroidX annotation jvm library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX annotation library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX architecture core common library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX architecture core runtime library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX asynclayoutinflater library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX collection library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX concurrent futures library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX coordinatorlayout library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX core ktx library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX core library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX cursoradapter library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX customview library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX documentfile library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX drawerlayout library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX fragment library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX interpolator library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX legacy coreui library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX legacy coreutils library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX legacy v4 library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX lifecycle common library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX lifecycle livedatacore library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX lifecycle runtime library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX lifecycle viewmodel library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX lifecycle viewmodel savedstate library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX loader library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX localbroadcastmanager library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX media base library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX print library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX savedstate library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX swiperefreshlayout library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX tracing library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX versionedparcelable library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "c17226aad8ed1bd1871d2fcf9a70a5f4761796fd9a1377fbdbc0508cdd391c17"
     },
     {
       "component": "Android / com.google.android.play:integrity / AndroidX viewpager library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "d01ce9a0672de1a119755c19a79cfbe9b2916379fa0e67187fa413484e4e624d"
     },
     {
       "component": "Android / com.google.android.play:integrity / Animal Sniffer",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "b3202b38f5bd43f92ca9bb55cf82c1e10f9ae4c95670dafabb8968c1b446c09b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Checker Framework Annotations",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "6a0a75a8311d0a968bed620b1faeb31147d05ab92a670e3ca98d49e64fb679f2"
     },
     {
       "component": "Android / com.google.android.play:integrity / Dagger",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Error Prone",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Google Auto",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Guava JDK5",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Guava JDK7",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / J2ObjC",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "7fef2c083dbcc1a67dee5478cba76b734650d4394ee5c8ef54447f71102fed8a"
     },
     {
       "component": "Android / com.google.android.play:integrity / JSR 250",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / JSR 305",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "ae6da0d96b1af43e0e8dd81c799db06c3a45736060b4a51b07b70002f57c2369"
     },
     {
       "component": "Android / com.google.android.play:integrity / JSR 330",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "4c718a6f819abfb005ab05ae98c8493dfa94c1b76f6106756510d19e699f8582"
     },
     {
       "component": "Android / com.google.android.play:integrity / JSpecify",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
+      "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
+    },
+    {
+      "component": "Android / com.google.android.play:integrity / Jakarta Inject",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / JsInterop Annotations",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "b3e17cd48de9bfefe076d376cc136df378ebfceffbb48069205c0dd0231a0cae"
     },
     {
       "component": "Android / com.google.android.play:integrity / Kotlin",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
-      "textHash": "4fe7bc606857fd3954bc067fad926e7993ddca7232202969e0dfabe4a9e50fdd"
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
+      "textHash": "8f8bc2664f05846a65c98a4fb0bbc1f0a9a716fbfd70f266a3f69882d72a4461"
     },
     {
       "component": "Android / com.google.android.play:integrity / Kotlin coroutines",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / Play Integrity API Terms of Service",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "af887da609cd24660f3ffca8b186d7a6ea8687632a0f7dba8b9acd626e9bd0d6"
     },
     {
       "component": "Android / com.google.android.play:integrity / SafeParcelable library",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / apksig",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "f1c19460de3a01d078ee196289e5e2e8c2628490824a8c32446d26ed02247b5b"
     },
     {
       "component": "Android / com.google.android.play:integrity / archive_patcher",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "f88587158735baef36d947835c80be93505770219bf1f87031c7358f1e42bf61"
     },
     {
       "component": "Android / com.google.android.play:integrity / kotlinx_atomicfu",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "283ea6cc2997a1a70da0049e09adf9317bb60ca1b51279b65196b83a69e1996b"
     },
     {
       "component": "Android / com.google.android.play:integrity / p2putils",
-      "version": "1.3.0",
-      "source": "integrity-1.3.0 / third_party_licenses",
+      "version": "1.4.0",
+      "source": "integrity-1.4.0 / third_party_licenses",
       "textHash": "299d8188dce0db22d8e31cb86dc3c15e4263bf870a1cf99ecce37fe91415498d"
     },
     {
@@ -4826,8 +4832,20 @@
       "textHash": "a28613099f2c47934c7f766fabf37132fd6030929d8dce4686877fc81e9671c2"
     },
     {
+      "component": "Android / com.google.firebase:firebase-appcheck",
+      "version": "19.4.1",
+      "source": "Maven POM",
+      "textHash": "a28613099f2c47934c7f766fabf37132fd6030929d8dce4686877fc81e9671c2"
+    },
+    {
       "component": "Android / com.google.firebase:firebase-appcheck-interop",
-      "version": "17.0.0",
+      "version": "17.1.0",
+      "source": "Maven POM",
+      "textHash": "a28613099f2c47934c7f766fabf37132fd6030929d8dce4686877fc81e9671c2"
+    },
+    {
+      "component": "Android / com.google.firebase:firebase-appcheck-playintegrity",
+      "version": "19.4.1",
       "source": "Maven POM",
       "textHash": "a28613099f2c47934c7f766fabf37132fd6030929d8dce4686877fc81e9671c2"
     },

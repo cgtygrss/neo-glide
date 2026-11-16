@@ -577,9 +577,6 @@ for (const [id, name, className, description, trait, shortTrait, accent, hull, p
   });
 }
 
-export const SHIP_NAMES = Object.fromEntries(
-  SHIPS.map((ship) => [ship.id, ship.name]),
-);
 const shipsById = new Map(SHIPS.map((ship) => [ship.id, ship]));
 export const getShip = (id) => shipsById.get(id) || shipsById.get("default");
 

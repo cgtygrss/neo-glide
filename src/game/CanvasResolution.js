@@ -1,4 +1,4 @@
-export const MAX_PIXEL_RATIO = 3;
+const MAX_PIXEL_RATIO = 3;
 export const MAX_CANVAS_PIXELS = 9_000_000;
 
 // Logical coordinates stay unchanged; displayScale maps them to the fitted CSS

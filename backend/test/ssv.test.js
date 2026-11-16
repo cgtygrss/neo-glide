@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync,sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { verifySsv } from '../ssv.js';
+import { verifySsv, createVerifierKeyCache } from '../ssv.js';
 test('the actual Google console callback verifies with its public key and escaped reward item',()=>{
  const fixture=JSON.parse(readFileSync(new URL('./fixtures/admob-console-signed.json',import.meta.url),'utf8'));
  assert.equal(verifySsv(fixture.raw,[fixture.key],['live-unit']).get('reward_item'),'$');
@@ -13,7 +13,17 @@ test('SSV signatures bind the callback account, unit and reward intent',()=>{
  const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'}),keys=[{keyId:1,pem:publicKey.export({type:'spki',format:'pem'})}];
  const query='ad_unit=test&custom_data=intent&timestamp=123456&transaction_id=tx&user_id=pilot',sig=sign('sha256',Buffer.from(query),privateKey).toString('base64url'),raw=`${query}&signature=${sig}&key_id=1`;
  assert.equal(verifySsv(raw,keys,['test']).get('user_id'),'pilot');
+ assert.throws(()=>verifySsv(`${raw}&custom_data=another-intent`,keys,['test']));
  assert.throws(()=>verifySsv(raw.replace('pilot','attacker'),keys,['test']));assert.throws(()=>verifySsv(raw,keys,['other']));assert.throws(()=>verifySsv(raw,[],['test']));assert.throws(()=>verifySsv(query,keys,['test']));
+});
+test('key refreshes share one request and back off after outages',async()=>{
+ let calls=0,now=100000,unavailable=false;
+ const cache=createVerifierKeyCache(async()=>{calls++;await Promise.resolve();if(unavailable)throw new Error('private upstream detail');return new Response(JSON.stringify({keys:[{keyId:1,pem:'key'}]}));},()=>now);
+ await Promise.all(Array.from({length:20},()=>cache()));assert.equal(calls,1);
+ now+=3600001;unavailable=true;
+ await assert.rejects(cache(),error=>error.status===503&&!error.message.includes('private'));
+ await assert.rejects(cache());assert.equal(calls,2);
+ now+=10001;unavailable=false;await cache();assert.equal(calls,3);
 });
 test('signed console samples can only enter the no-reward validation path',()=>{
  const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'}),keys=[{keyId:1,pem:publicKey.export({type:'spki',format:'pem'})}];

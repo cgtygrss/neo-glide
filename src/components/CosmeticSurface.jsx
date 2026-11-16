@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import { useId } from 'react';
 import { getCosmeticSurface } from '../game/CosmeticDesigns';
 
 export default function CosmeticSurface({ cosmeticId, palette, ship }) {

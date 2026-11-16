@@ -21,6 +21,9 @@ if (!playBillingPublicKey) {
     }
 }
 def escapedPlayBillingPublicKey = playBillingPublicKey.replace("\\", "\\\\").replace("\"", "\\\"")
+def releaseTrack = providers.environmentVariable("ANDROID_TRACK").orElse(new groovy.json.JsonSlurper().parse(rootProject.file("../ci/release.json")).androidTrack as String).get()
+if (!(releaseTrack in ["internal", "alpha", "production"])) throw new GradleException("Unsupported release track")
+def storeEnvironment = releaseTrack == "production" ? "Production" : "Sandbox"
 
 def playGamesAppId = providers.gradleProperty("NEO_GLIDE_PLAY_GAMES_APP_ID")
         .orElse(providers.environmentVariable("NEO_GLIDE_PLAY_GAMES_APP_ID"))
@@ -38,9 +41,10 @@ android {
         versionCode providers.gradleProperty("NEO_GLIDE_BUILD_NUMBER").map { it.toInteger() }.getOrElse(5)
         versionName new groovy.json.JsonSlurper().parse(rootProject.file("../package.json")).version
         buildConfigField "String", "PLAY_BILLING_PUBLIC_KEY", "\"${escapedPlayBillingPublicKey}\""
+        buildConfigField "String", "STORE_ENVIRONMENT", "\"${storeEnvironment}\""
         resValue "string", "game_services_project_id", playGamesAppId
         manifestPlaceholders["neoGlideGamesEnabled"] = playGamesAppId != "0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["neoGlideStoreEnvironment"] = storeEnvironment
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -88,6 +92,7 @@ repositories {
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:34.19.0')
     implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-appcheck-playintegrity'
     implementation 'androidx.credentials:credentials:1.6.0'
     implementation 'androidx.credentials:credentials-play-services-auth:1.6.0'
     implementation 'com.google.android.libraries.identity.googleid:googleid:1.2.1'
@@ -100,8 +105,6 @@ dependencies {
     implementation "com.android.billingclient:billing:9.1.0"
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.json:json:20240303"
-    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
 }
 

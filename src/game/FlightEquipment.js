@@ -1,6 +1,6 @@
 // Shared by flight, item descriptions and upgrade previews. Optional modules
 // start at zero so older saves retain their original flight characteristics.
-export const SHIP_TRAITS = {
+const SHIP_TRAITS = {
   default: {}, interceptor: { ammoInterval: 1.5 }, cruiser: { health: 40 },
   stealth: { encounterDelay: 1.5 }, void_runner: { phaseHeight: 80 }, plasma_breaker: { smash: true },
   kestrel: { energy: 30 }, manta: { magnet: 40 }, bulwark: { health: 70, ammo: -2 },
@@ -10,7 +10,7 @@ export const SHIP_TRAITS = {
 };
 export const getShipTraits = id => SHIP_TRAITS[id] || SHIP_TRAITS.default;
 export const MODULE_IDS = ['ammo_capacity', 'ammo_regen', 'boost_efficiency', 'energy_recovery', 'medical', 'armor', 'hit_guard', 'power_duration', 'tractor_speed', 'repair_amplifier'];
-export const moduleLevel = (upgrades, id) => Math.max(0, Number(upgrades[id]) || 0);
+const moduleLevel = (upgrades, id) => Math.max(0, Number(upgrades[id]) || 0);
 
 export function flightEquipment(upgrades = {}, ship = 'default', pilotLevel = 1) {
   const trait = getShipTraits(ship), lv = id => moduleLevel(upgrades, id);

@@ -104,6 +104,23 @@ test('simultaneous purchase-result and update deliveries coalesce by transaction
   assert.equal(loadWallet(), 2 * CREDIT_PACKS.credits_1000, 'A second real consumable transaction is a second pack');
 });
 
+test('authoritative server delivery finishes only after approval and never adds a second local grant', async t => {
+  storage(); saveWallet(75);
+  let approve, finishes=0;
+  configureStoreAccounts({capture: owner => ({owner}), verify: () => new Promise(resolve => {approve=resolve;})});
+  t.after(() => configureStoreAccounts(null));
+  const delivery=createStoreDelivery({finishTransaction:async()=>{finishes++;assert.equal(loadWallet(),100075);}});
+  const pending=delivery.deliver(transaction('online-123'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(finishes,0);
+  saveWallet(100075); // Authoritative sync has already committed this balance.
+  approve({authoritative:true,applied:true,balance:100075});
+  await pending;
+  assert.equal(finishes,1);
+  assert.equal(loadWallet(),100075);
+  assert.deepEqual(JSON.parse(profileStorage.getItem(ACCOUNT_KEY)).transactions,{});
+});
+
 test('unverified, unknown or mismatched transactions cannot grant or finish', async () => {
   storage(); const { state, bridge } = store();
   const delivery = createStoreDelivery(bridge);
@@ -433,6 +450,18 @@ test('late store delivery stays with the purchasing pilot after an account switc
   verify(); await pending;
   assert.equal(loadWallet(),250);
   activateProfile(original); assert.equal(loadWallet(),101000);
+});
+
+test('unfinished delivery follows a verified local account merge instead of remaining on its closed source',async t=>{
+ const data=storage();const source=ownerId();
+ data.set('neo_glide_store_owners_v1',JSON.stringify({'merged-purchase':source}));
+ const meta=JSON.parse(data.get('neo_glide_accounts_v1'));
+ meta.accountAliases={[source]:'merged-target'};data.set('neo_glide_accounts_v1',JSON.stringify(meta));activateProfile('merged-target');
+ let captured;
+ configureStoreAccounts({capture:owner=>{captured=owner;return {owner};},verify:async()=>({authoritative:true,applied:false,balance:0})});
+ t.after(()=>configureStoreAccounts(null));
+ await createStoreDelivery({finishTransaction:async()=>{}}).deliver(transaction('merged-purchase'));
+ assert.equal(captured,'merged-target');
 });
 
 

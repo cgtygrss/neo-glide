@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Crosshair, AlertTriangle, Coins } from 'lucide-react';
 import './BossStatus.css';
 

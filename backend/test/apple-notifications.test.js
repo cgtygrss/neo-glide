@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { verifyAppleNotification } from '../apple-notifications.js';
+import { VerificationException, VerificationStatus } from '@apple/app-store-server-library';
+const notification={notificationUUID:'notification-1',signedDate:Date.now(),notificationType:'REFUND',data:{environment:'Production',signedTransactionInfo:'signed-transaction'}};
+const receipt={environment:'Production',productId:'cosmetic_void_pilot',transactionId:'123',revocationDate:Date.now()};
+const verify=(notice=notification,transaction=receipt)=>verifyAppleNotification('signed-payload',{decode:async()=>notice,decodeTransaction:async()=>transaction});
+test('Apple notifications require verified envelope and verified matching production transaction',async()=>{
+ const result=await verify();assert.equal(result.revoked,true);assert.equal(result.id,'apple:Production:123');
+ process.env.APPLE_APP_ID='6755588297';
+ await assert.rejects(verifyAppleNotification('forged-payload'),error=>error.status===400&&error.code==='invalid-signature');
+ await assert.rejects(verifyAppleNotification('signed-payload',{decode:async()=>{throw new VerificationException(VerificationStatus.RETRYABLE_VERIFICATION_FAILURE);}}),error=>error.status===503);
+ await assert.rejects(verify({...notification,data:{...notification.data,environment:'Sandbox'}}));
+ await assert.rejects(verify(notification,{...receipt,environment:'Sandbox'}));
+ await assert.rejects(verify(notification,{...receipt,revocationDate:undefined}));
+ await assert.rejects(verify({...notification,signedDate:Date.now()+600000}));
+ assert.equal((await verify({...notification,notificationType:'REFUND_REVERSED'},{...receipt,revocationDate:undefined})).revoked,false);
+ assert.equal((await verify(notification,{...receipt,productId:'credits_small'})).ignored,true);
+ assert.equal((await verify({...notification,notificationType:'TEST'})).test,true);
+});

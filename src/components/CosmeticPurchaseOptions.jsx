@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Check, Coins } from 'lucide-react';
 import { getStorePlatform } from '../services/MonetizationService';
 import { canRetryPendingPurchase } from '../services/StorePolicy';

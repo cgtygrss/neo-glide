@@ -12,6 +12,8 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.appcheck.FirebaseAppCheck;
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthCredential;
@@ -29,8 +31,10 @@ public class NeoGlideAuthPlugin extends Plugin {
  private AuthCredential candidate;
  private boolean playGamesEnabled;
  private boolean gamesInitialized;
+ private boolean appCheckInitialized;
  private FirebaseAuth current() {
   if(FirebaseApp.getApps(getContext()).isEmpty())FirebaseApp.initializeApp(getContext());
+  if(!appCheckInitialized){FirebaseAppCheck.getInstance().installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance());appCheckInitialized=true;}
   if(playGamesEnabled&&!gamesInitialized){gamesInitialized=true;PlayGamesSdk.initialize(getActivity());}
   return FirebaseAuth.getInstance();
  }
@@ -58,6 +62,11 @@ public class NeoGlideAuthPlugin extends Plugin {
  @PluginMethod public void restoreSession(PluginCall call) {try{resolveUser(call,current().getCurrentUser());}catch(Exception e){call.reject("Firebase configuration is unavailable.");}}
  @PluginMethod public void signInGuest(PluginCall call) {current().signInAnonymously().addOnSuccessListener(r->resolveUser(call,r.getUser())).addOnFailureListener(e->call.reject(e.getMessage()));}
  @PluginMethod public void getIdToken(PluginCall call) {FirebaseUser user=current().getCurrentUser();if(user==null){call.reject("Not signed in.");return;}user.getIdToken(false).addOnSuccessListener(r->{JSObject out=new JSObject();out.put("token",r.getToken());call.resolve(out);}).addOnFailureListener(e->call.reject(e.getMessage()));}
+ @PluginMethod public void getAppCheckToken(PluginCall call) {
+  current();
+  FirebaseAppCheck.getInstance().getAppCheckToken(false).addOnSuccessListener(result->{JSObject out=new JSObject();out.put("token",result.getToken());call.resolve(out);}).addOnFailureListener(error->call.reject("App verification is unavailable."));
+ }
+ @PluginMethod public void getRuntimeEnvironment(PluginCall call) {JSObject out=new JSObject();out.put("environment",BuildConfig.STORE_ENVIRONMENT);call.resolve(out);}
  @PluginMethod public void beginSignIn(PluginCall call) {if(!"google".equals(call.getString("provider","google"))){call.reject("Unsupported provider.");return;}getActivity().runOnUiThread(()->choose(call,false,false));}
  @PluginMethod public void autoSignIn(PluginCall call) {
   SharedPreferences prefs=getContext().getSharedPreferences("neo_glide_auth",0);

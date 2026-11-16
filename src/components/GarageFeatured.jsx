@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { ArrowRight, Check, Coins, Sparkles, Wind, Crosshair } from 'lucide-react';
 import ShipPreview from './ShipPreview';
 import { garageSpotlights, garageCreditPack, garageRotationWindow, cosmeticCreditOffer, offerDeadline } from '../game/GarageOffers';
@@ -35,7 +35,7 @@ export default function GarageFeatured(props) {
   return <GarageFeaturedView {...props} products={products} status={status} now={now} onRetry={refresh}/>;
 }
 
-export function GarageFeaturedView({ cosmetics, ownedCosmetics, pendingProducts, ship, onCosmetic, onProduct, onBrowse, onBrowseSets = onBrowse, products, status, now, onRetry }) {
+function GarageFeaturedView({ cosmetics, ownedCosmetics, pendingProducts, ship, onCosmetic, onProduct, onBrowse, onBrowseSets = onBrowse, products, status, now, onRetry }) {
   const [hero, companionSet] = garageSpotlights(cosmetics, now);
   const companion = companionSet && getCosmetic(`skin_${companionSet.id}`);
   if (!hero) return <div className="garage-featured is-empty"><Sparkles size={30}/><h3>Your next adventure starts here.</h3><p>Explore ships, equipment and galaxy destinations.</p><button type="button" className="arcade-button primary" onClick={onBrowse}>Explore the Garage<ArrowRight size={18}/></button></div>;

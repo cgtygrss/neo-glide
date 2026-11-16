@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { ShopPreviewScene, PREVIEW_WIDTH, PREVIEW_HEIGHT } from '../game/ShopPreviewScene';
 

@@ -3,11 +3,11 @@ import { ScoutBeam } from './ScoutAttack.js';
 import { MAX_HOSTILE_PROJECTILES } from './Combat.js';
 import { BOSS_REWARD } from './Economy.js';
 
-export const BOSS_WARNING_SECONDS = .9;
+const BOSS_WARNING_SECONDS = .9;
 export const BOSS_ARRIVAL_SECONDS = 3.6;
-export const BOSS_APPROACH_SECONDS = 2.4;
+const BOSS_APPROACH_SECONDS = 2.4;
 export const BOSS_ENCOUNTER_SECONDS = 40;
-export const BOSS_RECOVERY_SECONDS = 3;
+const BOSS_RECOVERY_SECONDS = 3;
 export const BOSSES = [
   { id: 'forge', name: 'Forge Carrier', hp: 240, color: '#ffc181', width: 156, height: 104 },
   { id: 'prism', name: 'Prism Sentinel', hp: 480, color: '#c7b6ff', width: 128, height: 128 },

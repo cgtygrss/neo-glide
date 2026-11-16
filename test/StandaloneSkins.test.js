@@ -6,7 +6,8 @@ import { SHIPS } from '../src/game/ShipCatalog.js';
 import { cosmeticCreditOffer, dailySetOffer, garageRotationWindow } from '../src/game/GarageOffers.js';
 import { ACCOUNT_KEY, saveWallet, loadWallet, getCosmeticOwnership, unlockCreditCosmetic, markCosmeticPending, beginCosmeticPurchase, endCosmeticPurchase, grantStoreTransaction, syncStoreSnapshot } from '../src/game/Economy.js';
 import { profileStorage, initializeProfiles, activateProfile } from '../src/account/ProfileStorage.js';
-import { validateSave, protectServerFields } from '../backend/shared/save.js';
+import { validateSave } from '../backend/shared/save.js';
+import { initialOnlineSave,protectEconomicSave } from '../backend/shared/online-economy.js';
 import { advanceCosmeticTrail, createCosmeticTrailState, drawCosmeticTrail } from '../src/game/CosmeticTrails.js';
 import { drawCosmeticShot, drawCosmeticMuzzle, drawCosmeticMark } from '../src/game/CosmeticEffects.js';
 
@@ -153,7 +154,10 @@ test('skin unlock and equipment survive account-scoped storage and existing serv
   const skin = SKINS[0]; saveWallet(skin.creditPrice); unlockCreditCosmetic(skin.id);
   profileStorage.setItem('neon_glide_equipped_cosmetic', skin.id);
   const data = { [ACCOUNT_KEY]: profileStorage.getItem(ACCOUNT_KEY), neon_glide_equipped_cosmetic: skin.id };
-  const clean = protectServerFields(validateSave(data), data);
+  const authoritative=initialOnlineSave(null,[],'Production');
+  const wallet=JSON.parse(authoritative[ACCOUNT_KEY]);wallet.creditCosmetics[skin.id]=true;
+  authoritative[ACCOUNT_KEY]=JSON.stringify(wallet);
+  const clean = protectEconomicSave(validateSave(data), authoritative);
   assert.equal(JSON.parse(clean[ACCOUNT_KEY]).creditCosmetics[skin.id], true);
   assert.equal(clean.neon_glide_equipped_cosmetic, skin.id);
   const owner = JSON.parse(localStorage.getItem('neo_glide_accounts_v1')).owner;

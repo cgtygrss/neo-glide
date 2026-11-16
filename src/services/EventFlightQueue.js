@@ -1,10 +1,12 @@
+import { accountStorage } from '../account/RuntimeRealm.js';
 const requests = new Map();
 const terminalFlightErrors = new Set([
   'Offline authorization expired.', 'Invalid event period.', 'Flight authorization changed.',
-  'Flight duration exceeds authorization.', 'Offline flight time exceeds authorization.'
+  'Flight duration exceeds authorization.', 'Offline flight time exceeds authorization.',
+  'Invalid flight owner.', 'Invalid flight ID.', 'Invalid flight counters.', 'Flight counters exceed limits.'
 ]);
 
-export function flushEventFlights({ uid, isCurrent, send, storage = localStorage }) {
+export function flushEventFlights({ uid, isCurrent, send, storage = accountStorage }) {
   if (requests.has(uid)) return requests.get(uid);
   const request = Promise.resolve().then(async () => {
     const key = `neo_glide_flights:${uid}`;

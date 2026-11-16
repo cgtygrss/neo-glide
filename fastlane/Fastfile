@@ -1,0 +1,83 @@
+require 'json'
+require 'base64'
+
+ROOT = File.expand_path('..', __dir__)
+
+def release_data
+  JSON.parse(File.read(File.join(ROOT, 'ci-output/identity.json')))
+end
+
+lane :publish_ios do
+  identity = release_data
+  UI.user_error!('Public publishing manifest required') unless identity['mode'] == 'publish'
+  snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
+  key = app_store_connect_api_key(
+    key_id: ENV.fetch('ASC_KEY_ID'), issuer_id: ENV.fetch('ASC_ISSUER_ID'),
+    key_content: ENV.fetch('ASC_PRIVATE_KEY_BASE64'), is_key_content_base64: true,
+    duration: 1200, in_house: false
+  )
+  upload_to_app_store(
+    api_key: key, app_identifier: 'com.cgtygrssgame.neonglide',
+    ipa: File.join(ROOT, 'ci-output/NeoGlide.ipa'),
+    app_version: identity.fetch('version'), build_number: identity.fetch('build'),
+    skip_binary_upload: snapshot.fetch('iosExists'), skip_screenshots: true,
+    skip_metadata: false, metadata_path: File.join(ROOT, 'ci-output/apple-metadata'),
+    release_notes: { 'en-GB' => File.read(File.join(ROOT, "ci/changes/#{identity.fetch('version')}/en-GB.txt")) },
+    submit_for_review: true, automatic_release: true, phased_release: false,
+    reject_if_possible: false, force: true,
+    run_precheck_before_submit: true, precheck_include_in_app_purchases: false
+  )
+end
+
+lane :publish_android do
+  identity = release_data
+  UI.user_error!('Public publishing manifest required') unless identity['mode'] == 'publish'
+  snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
+  config = JSON.parse(File.read(File.join(ROOT, 'ci/release.json')))
+  upload_to_play_store(
+    package_name: config.fetch('androidPackage'), json_key: ENV.fetch('GOOGLE_APPLICATION_CREDENTIALS'),
+    aab: snapshot.fetch('androidExists') ? nil : File.join(ROOT, 'ci-output/NeoGlide.aab'),
+    skip_upload_aab: snapshot.fetch('androidExists'), version_code: identity.fetch('build').to_i,
+    track: config.fetch('androidTrack'), release_status: 'completed',
+    release_name: "#{identity.fetch('version')} (#{identity.fetch('build')})",
+    metadata_path: File.join(ROOT, 'ci-output/play-metadata'),
+    skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true,
+    changes_not_sent_for_review: false, rescue_changes_not_sent_for_review: false
+  )
+end
+
+# Device validation never submits an App Store version for review. A separate
+# API step attaches the processed build to the existing internal group only.
+lane :test_ios do
+  identity = release_data
+  UI.user_error!('Device validation manifest required') unless identity['mode'] == 'device-test'
+  snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
+  unless snapshot.fetch('iosExists')
+    key = app_store_connect_api_key(
+      key_id: ENV.fetch('ASC_KEY_ID'), issuer_id: ENV.fetch('ASC_ISSUER_ID'),
+      key_content: ENV.fetch('ASC_PRIVATE_KEY_BASE64'), is_key_content_base64: true,
+      duration: 1200, in_house: false
+    )
+    upload_to_testflight(
+      api_key: key, app_identifier: 'com.cgtygrssgame.neonglide',
+      ipa: File.join(ROOT, 'ci-output/NeoGlide.ipa'),
+      skip_submission: true, skip_waiting_for_build_processing: true,
+      distribute_external: false, notify_external_testers: false
+    )
+  end
+end
+
+lane :test_android do
+  identity = release_data
+  UI.user_error!('Internal device validation manifest required') unless identity['mode'] == 'device-test' && identity['track'] == 'internal'
+  snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
+  upload_to_play_store(
+    package_name: 'com.cgtygrss.neoglide', json_key: ENV.fetch('GOOGLE_APPLICATION_CREDENTIALS'),
+    aab: snapshot.fetch('androidExists') ? nil : File.join(ROOT, 'ci-output/NeoGlide.aab'),
+    skip_upload_aab: snapshot.fetch('androidExists'), version_code: identity.fetch('build').to_i,
+    track: 'internal', release_status: 'completed',
+    release_name: "Device verification #{identity.fetch('version')} (#{identity.fetch('build')})",
+    skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true,
+    changes_not_sent_for_review: false, rescue_changes_not_sent_for_review: false
+  )
+end

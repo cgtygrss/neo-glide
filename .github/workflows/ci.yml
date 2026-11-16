@@ -41,6 +41,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci && npm ci --prefix backend && npm ci --prefix tools/ci
+      - name: Block known high-severity dependency advisories
+        run: npm audit --audit-level=high && npm audit --prefix backend --audit-level=high && npm audit --prefix tools/ci --audit-level=high
       - run: npm run version:sync && npm run legal:build
       - run: npm run lint && npm test && npm run test:ci && npm run test:backend
       - name: Required Auth and Firestore integration tests
@@ -93,6 +95,8 @@ jobs:
         with:
           ruby-version: '3.4.12'
           bundler-cache: true
+      - name: Verify Fastlane test/public distribution boundaries
+        run: ruby scripts/ci/test-fastlane-modes.rb
       - run: npm ci && npm run version:sync && npm run build && bundle exec npx --no-install cap sync ios
       - name: Compile native Release for simulator
         run: >-

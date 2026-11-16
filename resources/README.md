@@ -19,7 +19,7 @@ The asset directory was first prepared as `1.0.2`, then renamed to `1.2.0` after
 
 ## Reproduce native and web assets
 
-Use the repository's installed development dependencies, including `@capacitor/assets` 3.0.5 and its `sharp` dependency. No global installation or image-generation credentials are needed to reproduce delivery files.
+Use the repository's installed development dependencies, including `@capacitor/assets` 4.0.0 and its `sharp` dependency. No global installation or image-generation credentials are needed to reproduce delivery files.
 
 From the repository root:
 

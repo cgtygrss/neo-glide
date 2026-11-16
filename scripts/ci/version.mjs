@@ -12,6 +12,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const pkg = JSON.parse(readFileSync('package.json'));
   const config = JSON.parse(readFileSync('ci/release.json'));
   if (!['alpha', 'production'].includes(config.androidTrack)) throw new Error('Unsupported release track.');
+  const mode=process.env.RELEASE_MODE || 'dry-run';
+  if(!['dry-run','device-test','publish'].includes(mode))throw new Error('Unknown release mode.');
+  const track=mode==='device-test'?'internal':config.androidTrack;
   const identity = releaseIdentity(pkg.version, process.env.GITHUB_RUN_NUMBER || 1, config.buildNumberOffset);
   const publicVersion = JSON.parse(readFileSync('public/version.json'));
   publicVersion.version = identity.version;
@@ -19,8 +22,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const project = 'ios/App/App.xcodeproj/project.pbxproj';
   writeFileSync(project, readFileSync(project, 'utf8').replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${identity.version};`));
   mkdirSync('ci-output', { recursive: true });
-  writeFileSync('ci-output/identity.json', JSON.stringify({ ...identity, commit: process.env.GITHUB_SHA || '', run: process.env.GITHUB_RUN_ID || '' }, null, 2) + '\n');
+  writeFileSync('ci-output/identity.json', JSON.stringify({ ...identity, mode, track, commit: process.env.GITHUB_SHA || '', run: process.env.GITHUB_RUN_ID || '' }, null, 2) + '\n');
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `version=${identity.version}\nbuild=${identity.build}\n`);
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `track=${config.androidTrack}\n`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `track=${track}\n`);
   console.log(`Neo Glide ${identity.version} (${identity.build})`);
 }

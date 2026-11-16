@@ -1,7 +1,7 @@
 // Distances are displayed flight metres, independent of screen size/frame rate.
 export const REGION_DISTANCE = 480;
 export const BLEND_START = .64;
-export const REGION_COUNT = 4;
+const REGION_COUNT = 4;
 export const JOURNEY_PIXEL_BUDGET = 4_000_000;
 export const LOW_POWER_JOURNEY_PIXEL_BUDGET = 1_600_000;
 

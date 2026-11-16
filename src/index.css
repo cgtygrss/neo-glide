@@ -178,3 +178,4 @@ button {
 .animate-fade-in {
   animation: fade-in 0.2s ease-out forwards;
 }
+.test-environment-note{position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:10000;max-width:90vw;padding:4px 10px;border-radius:8px;background:#173c4eee;color:#fff;font:11px/1.4 system-ui;text-align:center;pointer-events:none}

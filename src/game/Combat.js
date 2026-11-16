@@ -25,7 +25,7 @@ export function fireNormalWeapon(game) {
   if (!game.rapidFire) game.ammo--;
   return true;
 }
-export const enemyRect = enemy => enemy.isEliteBoss || enemy.isBossDrone
+const enemyRect = enemy => enemy.isEliteBoss || enemy.isBossDrone
   ? { x: enemy.x - enemy.width / 2, y: enemy.y - enemy.height / 2, w: enemy.width, h: enemy.height }
   : { x: enemy.x, y: enemy.y, w: enemy.width, h: enemy.height };
 const center = enemy => { const r = enemyRect(enemy); return { x: r.x + r.w / 2, y: r.y + r.h / 2 }; };

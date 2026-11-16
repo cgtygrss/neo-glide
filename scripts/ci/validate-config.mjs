@@ -10,11 +10,9 @@ export function validateReleaseConfig(platform, env, { signed = true } = {}) {
   if (signed) for (const key of required) assert.ok(env[key]?.trim(), `Missing required setting: ${key}`);
   const live = platform === 'ios' || env.ANDROID_TRACK === 'production';
   if (live) {
-    for (const format of ['REWARDED', 'INTERSTITIAL', 'REWARDED_INTERSTITIAL']) {
-      const key = `VITE_ADMOB_${format}_${platform.toUpperCase()}`, value = env[key] || '';
-      assert.match(value, /^ca-app-pub-\d+\/\d+$/, `Missing live ad unit: ${key}`);
-      assert.ok(!value.startsWith('ca-app-pub-3940256099942544/'), `Demo ad unit in production: ${key}`);
-    }
+    const key = `VITE_ADMOB_REWARDED_${platform.toUpperCase()}`, value = env[key] || '';
+    assert.match(value, /^ca-app-pub-\d+\/\d+$/, `Missing live ad unit: ${key}`);
+    assert.ok(!value.startsWith('ca-app-pub-3940256099942544/'), `Demo ad unit in production: ${key}`);
     const appId = env[`${platform.toUpperCase()}_ADMOB_APP_ID`] || '';
     assert.match(appId, /^ca-app-pub-\d+~\d+$/, 'Missing live native AdMob app ID');
     assert.ok(!appId.startsWith('ca-app-pub-3940256099942544~'), 'Demo native AdMob app ID in production');

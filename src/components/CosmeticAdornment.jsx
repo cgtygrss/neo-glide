@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { cosmeticNodePose, getCosmeticDesign } from '../game/CosmeticDesigns';
 import './CosmeticAdornment.css';
 

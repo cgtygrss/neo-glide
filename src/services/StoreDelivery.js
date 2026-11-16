@@ -1,10 +1,11 @@
-import { ownerId, withProfile } from '../account/ProfileStorage.js';
+import { accountStorage } from '../account/RuntimeRealm.js';
+import { ownerId, withProfile,resolveProfileOwner } from '../account/ProfileStorage.js';
 let accountHooks;
 export function configureStoreAccounts(hooks) { accountHooks=hooks; }
 const transactionOwner = (transaction) => {
- const key='neo_glide_store_owners_v1', owners=JSON.parse(localStorage.getItem(key)||'{}');
- const owner=owners[transaction.transactionId]||owners[`pending:${transaction.productId}`]||ownerId();
- owners[transaction.transactionId]=owner;delete owners[`pending:${transaction.productId}`];localStorage.setItem(key,JSON.stringify(owners));return owner;
+ const key='neo_glide_store_owners_v1', owners=JSON.parse(accountStorage.getItem(key)||'{}');
+ const owner=resolveProfileOwner(owners[transaction.transactionId]||owners[`pending:${transaction.productId}`]||ownerId());
+ owners[transaction.transactionId]=owner;delete owners[`pending:${transaction.productId}`];accountStorage.setItem(key,JSON.stringify(owners));return owner;
 };
 import { grantStoreTransaction, syncStoreSnapshot } from '../game/Economy.js';
 
@@ -19,8 +20,8 @@ export function createStoreDelivery(bridge, onChange = () => {}) {
     const owner = accountHooks ? transactionOwner(transaction) : ownerId();
     const context = accountHooks?.capture(owner);
     const operation = Promise.resolve().then(async () => {
-      if (accountHooks) await accountHooks.verify(transaction, context);
-      const result = withProfile(owner, () => grantStoreTransaction(transaction));
+      const verified=accountHooks?await accountHooks.verify(transaction, context):null;
+      const result = verified?.authoritative?{applied:verified.applied,balance:verified.balance}:withProfile(owner, () => grantStoreTransaction(transaction));
       if (owner === ownerId()) onChange({ type: 'delivery', productId: transaction.productId, applied: result.applied });
       try {
         await bridge.finishTransaction({ transactionId: transaction.transactionId, productId: transaction.productId });
@@ -110,9 +111,9 @@ export function createStoreClient(bridge, onChange = () => {}, onError = () => {
     requestActive = true;
     try {
       await start();
-      if(accountHooks){const key='neo_glide_store_owners_v1',owners=JSON.parse(localStorage.getItem(key)||'{}');owners[`pending:${productId}`]=ownerId();localStorage.setItem(key,JSON.stringify(owners));}
+      if(accountHooks){const key='neo_glide_store_owners_v1',owners=JSON.parse(accountStorage.getItem(key)||'{}');owners[`pending:${productId}`]=ownerId();accountStorage.setItem(key,JSON.stringify(owners));}
       const result = await bridge.purchase({ productId });
-      if (result.status === 'cancelled') { if(accountHooks){const key='neo_glide_store_owners_v1',owners=JSON.parse(localStorage.getItem(key)||'{}');delete owners[`pending:${productId}`];localStorage.setItem(key,JSON.stringify(owners));} return { status: 'cancelled' }; }
+      if (result.status === 'cancelled') { if(accountHooks){const key='neo_glide_store_owners_v1',owners=JSON.parse(accountStorage.getItem(key)||'{}');delete owners[`pending:${productId}`];accountStorage.setItem(key,JSON.stringify(owners));} return { status: 'cancelled' }; }
       if (result.status === 'pending') return { status: 'pending' };
       if (result.status === 'owned') {
         // An ownership response can race an unfinished delivery.

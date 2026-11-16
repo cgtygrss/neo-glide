@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import App from '../App.jsx';
 import { configureStoreAccounts } from '../services/StoreDelivery';
 import { saveWallet, loadWallet, notifyWalletChanged } from '../game/Economy';
@@ -8,8 +8,12 @@ import { getLocalProfile, putLocalProfile } from './ProfileStorage';
 import { startAccount, subscribeAccount, accountSnapshot, currentAccountId, syncAccount } from './AccountService';
 import { startAutomaticSync } from './AutomaticSync.js';
 import { onlineServicesAllowed } from '../privacy/AudiencePolicy.js';
+import { initializeRuntimeEnvironment } from './RuntimeEnvironment.js';
+import { isTestRealm } from './RuntimeRealm.js';
+import { applyEconomyResponse } from './EconomySync.js';
 
 function integrateOwnership(owner, result) {
+ if(result.economyVersion===1){applyEconomyResponse(owner,result);if(owner===currentAccountId()){notifyWalletChanged();window.dispatchEvent(new Event('neo-account-save-updated'));}return;}
  const local = getLocalProfile(owner);
  const wallet = JSON.parse(local.data.neon_glide_wallet_v3 || '{}');
  const remote = JSON.parse(result.save?.neon_glide_wallet_v3 || '{}');
@@ -31,6 +35,7 @@ const storeAccounts = {
   await syncAccount();
   const result = await callServer('purchase', { ...transaction, platform: identity.platform }, token);
   integrateOwnership(context.owner, result);
+  return {authoritative:true,applied:result.purchaseApplied===true,balance:JSON.parse(result.save.neon_glide_wallet_v3).balance};
  },
  async reconcile(snapshot, context) {
   const token = await context.token;
@@ -47,7 +52,7 @@ const storeAccounts = {
   integrateOwnership(context.owner, result);
  }
 };
-export default function AccountRuntime({ startupComplete = true }) {
+function BoundAccountRuntime({ startupComplete = true }) {
  const account = useSyncExternalStore(subscribeAccount, accountSnapshot);
  useEffect(() => {
   configureStoreAccounts(storeAccounts);
@@ -63,5 +68,11 @@ export default function AccountRuntime({ startupComplete = true }) {
    }
   });
  }, []);
- return <App key={account.generation} startupComplete={startupComplete}/>;
+ return <>{isTestRealm()&&<div role="status" className="test-environment-note">Test play — separate from the live game. Device verification: {account.appVerification==='verified'?'Verified':account.appVerification==='missing'?'Missing':'Waiting'}.</div>}<App key={account.generation} startupComplete={startupComplete}/></>;
+}
+export default function AccountRuntime(props) {
+ const [ready,setReady]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
+ useEffect(()=>{let active=true;initializeRuntimeEnvironment().then(()=>{if(active)setReady(true);}).catch(()=>{if(active)setError('App environment could not be verified. Reconnect and try again; your saved progress is unchanged.');});return()=>{active=false;};},[attempt]);
+ if(!ready)return <section className="privacy-loading" role="status">{error||'Preparing your saved game…'}{error&&<button onClick={()=>{setError('');setAttempt(value=>value+1);}}>Retry</button>}</section>;
+ return <BoundAccountRuntime {...props}/>;
 }

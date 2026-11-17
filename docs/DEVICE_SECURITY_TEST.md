@@ -4,6 +4,15 @@ This is the activation checklist for the server-owned economy. The existing
 TestFlight build 10 and Play build 5 do not contain this code. Do not use them as
 proof that the new native attestation/economy works.
 
+As of 2026-11-16, install **1.3.0 (103)** from the existing TestFlight **Testing**
+group or [Play internal testing](https://play.google.com/apps/internaltest/4701538221984940887).
+Both are available to their existing internal testers. Signed dry run **102**
+passed first. Run **43871744579** deployed enforced Sandbox functions and the READY
+refund index. Missing/forged App Check and unsigned Apple callback checks passed.
+Apple's Sandbox V2 URL is registered; signed delivery and real-device results
+remain pending. The Android upload was recovered with the exact retained AAB in
+Console after a Fastlane parameter error; the workflow's failure is retained.
+
 ## Controlled distribution
 
 `AUTO_PUBLISH_ENABLED=false` pauses public publishing during this validation.

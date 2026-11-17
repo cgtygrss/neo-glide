@@ -1,6 +1,24 @@
 require 'tmpdir'
 require 'fileutils'
 require 'json'
+require 'fastlane'
+require 'fastlane/actions/upload_to_testflight'
+require 'fastlane/actions/upload_to_play_store'
+require 'fastlane/actions/upload_to_app_store'
+require 'fastlane/actions/app_store_connect_api_key'
+
+# Validate against the installed, locked Fastlane schemas before stubbing only
+# outbound execution. A permissive stub hid an unsupported Android parameter.
+$action_options = {
+  upload_to_testflight: Fastlane::Actions::UploadToTestflightAction,
+  upload_to_play_store: Fastlane::Actions::UploadToPlayStoreAction,
+  upload_to_app_store: Fastlane::Actions::UploadToAppStoreAction,
+  app_store_connect_api_key: Fastlane::Actions::AppStoreConnectApiKeyAction
+}.transform_values { |action| action.available_options.map(&:key) }
+def validate_options(name, options)
+  unknown = options.keys - $action_options.fetch(name)
+  raise "Unsupported #{name} options: #{unknown.join(', ')}" unless unknown.empty?
+end
 
 module UI
   def self.user_error!(message) = raise(message)
@@ -8,9 +26,15 @@ end
 $lanes = {}
 $calls = []
 def lane(name, &block) = $lanes[name] = block
-def app_store_connect_api_key(**_options) = {}
+def app_store_connect_api_key(**options)
+  validate_options(:app_store_connect_api_key, options)
+  {}
+end
 [:upload_to_testflight, :upload_to_play_store, :upload_to_app_store].each do |name|
-  define_method(name) { |**options| $calls << [name, options] }
+  define_method(name) do |**options|
+    validate_options(name, options)
+    $calls << [name, options]
+  end
 end
 def rejected
   begin
@@ -35,6 +59,9 @@ Dir.mktmpdir('neo-fastlane-test') do |root|
   $lanes[:test_ios].call
   name,options=$calls.pop
   raise 'Unsafe iOS test distribution' unless name==:upload_to_testflight && options[:skip_submission] && !options[:distribute_external]
+  $lanes[:test_android].call
+  name,options=$calls.pop
+  raise 'Fresh Play test upload missing' unless name==:upload_to_play_store && options[:track]=='internal' && !options[:skip_upload_aab] && options[:aab]
   File.write("#{root}/ci-output/store-snapshot.json",JSON.generate({'iosExists'=>true,'androidExists'=>true}))
   $lanes[:test_ios].call
   raise 'Existing iOS build uploaded again' unless $calls.empty?
@@ -51,5 +78,8 @@ Dir.mktmpdir('neo-fastlane-test') do |root|
   $lanes[:publish_ios].call
   name,options=$calls.pop
   raise 'Normal publishing behavior changed' unless name==:upload_to_app_store && options[:automatic_release] && options[:submit_for_review]
+  $lanes[:publish_android].call
+  name,options=$calls.pop
+  raise 'Normal Play publishing behavior changed' unless name==:upload_to_play_store && options[:track]=='alpha' && options[:release_status]=='completed'
 end
 puts 'Fastlane device/public distribution boundaries and upload retry verified.'

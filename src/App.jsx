@@ -23,6 +23,7 @@ import {
 } from './game/Entities';
 import HUD from './components/HUD';
 import Shop from './components/Shop';
+import PurchaseConfirmation from './components/PurchaseConfirmation';
 import Tutorial from './components/Tutorial';
 import Career from './components/Career';
 import { Home, Play } from 'lucide-react';
@@ -58,6 +59,7 @@ import BossStatus from './components/BossStatus.jsx';
 
 const cosmeticIds = new Set(ALL_APPEARANCES.map(cosmetic => cosmetic.id));
 const menuMusicStates = new Set(['MENU', 'SHOP', 'CAREER', 'ACCOUNT', 'EVENTS', 'LEGAL']);
+const PURCHASE_COMPLETE_NOTICE = { title: 'Purchase complete', message: 'Thank you for supporting Neo Glide! Your items are ready.' };
 const safeCosmeticOwnership = () => {
   try { return getCosmeticOwnership(); } catch { return {}; }
 };
@@ -100,6 +102,7 @@ export default function App({ startupComplete = true }) {
   const [pendingProducts, setPendingProducts] = useState(getPendingCosmeticProducts);
   const [busyProduct, setBusyProduct] = useState(null);
   const [purchaseMessage, setPurchaseMessage] = useState('');
+  const [purchaseConfirmation, setPurchaseConfirmation] = useState(null);
   const [continueUsed, setContinueUsed] = useState(false);
   const [rewardBusy, setRewardBusy] = useState(false);
   const [rewardMessage, setRewardMessage] = useState('');
@@ -1317,7 +1320,10 @@ export default function App({ startupComplete = true }) {
     setOwnedCosmetics(cosmetics);
     if (equippedCosmetic && !cosmetics[equippedCosmetic]) setEquippedCosmetic('');
     setPendingProducts(getPendingCosmeticProducts());
-    if (change?.type === 'delivery' && change.applied) setPurchaseMessage('Purchase delivered. Your items are ready!');
+    if (change?.type === 'delivery' && change.applied) {
+      setPurchaseMessage('');
+      setPurchaseConfirmation(PURCHASE_COMPLETE_NOTICE);
+    }
   }, [equippedCosmetic]);
 
   useEffect(() => subscribeStore(syncPurchaseUnlocks), [syncPurchaseUnlocks]);
@@ -1339,7 +1345,8 @@ export default function App({ startupComplete = true }) {
         setEquippedShip('interceptor');
         setEquippedWeapon('blaster');
       }
-      setPurchaseMessage('Purchase complete. Thank you for supporting Neo Glide!');
+      setPurchaseMessage('');
+      setPurchaseConfirmation(PURCHASE_COMPLETE_NOTICE);
     } catch (error) {
       setPurchaseMessage(error.message || 'Purchase failed. Please try again.');
     } finally {
@@ -1358,7 +1365,7 @@ export default function App({ startupComplete = true }) {
         setOwnedShips(items => items.includes('interceptor') ? items : [...items, 'interceptor']);
         setOwnedWeapons(items => items.includes('blaster') ? items : [...items, 'blaster']);
       }
-      setPurchaseMessage('Purchases restored.');
+      setPurchaseConfirmation({ title: 'Purchases restored', message: 'Your purchases are ready to use.' });
     } catch (error) {
       setPurchaseMessage(error.message || 'Could not restore purchases.');
     } finally {
@@ -1549,6 +1556,8 @@ export default function App({ startupComplete = true }) {
           onClose={() => setGameState('MENU')}
         />
       )}
+
+      {gameState === 'SHOP' && purchaseConfirmation && <PurchaseConfirmation {...purchaseConfirmation} onClose={() => setPurchaseConfirmation(null)}/>}
 
       {(gameState === 'CAREER' || gameState === 'ACCOUNT') && (
         <Career profile={profile} onRename={value => setProfile(updatePilotName(value))} onClaim={handleClaimMission} initialTab={gameState === 'ACCOUNT' ? 'account' : 'career'} onClose={() => setGameState('MENU')} />

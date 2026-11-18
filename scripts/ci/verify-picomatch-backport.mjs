@@ -48,6 +48,11 @@ export function verifyUpstreamAdvisories(response) {
     if (['high', 'critical'].includes(advisory.severity) && advisory.url !== patchedAdvisory) {
       throw new Error(`Unpatched upstream Picomatch advisory: ${advisory.url}`);
     }
+    if (advisory.url === patchedAdvisory) {
+      assert.equal(advisory.severity, 'high', 'Backported advisory severity changed; review required');
+      assert.equal(advisory.title, 'picomatch vulnerable to ReDoS through single-branch repeated extglobs', 'Backported advisory scope changed; review required');
+      assert.equal(advisory.vulnerable_versions, '<=4.0.7', 'Backported advisory affected range changed; review required');
+    }
   }
   return advisories.length;
 }

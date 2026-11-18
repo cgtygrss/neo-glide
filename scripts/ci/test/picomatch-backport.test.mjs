@@ -24,10 +24,14 @@ test('changing even one byte of the installed parser blocks the gate', () => {
 });
 
 test('a new upstream high/critical advisory is blocked rather than hidden by the fork', () => {
-  const known = { url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf', severity: 'high' };
+  const known = { url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf', severity: 'high',
+    title: 'picomatch vulnerable to ReDoS through single-branch repeated extglobs', vulnerable_versions: '<=4.0.7' };
   assert.equal(verifyUpstreamAdvisories({ picomatch: [known] }), 1);
   for (const severity of ['high', 'critical']) {
     assert.throws(() => verifyUpstreamAdvisories({ picomatch: [known, { url: 'https://github.com/advisories/GHSA-new-test-only', severity }] }), /Unpatched upstream/);
+  }
+  for (const change of [{ severity: 'critical' }, { title: 'Changed issue scope' }, { vulnerable_versions: '<=5.0.0' }]) {
+    assert.throws(() => verifyUpstreamAdvisories({ picomatch: [{ ...known, ...change }] }), /changed; review required/);
   }
   assert.throws(() => verifyUpstreamAdvisories({ picomatch: {} }), /Invalid/);
   assert.throws(() => verifyUpstreamAdvisories(null), /Invalid/);

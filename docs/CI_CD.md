@@ -5,6 +5,14 @@ release pull requests target **main**. Main requires the GitHub Actions
 `Required checks` check and a pull request, including for the administrator.
 No second reviewer is required. Force-push and deletion are disabled.
 
+Picomatch's repeated-wildcard advisory currently has no published fixed version.
+Both build dependency trees use the explicit, pinned local
+[backport](../vendor/picomatch/README.md). CI checks source integrity, bounded
+regression cases and advisories for the original upstream package before the
+unchanged high-severity npm audit gate. New upstream advisories fail closed.
+This is a source backport, not an audit suppression or a claim of arbitrary
+glob/regex safety. Replace it after validating a supported upstream release.
+
 ## Workflows
 
 - **CI**: Dev pushes, pull requests into main and calls from Release. Node 22,

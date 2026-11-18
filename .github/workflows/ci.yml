@@ -41,6 +41,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci && npm ci --prefix backend && npm ci --prefix tools/ci
+      - name: Verify vendored dependency backport and upstream advisory coverage
+        run: npm run verify:dependencies
       - name: Block known high-severity dependency advisories
         run: npm audit --audit-level=high && npm audit --prefix backend --audit-level=high && npm audit --prefix tools/ci --audit-level=high
       - run: npm run version:sync && npm run legal:build

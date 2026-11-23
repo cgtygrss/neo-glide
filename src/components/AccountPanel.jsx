@@ -7,11 +7,13 @@ import { runtimeRealm,accountStorage } from '../account/RuntimeRealm.js';
 import { localPlaySelection,selectLocalPlay,returnToOnline } from '../account/LocalPlayMode.js';
 import './AccountPanel.css';
 import { automaticPilotName, pilotDisplayName, PILOT_NAME_LIMIT } from '../account/PilotIdentity';
-import { onlineServicesAllowed } from '../privacy/AudiencePolicy.js';
+import { onlineServicesAllowed, readAudience } from '../privacy/AudiencePolicy.js';
+import OnlineAccessPrompt from '../privacy/OnlineAccessPrompt.jsx';
 
 export default function AccountPanel({ profile, onRename }) {
   const account = useSyncExternalStore(subscribeAccount, accountSnapshot);
   const [message, setMessage] = useState('');
+  const [showOnlineAccess, setShowOnlineAccess] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteButton = useRef(null);
   const editButton = useRef(null);
@@ -41,7 +43,12 @@ export default function AccountPanel({ profile, onRename }) {
     ...(identity.platform === 'ios' ? [{ id: 'gamecenter', provider: 'gc.apple.com', name: 'Game Center', icon: Gamepad2, description: 'Keep your pilot connected on Apple devices.' }] : []),
   ];
 
-  if (!onlineServicesAllowed()) return <section className="pilot-account" aria-label="Family play account"><h2>Saved on this device</h2><p>Local play does not connect to Google, Game Center or cloud accounts. Your progress and earned items stay on this device.</p>{localPlaySelection()&&<button onClick={()=>{returnToOnline();window.location.reload();}}>Return to online save</button>}<p>A parent can find support and deletion information in Home → Settings → Support & parents.</p></section>;
+  const needsAudience = readAudience() === null && !localPlaySelection();
+  if (!onlineServicesAllowed() && needsAudience && showOnlineAccess) return <section className="pilot-account" aria-label="Online access"><OnlineAccessPrompt onComplete={group => { setShowOnlineAccess(false); if (group === 'adult') window.location.reload(); }} onCancel={() => setShowOnlineAccess(false)}/></section>;
+  if (!onlineServicesAllowed()) return <section className="pilot-account" aria-label="Family play account"><h2>Saved on this device</h2><p>Local play does not connect to Google, Game Center or cloud accounts. Your progress and earned items stay on this device.</p>
+    {needsAudience && <button type="button" className="pilot-enable-online" onClick={() => setShowOnlineAccess(true)}>Enable online features<ArrowRight size={16}/></button>}
+    {localPlaySelection()&&<button onClick={()=>{returnToOnline();window.location.reload();}}>Return to online save</button>}<p>A parent can find support and deletion information in Home → Settings → Support & parents.</p></section>;
+  if (runtimeRealm() === 'Xcode') return <section className="pilot-account" aria-label="Simulator account"><h2>Simulator preview</h2><p>Explore the Garage and play with a separate local save. Account sign-in, cloud saves and real purchases are unavailable in this preview. Use TestFlight on your iPhone to test these features.</p></section>;
   return <section className="pilot-account" aria-label="Pilot account">
     <div className="pilot-identity">
       <div className="pilot-avatar" aria-hidden="true"><UserRound size={31}/><span>LV {profile.level}</span></div>

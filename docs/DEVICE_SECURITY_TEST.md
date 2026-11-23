@@ -57,8 +57,12 @@ This does not acknowledge another build or a production submission.
    identities; it is not a harmless Sandbox reset.
 3. Use only store test purchases. Stop if a real-charge purchase sheet appears.
    Do not enter passwords, store credentials, codes or purchase tokens in chat.
-4. Test mode must show the separate-bank banner. Select an adult age group on a
-   test installation; never change a child's actual age choice to enable testing.
+4. Test mode must show the separate-bank banner. For development builds after
+   106, new installs open directly in local play: use Pilot → Account → Enable
+   online features to choose the adult age range on an adult test installation.
+   Builds 103–106 still ask at first launch. Never change a child's actual age
+   choice to enable testing. Simulator previews use a separate local realm and
+   cannot replace physical-device account or purchase verification.
 
 ## Tests on each device
 

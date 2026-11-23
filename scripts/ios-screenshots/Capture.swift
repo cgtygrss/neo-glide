@@ -11,7 +11,7 @@ final class Capture: XCTestCase {
   XCTAssertTrue(button("Garage").waitForExistence(timeout:30), app.debugDescription)
   let isPhone=app.frame.width/app.frame.height > 1.7
   capture("01-home")
-  tap("Garage"); tap("Cosmetics"); app.swipeUp()
+  tap("Garage"); tap("Sets"); app.swipeUp()
   let skins:[(String,String)] = [
     ("mint_condition", "Mint Condition"),
     ("amber_signal", "Amber Signal"),
@@ -41,7 +41,7 @@ final class Capture: XCTestCase {
     ("prism_voyager", "Prism Voyager")
   ]
   for (index,skin) in skins.enumerated() {
-   if index>0 { tap("Next cosmetic") }
+   if index>0 { tap("Next set") }
    let title=app.descendants(matching:.any).matching(NSPredicate(format:"label == %@",skin.1)).firstMatch
    XCTAssertTrue(title.waitForExistence(timeout:10), "Wrong skin \(skin.1): \(app.debugDescription)")
    if isPhone { capture("iap-cosmetic_"+skin.0) }
@@ -57,12 +57,17 @@ final class Capture: XCTestCase {
   for _ in 0..<23 { tap("Next galaxy") }
   capture("05-galaxies")
   if isPhone {
-   tap("Store"); app.swipeUp()
-   for index in 0..<30 {
-    if index>0 { tap("Next product") }
-    let group=app.descendants(matching:.any).matching(NSPredicate(format:"label MATCHES %@", "^[0-9]+ of 30: .+")).firstMatch
-    print("STORE_CAPTURE|\(index+1)|\(group.exists ? group.label : "unknown")")
-    capture(String(format:"store-%02d",index+1))
+   tap("Credits"); app.swipeUp()
+   var index=1
+   while true {
+    let group=app.descendants(matching:.any).matching(NSPredicate(format:"label MATCHES %@", "^[0-9]+ of [0-9]+: .+")).firstMatch
+    print("STORE_CAPTURE|\(index)|\(group.exists ? group.label : "unknown")")
+    capture(String(format:"store-%02d",index))
+    let next=button("Next credit pack")
+    XCTAssertTrue(next.exists, app.debugDescription)
+    if !next.isEnabled { break }
+    XCTAssertLessThan(index,50,"Unexpected credit catalog size")
+    tap("Next credit pack"); index+=1
    }
   }
   tap("Back to home"); tap("Pilot career"); capture("06-pilot-career")

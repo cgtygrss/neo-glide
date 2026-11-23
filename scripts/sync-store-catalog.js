@@ -8,7 +8,7 @@ const swiftPath = new URL('ios/App/App/AppDelegate.swift', root);
 let swift = await readFile(swiftPath, 'utf8');
 swift = swift.replace(/private let cosmeticIDs: Set<String> = \[[^\n]+\]/, `private let cosmeticIDs: Set<String> = [${COSMETIC_PRODUCT_IDS.map(id => `"${id}"`).join(', ')}]`);
 swift = swift.replace(/private (?:let|var) productIDs: Set<String>[^\n]+/, `private var productIDs: Set<String> { cosmeticIDs.union([${['remove_ads', 'starter_pack', ...CREDIT_PACK_CATALOG.map(pack => pack.id)].map(id => JSON.stringify(id)).join(', ')}]) }`);
-swift = swift.replace(/private let saleProductIDs: Set<String> = \[[^\n]+\]/, 'private var saleProductIDs: Set<String> { productIDs.subtracting(["remove_ads"]) }');
+swift = swift.replace(/private (?:let|var) saleProductIDs: Set<String>[^\n]+/, 'private var saleProductIDs: Set<String> { productIDs.subtracting(["remove_ads", "starter_pack"]) }');
 swift = swift.replace(/private let permanentIDs: Set<String> = \[[^\n]+\]/, 'private var permanentIDs: Set<String> { cosmeticIDs.union(["remove_ads", "starter_pack"]) }');
 await writeFile(swiftPath, swift);
 

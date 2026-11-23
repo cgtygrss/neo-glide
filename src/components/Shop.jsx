@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Zap, Rocket, ArrowLeft, Crosshair, Star, BadgeDollarSign, Coins, Check, ArrowRight, Sparkles, Play, Eye, ShoppingBag } from 'lucide-react';
+import { Zap, Rocket, ArrowLeft, Crosshair, Star, Layers, Coins, Check, ArrowRight, Sparkles, Play, Eye, ShoppingBag } from 'lucide-react';
 import StageBrowser from './StageBrowser';
 import RealMoneyStore from './RealMoneyStore';
 import FleetBrowser from './FleetBrowser';
@@ -17,6 +17,7 @@ import CosmeticPurchaseOptions from './CosmeticPurchaseOptions';
 import GarageFeatured from './GarageFeatured';
 import { onlineServicesAllowed } from '../privacy/AudiencePolicy.js';
 import CosmeticOfferNote from './CosmeticOfferNote';
+import PurchaseRecovery from './PurchaseRecovery';
 import { SKINS, getCosmetic } from '../game/CosmeticsCatalog';
 
 function BuyItem({ item, kind, cost, owned, equipped, currency, onBuy, onEquip, maxed = false }) {
@@ -27,11 +28,15 @@ function BuyItem({ item, kind, cost, owned, equipped, currency, onBuy, onEquip, 
   </button>;
 }
 
-function CosmeticsBrowser({ initialSelectedId, cosmetics, ownedCosmetics, equippedCosmetic, pendingProducts, currency, ship, busyProduct, purchaseMessage, onBuy, onEquip, onPurchase }) {
+function CosmeticsBrowser({ appearanceKind, initialSelectedId, cosmetics, ownedCosmetics, equippedCosmetic, pendingProducts, currency, ship, busyProduct, purchaseMessage, onBuy, onEquip, onPurchase, onRestore }) {
   const storeProducts = useSyncExternalStore(subscribeStore, getStoreProducts);
-  const [selectedId, setSelectedId] = useState(initialSelectedId || equippedCosmetic || sortCatalogByPrice(cosmetics)[0]?.id);
+  const [selectedId, setSelectedId] = useState(() => {
+    const initial = getCosmetic(initialSelectedId || equippedCosmetic);
+    if (!initial) return null;
+    const setId = initial.setId || initial.id;
+    return appearanceKind === 'skin' ? `skin_${setId}` : setId;
+  });
   const [previewMode, setPreviewMode] = useState('design');
-  const [appearanceKind, setAppearanceKind] = useState(() => getCosmetic(initialSelectedId || equippedCosmetic)?.kind === 'skin' ? 'skin' : 'set');
   const items = sortCatalogByPrice(appearanceKind === 'skin' ? SKINS.filter(skin => cosmetics.some(set => set.id === skin.setId)) : cosmetics);
   const selected = items.find(item => item.id === selectedId) || items[0];
   useEffect(() => { void refreshStoreProducts().catch(() => {}); }, []);
@@ -40,17 +45,9 @@ function CosmeticsBrowser({ initialSelectedId, cosmetics, ownedCosmetics, equipp
   const equipped = selected.id === equippedCosmetic;
   const pending = pendingProducts.includes(selected.kind === 'skin' ? getCosmetic(selected.setId).productId : selected.productId);
   const selectedStoreProduct = storeProducts.find(item => item.id === selected.productId);
-  const selectKind = kind => {
-    const setId = selected.setId || selected.id;
-    setSelectedId(kind === 'skin' ? `skin_${setId}` : setId);
-    setAppearanceKind(kind);
-  };
   return <div className="shop-item-browser cosmetic-browser">
-    <div className="cosmetic-kind-switch" role="group" aria-label="Cosmetic type">
-      <button type="button" aria-pressed={appearanceKind === 'set'} onClick={() => selectKind('set')}>Complete sets</button>
-      <button type="button" aria-pressed={appearanceKind === 'skin'} onClick={() => selectKind('skin')}>Skins</button>
-    </div>
-    <CatalogCarousel items={items} selectedId={selected.id} onSelect={setSelectedId} label="Cosmetics" itemLabel="cosmetic" accent={selected.colors.accent}>
+    <p className="catalog-sort-note">{appearanceKind === 'skin' ? 'Skins · Ship appearance only' : 'Complete sets · Ship design, engine trail and shot effects'}</p>
+    <CatalogCarousel items={items} selectedId={selected.id} onSelect={setSelectedId} label={appearanceKind === 'skin' ? 'Skins' : 'Complete sets'} itemLabel={appearanceKind === 'skin' ? 'skin' : 'set'} accent={selected.colors.accent}>
 
     <section className="shop-spotlight cosmetic-spotlight-layout" data-showpiece={selected.showpiece || undefined} aria-label={`${selected.name} cosmetic preview`}>
       <div className="shop-spotlight-stage cosmetic-spotlight cosmetic-kit-stage" data-showpiece={selected.showpiece || undefined} style={{ '--cosmetic-accent': selected.colors.accent }}>
@@ -72,6 +69,7 @@ function CosmeticsBrowser({ initialSelectedId, cosmetics, ownedCosmetics, equipp
         <CosmeticKitDetails cosmetic={selected}/>
         <p>{selected.description}</p>
         {selected.eventReward && <span className="shop-preview-note">Also earnable in Events.</span>}
+        {appearanceKind === 'set' && <PurchaseRecovery busyProduct={busyProduct} onRestore={onRestore}/>}
         {purchaseMessage && <p className="premium-message" role="status">{purchaseMessage}</p>}
       </CatalogDetails>
     </section>
@@ -79,7 +77,8 @@ function CosmeticsBrowser({ initialSelectedId, cosmetics, ownedCosmetics, equipp
   </div>;
 }
 
-export default function Shop({ initialTab = 'featured', equippedStage = 'default', stageOwnership = {}, onStageUnlock, onStageEquip, currency, upgrades, pilotLevel = 1, ownedShips = [], equippedShip = 'default', ownedWeapons = [], equippedWeapon = 'default', cosmetics = [], ownedCosmetics = {}, equippedCosmetic = '', pendingProducts = [], purchases = {}, busyProduct, purchaseMessage, onBuy, onEquip, onPurchase, onRestore, onClose }) {
+export default function Shop({ initialTab = 'featured', equippedStage = 'default', stageOwnership = {}, onStageUnlock, onStageEquip, currency, upgrades, pilotLevel = 1, ownedShips = [], equippedShip = 'default', ownedWeapons = [], equippedWeapon = 'default', cosmetics = [], ownedCosmetics = {}, equippedCosmetic = '', pendingProducts = [], busyProduct, purchaseMessage, onBuy, onEquip, onPurchase, onRestore, onClose }) {
+  const storeProducts = useSyncExternalStore(subscribeStore, getStoreProducts);
   const [activeTab,setActiveTab] = useState(initialTab);
   const [upgradeId,setUpgradeId] = useState('battery');
   const [weaponId,setWeaponId] = useState(equippedWeapon);
@@ -93,7 +92,7 @@ export default function Shop({ initialTab = 'featured', equippedStage = 'default
   useEffect(() => {
     if (focusProduct.current) { panelRef.current?.focus({ preventScroll:true }); focusProduct.current = false; }
   }, [activeTab]);
-  const tabs=[{id:'featured',name:'Featured',icon:ShoppingBag},{id:'upgrades',name:'Upgrades',icon:Zap},{id:'ships',name:'Ships',icon:Rocket},{id:'weapons',name:'Weapons',icon:Crosshair},{id:'cosmetics',name:'Cosmetics',icon:Sparkles},{id:'stages',name:'Galaxies',icon:Star},{id:'premium',name:'Store',icon:BadgeDollarSign}].filter(tab => onlineServicesAllowed() || tab.id !== 'premium');
+  const tabs=[{id:'featured',name:'Featured',icon:ShoppingBag},{id:'upgrades',name:'Upgrades',icon:Zap},{id:'ships',name:'Ships',icon:Rocket},{id:'weapons',name:'Weapons',icon:Crosshair},{id:'premium',name:'Credits',icon:Coins},{id:'cosmetics',name:'Skins',icon:Sparkles},{id:'sets',name:'Sets',icon:Layers},{id:'stages',name:'Galaxies',icon:Star}].filter(tab => tab.id !== 'premium' || (onlineServicesAllowed() && storeProducts.some(product => product.type === 'consumable' && !product.cosmeticId)));
   const isUpgrade=activeTab==='upgrades';
   const kind=isUpgrade?'upgrade':'weapon';
   const items=isUpgrade ? sortCatalogByPrice(UPGRADES, item => upgradeOffer(item.id, upgrades, equippedShip, pilotLevel).cost) : sortCatalogByPrice(WEAPONS);
@@ -124,11 +123,11 @@ export default function Shop({ initialTab = 'featured', equippedStage = 'default
     <nav className="panel-tabs menu-tabs" role="tablist" aria-label="Garage categories" onKeyDown={handleTabKeyDown}>{tabs.map(tab=><button key={tab.id} type="button" role="tab" id={`garage-tab-${tab.id}`} aria-controls="garage-tab-panel" tabIndex={activeTab===tab.id?0:-1} onClick={event=>selectTab(tab.id,event.currentTarget)} className={activeTab===tab.id?'active':''} aria-selected={activeTab===tab.id}><tab.icon size={17}/>{tab.name}</button>)}</nav>
     <div ref={panelRef} key={activeTab} id="garage-tab-panel" role="tabpanel" aria-labelledby={`garage-tab-${activeTab}`} tabIndex={0} className={`panel-body menu-body custom-scrollbar garage-tab-content${activeTab === 'featured' ? ' garage-featured-content' : ''}`}>
       {activeTab==='featured'?<GarageFeatured cosmetics={cosmetics} ownedCosmetics={ownedCosmetics} pendingProducts={pendingProducts} ship={equippedShip}
-          onCosmetic={id => { focusProduct.current = true; setFeaturedCosmetic(id); setActiveTab('cosmetics'); }} onProduct={id => { focusProduct.current = true; setFeaturedProduct(id); setActiveTab('premium'); }} onBrowse={() => { focusProduct.current = true; setActiveTab('upgrades'); }} onBrowseSets={() => { focusProduct.current = true; setActiveTab('cosmetics'); }}/>
-      :activeTab==='premium'?<RealMoneyStore initialProductId={featuredProduct} currency={currency} onCreditUnlock={onBuy} purchases={purchases} pendingProducts={pendingProducts} busyProduct={busyProduct} message={purchaseMessage} onPurchase={onPurchase} onRestore={onRestore}/>
+          onCosmetic={id => { focusProduct.current = true; setFeaturedCosmetic(id); setActiveTab(getCosmetic(id)?.kind === 'skin' ? 'cosmetics' : 'sets'); }} onProduct={id => { focusProduct.current = true; setFeaturedProduct(id); setActiveTab('premium'); }} onBrowse={() => { focusProduct.current = true; setActiveTab('upgrades'); }} onBrowseSets={() => { focusProduct.current = true; setActiveTab('sets'); }}/>
+      :activeTab==='premium'?<RealMoneyStore initialProductId={featuredProduct} pendingProducts={pendingProducts} busyProduct={busyProduct} message={purchaseMessage} onPurchase={onPurchase} onRestore={onRestore}/>
       :activeTab==='stages'?<StageBrowser currency={currency} equippedStage={equippedStage} ownership={stageOwnership} onUnlock={onStageUnlock} onEquip={onStageEquip}/>
       :activeTab==='ships'?<FleetBrowser currency={currency} ownedShips={ownedShips} equippedShip={equippedShip} cosmeticId={equippedCosmetic} upgrades={upgrades} pilotLevel={pilotLevel} onBuy={onBuy} onEquip={onEquip}/>
-      :activeTab==='cosmetics'?<CosmeticsBrowser initialSelectedId={featuredCosmetic} cosmetics={cosmetics} ownedCosmetics={ownedCosmetics} equippedCosmetic={equippedCosmetic} pendingProducts={pendingProducts} currency={currency} ship={equippedShip} busyProduct={busyProduct} purchaseMessage={purchaseMessage} onBuy={onBuy} onEquip={onEquip} onPurchase={onPurchase} onRestore={onRestore}/>
+      :activeTab==='cosmetics'||activeTab==='sets'?<CosmeticsBrowser appearanceKind={activeTab === 'cosmetics' ? 'skin' : 'set'} initialSelectedId={featuredCosmetic} cosmetics={cosmetics} ownedCosmetics={ownedCosmetics} equippedCosmetic={equippedCosmetic} pendingProducts={pendingProducts} currency={currency} ship={equippedShip} busyProduct={busyProduct} purchaseMessage={purchaseMessage} onBuy={onBuy} onEquip={onEquip} onPurchase={onPurchase} onRestore={onRestore}/>
       :<div className="shop-item-browser">
         <CatalogCarousel items={items} selectedId={selected.id} onSelect={isUpgrade ? setUpgradeId : setWeaponId}
           label={isUpgrade ? 'Upgrades' : 'Weapons'} itemLabel={isUpgrade ? 'upgrade' : 'weapon'}

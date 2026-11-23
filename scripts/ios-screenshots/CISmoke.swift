@@ -23,20 +23,27 @@ final class Capture: XCTestCase {
    return false
   }
   app.launch()
-  let family = app.buttons.matching(NSPredicate(format: "label == %@", "Under 13")).firstMatch
-  XCTAssertTrue(family.waitForExistence(timeout: 40), app.debugDescription)
-  family.tap()
   XCTAssertTrue(button("Play").waitForExistence(timeout:40),app.debugDescription)
+  XCTAssertFalse(button("Under 13").exists,"First launch must not ask for an age range")
   let system=XCUIApplication(bundleIdentifier:"com.apple.springboard")
   for name in ["Ask App Not to Track","Uygulama Beni Takip Etmesin"] {
    let deny=system.buttons[name];if deny.waitForExistence(timeout:2){deny.tap()}
   }
   capture("01-home")
+  tap("Pilot career"); tap("Account")
+  tap("Enable online features")
+  XCTAssertTrue(button("Under 13").waitForExistence(timeout:10),app.debugDescription)
+  capture("01-age-only-at-account")
+  tap("Under 13")
+  XCTAssertFalse(button("Enable online features").exists,"A younger selection must remain local")
+  tap("Back to home")
   tap("Settings")
   XCTAssertTrue(app.staticTexts["NEO GLIDE · v__NEO_GLIDE_VERSION__"].waitForExistence(timeout:5),app.debugDescription)
   capture("02-settings-version")
   tap("Close settings")
-  tap("Garage");tap("Ships");tap("Next ship");capture("03-ships")
+  tap("Garage")
+  XCTAssertFalse(button("Credits").exists,"Family play must not expose paid credit packs")
+  tap("Ships");tap("Next ship");capture("03-ships")
   tap("Galaxies");capture("04-galaxies")
   tap("Back to home");tap("Play")
   let boost=button("Boost — hold to rise")

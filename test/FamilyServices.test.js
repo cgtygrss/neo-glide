@@ -12,7 +12,7 @@ test('family and unknown audiences cannot reach identity, server, ads or purchas
   try {
     for (const group of [null, 'under13', '13to17']) {
       globalThis.localStorage = { getItem: key => key === 'neo_glide_audience_v1' && group ? JSON.stringify({ version: 1, group }) : null, setItem() {} };
-      for (const action of [() => identity.restore(), () => identity.guest(), () => identity.token(), () => identity.auto(), () => identity.begin(), () => identity.commit(), () => identity.playerProfile(), () => identity.clear(), () => identity.remove(), () => callServer('sync', {}, 'existing-token'), () => showRewardedAd('test'), () => purchaseProduct('starter_pack'), () => restorePurchases()]) {
+      for (const action of [() => identity.restore(), () => identity.guest(), () => identity.token(), () => identity.auto(), () => identity.begin(), () => identity.commit(), () => identity.playerProfile(), () => identity.clear(), () => identity.remove(), () => callServer('sync', {}, 'existing-token'), () => showRewardedAd('test'), () => purchaseProduct('credits_50000'), () => restorePurchases()]) {
         await assert.rejects(action(), /family play/);
       }
       await startAccount();

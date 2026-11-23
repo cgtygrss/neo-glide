@@ -174,7 +174,8 @@ class NeoGlideStartupPlugin: CAPPlugin, CAPBridgedPlugin {
 private actor NeoGlideStore {
     private let cosmeticIDs: Set<String> = ["cosmetic_copper_horizon", "cosmetic_arctic_pulse", "cosmetic_cyber_current", "cosmetic_jade_drift", "cosmetic_rose_circuit", "cosmetic_solar_forge", "cosmetic_pearl_comet", "cosmetic_void_pilot", "cosmetic_cobalt_storm", "cosmetic_prism_voyager", "cosmetic_mint_condition", "cosmetic_scarlet_comet", "cosmetic_amber_signal", "cosmetic_lunar_silver", "cosmetic_ocean_depth", "cosmetic_lavender_dream", "cosmetic_toxic_bloom", "cosmetic_desert_mirage", "cosmetic_ruby_eclipse", "cosmetic_glacier_blue", "cosmetic_saffron_sky", "cosmetic_midnight_gold", "cosmetic_coral_reef", "cosmetic_ultraviolet", "cosmetic_nebula_circuit", "cosmetic_aurora_pathfinder"]
     private var productIDs: Set<String> { cosmeticIDs.union(["remove_ads", "starter_pack", "credits_50000", "credits_1000", "credits_250000", "credits_5500", "credits_1000000", "credits_15000"]) }
-    private var saleProductIDs: Set<String> { productIDs.subtracting(["remove_ads"]) }
+    // Historical products remain recognized for restore and unfinished delivery.
+    private var saleProductIDs: Set<String> { productIDs.subtracting(["remove_ads", "starter_pack"]) }
     private var permanentIDs: Set<String> { cosmeticIDs.union(["remove_ads", "starter_pack"]) }
     private var pending: [String: StoreKit.Transaction] = [:]
     private var proofs: [String: String] = [:]
@@ -487,6 +488,12 @@ public class NeoGlideAuthPlugin: CAPPlugin, CAPBridgedPlugin {
     }
     @objc func restoreSession(_ call: CAPPluginCall) { do { call.resolve(describe(try session().currentUser)) } catch { call.reject(error.localizedDescription) } }
     @objc func getRuntimeEnvironment(_ call: CAPPluginCall) {
+        #if targetEnvironment(simulator)
+        // A simulator install has no App Store AppTransaction. Keep it in the
+        // isolated local realm; never fall back this way on a physical device.
+        call.resolve(["environment": "Xcode"])
+        return
+        #else
         Task {
             if #available(iOS 16.0, *) {
                 do {
@@ -500,6 +507,7 @@ public class NeoGlideAuthPlugin: CAPPlugin, CAPBridgedPlugin {
                 call.resolve(["environment": receipt.lastPathComponent == "sandboxReceipt" ? "Sandbox" : "Production"])
             }
         }
+        #endif
     }
     @objc func getPlayerProfile(_ call: CAPPluginCall) {
         DispatchQueue.main.async {

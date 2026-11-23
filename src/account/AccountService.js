@@ -1,4 +1,4 @@
-import { accountStorage } from './RuntimeRealm.js';
+import { accountStorage, runtimeRealm } from './RuntimeRealm.js';
 import { newId } from './Id.js';
 import { notifyWalletChanged } from '../game/Economy.js';
 import { identity, callServer } from './FirebaseClient.js';
@@ -28,7 +28,7 @@ function profileChanged(owner) {
 }
 onProfileWrite(profileChanged);
 export function startAccount() {
- if(!onlineServicesAllowed())return Promise.resolve();
+ if(!onlineServicesAllowed()||runtimeRealm()==='Xcode')return Promise.resolve();
  if(started)return started;
  initializeProfiles();
  started=(async()=>{
@@ -51,7 +51,7 @@ async function syncEventFlights() {
  return flushEventFlights({uid,isCurrent:()=>uid===ownerId()&&state.user?.uid===uid,send:flight=>callServer('flight',flight,token)});
 }
 export async function syncAccount() {
- if(!onlineServicesAllowed())return;
+ if(!onlineServicesAllowed()||runtimeRealm()==='Xcode')return;
  if(syncing)return syncing;
  if(!state.user||state.conflict)return;
  const uid=ownerId();if(uid!==state.user.uid)return;
@@ -92,6 +92,7 @@ export async function syncAccount() {
 }
 export async function connectAccount(provider='google',mode='link') {
  requireAdultServices();
+ if(runtimeRealm()==='Xcode')throw new Error('Use TestFlight on a physical device to connect your account.');
  if(locked||state.busy)throw new Error('Finish your flight before changing accounts.');
  emit({busy:true,message:''});
  try {

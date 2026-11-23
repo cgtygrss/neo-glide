@@ -13,6 +13,15 @@ on:
         description: Upload only to internal TestFlight / Play testing and deploy only Sandbox functions (requires dry_run=false)
         type: boolean
         default: false
+      store:
+        description: Store to distribute to; both platforms are still tested and signed
+        type: choice
+        options: [both, ios, android]
+        default: both
+      ios_submit_for_review:
+        description: Submit iOS automatically; false stages an iOS-only upload for a grouped app and IAP review
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -26,6 +35,8 @@ env:
   FASTLANE_SKIP_UPDATE_CHECK: 'true'
   FASTLANE_HIDE_CHANGELOG: 'true'
   FASTLANE_OPT_OUT_USAGE: 'true'
+  RELEASE_STORE: ${{ github.event_name == 'workflow_dispatch' && inputs.store || 'both' }}
+  IOS_SUBMIT_FOR_REVIEW: ${{ github.event_name == 'workflow_dispatch' && inputs.ios_submit_for_review == false && 'false' || 'true' }}
 
 jobs:
   verify:
@@ -40,6 +51,7 @@ jobs:
       track: ${{ steps.identity.outputs.track }}
       dry_run: ${{ steps.mode.outputs.dry_run }}
       mode: ${{ steps.mode.outputs.mode }}
+      stores: ${{ steps.identity.outputs.stores }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Require main for signing and distribution
@@ -259,7 +271,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        store: [ios, android]
+        store: ${{ fromJSON(needs.identity.outputs.stores) }}
     runs-on: xcode-27
     environment: store-release
     timeout-minutes: 60
@@ -331,7 +343,8 @@ jobs:
           else
             bundle exec fastlane "publish_$STORE"
           fi
-      - name: Record submitted status
+      - name: Record upload or submission status
+        if: steps.ledger.outputs.submitted != 'true'
         env:
           DEPLOYMENT_ID: ${{ steps.ledger.outputs.deployment }}
           STORE: ${{ matrix.store }}
@@ -357,4 +370,6 @@ jobs:
             f.write(f"## Neo Glide {os.environ['VERSION']} ({os.environ['BUILD']})\n\nCommit: `{os.environ['GITHUB_SHA']}`\n\nMode: `{os.environ['MODE']}`; dry run: `{os.environ['DRY_RUN']}`; Android track: `{os.environ['TRACK']}`\n\n")
             for name,job in json.loads(os.environ['RESULTS']).items(): f.write(f"- {name}: {job['result']}\n")
             f.write('\nDevice-test mode never submits an App Store version for review and targets only the internal Play track. Production API/hosting are not deployed in that mode. Upload success does not confirm Play availability; verify the exact build in Console.\n')
+            if os.environ.get('IOS_SUBMIT_FOR_REVIEW') == 'false':
+              f.write('\nThe iOS binary is staged for a manual grouped review submission. Upload completion is NOT an App Store review submission. The ios-store ledger remains unresolved until that submission is verified.\n')
           PY

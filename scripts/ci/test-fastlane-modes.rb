@@ -81,5 +81,16 @@ Dir.mktmpdir('neo-fastlane-test') do |root|
   $lanes[:publish_android].call
   name,options=$calls.pop
   raise 'Normal Play publishing behavior changed' unless name==:upload_to_play_store && options[:track]=='alpha' && options[:release_status]=='completed'
+  staged=identity.merge('mode'=>'publish','track'=>'alpha','stores'=>['ios'],'iosSubmitForReview'=>false)
+  File.write("#{root}/ci-output/identity.json",JSON.generate(staged))
+  ENV['GITHUB_EVENT_NAME']='push'
+  rejected { $lanes[:publish_ios].call }
+  ENV['GITHUB_EVENT_NAME']='workflow_dispatch'
+  $lanes[:publish_ios].call
+  name,options=$calls.pop
+  raise 'Grouped review staging submitted prematurely' unless name==:upload_to_app_store && options[:submit_for_review]==false && options[:automatic_release] && !options[:reject_if_possible]
+  rejected { $lanes[:publish_android].call }
+  File.write("#{root}/ci-output/identity.json",JSON.generate(staged.merge('stores'=>['ios','android'])))
+  rejected { $lanes[:publish_ios].call }
 end
 puts 'Fastlane device/public distribution boundaries and upload retry verified.'

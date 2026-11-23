@@ -60,7 +60,10 @@ Android starts on existing closed track **alpha**. After Google approves
 production access, change `androidTrack` to `production` through Dev → main.
 Production Android then requires real native and web ad IDs. Closed testing
 uses demo inventory. iOS store packages require the existing live iOS inventory.
-Family-mode tests select Under 13 and keep online services unavailable.
+Fresh installs open directly in local family play. The simulator test opens
+Pilot → Account → Enable online features before selecting Under 13 and verifies
+that online services remain unavailable. Simulator binaries use an isolated
+Xcode realm; physical-device environment verification is unchanged.
 
 ## Protected publishing configuration
 

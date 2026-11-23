@@ -13,9 +13,6 @@
   height: auto; gap: 8px; padding-bottom: 0;
 }
 .garage-screen .catalog-carousel { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 10px; }
-.cosmetic-kind-switch { display: flex; align-self: center; flex-shrink: 0; gap: 4px; }
-.cosmetic-kind-switch > button { min-height: 44px; padding: 6px 14px; border: 1px solid #a3d6ca35; border-radius: 10px; background: transparent; color: #abc4cc; font-size: 11px; font-weight: 750; }
-.cosmetic-kind-switch > button[aria-pressed="true"] { color: #a4f3da; background: #234e56; border-color: #83d5bd70; }
 .garage-screen .catalog-step {
   display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
   border-radius: 12px; border: 1px solid #a3d6ca42; background: #203e4c; color: #c4f6e4;

@@ -50,7 +50,7 @@ function GarageFeaturedView({ cosmetics, ownedCosmetics, pendingProducts, ship, 
     </span><ArrowRight className="feature-tile-arrow" size={18}/>
   </button>;
   return <div className="garage-featured">
-    <div className="feature-intro"><div><span className="feature-kicker">THE DAILY EDIT</span><h3>Today's showcase.</h3></div><button type="button" className="feature-browse" onClick={onBrowseSets}>Sets & skins<ArrowRight size={16}/></button></div>
+    <div className="feature-intro"><div><span className="feature-kicker">THE DAILY EDIT</span><h3>Today's showcase.</h3></div><button type="button" className="feature-browse" onClick={onBrowseSets}>Browse sets<ArrowRight size={16}/></button></div>
     <div className="feature-grid">
       <article className="feature-hero" style={{ '--feature-accent': hero.colors.accent }} aria-label={`${hero.name} daily skin set`}>
         <div className="feature-hero-art"><span className="feature-orbit" aria-hidden="true"/><span className="feature-hero-tag">{owned ? "DAILY SET · IN YOUR COLLECTION" : offer.discountPercent ? `DAILY SET · ${offer.discountPercent}% OFF CREDITS` : 'COMPLETE SKIN SET'}</span><ShipPreview ship={ship} cosmeticId={hero.id} boosting/><span className="feature-edition"><span aria-hidden="true"/>COMPLETE SET / {String(hero.rank).padStart(2,'0')}</span></div>

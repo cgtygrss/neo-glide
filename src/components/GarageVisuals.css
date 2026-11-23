@@ -38,9 +38,6 @@
 .garage-screen .catalog-product-actions .cosmetic-action.credit { color: #ddf7ed; border-color: #b0e7d44d; background: linear-gradient(150deg, #305d59, #254842); }
 .garage-screen .catalog-product-actions .cosmetic-action.cash { color: #f2dfb9; border-color: #efd29b45; background: linear-gradient(150deg, #574b36, #39392f); }
 .garage-screen .catalog-product-actions button:disabled { opacity: .65; }
-.garage-screen .cosmetic-kind-switch { padding: 3px; border: 1px solid #aec9d322; border-radius: 12px; background: #07152388; gap: 2px; }
-.garage-screen .cosmetic-kind-switch > button { border-color: transparent; border-radius: 8px; background: transparent; color: #adbfcb; }
-.garage-screen .cosmetic-kind-switch > button[aria-pressed="true"] { background: #a9e8d41a; border-color: #a9e8d42e; color: #cff4e7; }
 .garage-ship-specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 18px 0; margin: 8px 0 0; border-top: 1px solid #b5d4df25; border-bottom: 1px solid #b5d4df18; }
 .garage-ship-specs > div { padding: 0 14px; border-left: 1px solid #b5d4df1c; min-width: 0; }
 .garage-ship-specs > div:first-child { border-left: 0; padding-left: 0; }

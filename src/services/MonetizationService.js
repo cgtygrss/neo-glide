@@ -1,16 +1,16 @@
 import { CREDIT_PACK_CATALOG, usdPrice } from '../../backend/shared/store-catalog.js';
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { beginCosmeticPurchase, endCosmeticPurchase, STARTER_CREDITS, getPurchaseFlags, getCosmeticOwnership, grantStoreTransaction, isCosmeticPending, markCosmeticPending } from '../game/Economy.js';
+import { beginCosmeticPurchase, endCosmeticPurchase, getPurchaseFlags, getCosmeticOwnership, grantStoreTransaction, isCosmeticPending, markCosmeticPending } from '../game/Economy.js';
 import { COSMETICS } from '../game/CosmeticsCatalog.js';
 import { initializeAdMob, isNativeAdMobAvailable, showAdMobRewardedAd } from './AdMobService.js';
 import { createStoreClient } from './StoreDelivery.js';
 import { canRetryPendingPurchase, canSimulateWebPurchase, isStoreProductAvailable } from './StorePolicy.js';
 import { displayPriceAmount } from '../game/CatalogSorting.js';
 import { withAdAudioRecovery } from './AdAudioRecovery.js';
+import { runtimeRealm } from '../account/RuntimeRealm.js';
 import { onlineServicesAllowed, requireAdultServices } from '../privacy/AudiencePolicy.js';
 
 export const PRODUCTS = [
-  { id: 'starter_pack', name: 'Starter Pack', price: '$4.99', description: `${STARTER_CREDITS.toLocaleString()} credits, Interceptor and Solar Blaster.`, type: 'non_consumable', credits: STARTER_CREDITS },
   ...CREDIT_PACK_CATALOG.map(pack => ({ id: pack.id, name: `${pack.credits.toLocaleString()} Credits`, price: usdPrice(pack.usdCents),
     description: `${pack.credits.toLocaleString()} credits for ships, equipment and visual kits.`, type: 'consumable', credits: pack.credits })),
   ...COSMETICS.map(cosmetic => ({ id: cosmetic.productId, name: `${cosmetic.name} Skin Set`, price: cosmetic.price, description: cosmetic.description, type: 'non_consumable', cosmeticId: cosmetic.id })),
@@ -52,7 +52,7 @@ export async function refreshStoreProducts() {
     storeProducts = supportedProducts().map(product => {
       const nativeProduct = response.products?.find(item => item.id === product.id && typeof item.displayPrice === 'string' && item.displayPrice);
       const nativeAmount = displayPriceAmount(nativeProduct?.priceAmount ?? nativeProduct?.displayPrice);
-      return { ...catalogProduct(product, false), price: nativeProduct?.displayPrice || '', priceAmount: Number.isFinite(nativeAmount) ? nativeAmount : displayPriceAmount(product.price), available: Boolean(nativeProduct) };
+      return { ...catalogProduct(product, false), price: nativeProduct?.displayPrice || '', priceAmount: Number.isFinite(nativeAmount) ? nativeAmount : displayPriceAmount(product.price), available: Boolean(nativeProduct) && runtimeRealm() !== 'Xcode' };
     });
     notifyStore();
     return storeProducts;
@@ -85,6 +85,7 @@ export function trackMonetizationEvent(name, data = {}) {
 
 export async function showRewardedAd(placement, ssv) {
   requireAdultServices();
+  if (runtimeRealm() === 'Xcode') throw new Error('Rewarded ads are unavailable in the simulator preview.');
   trackMonetizationEvent('rewarded_ad_requested', { placement });
   const bridge = nativeBridge();
   if (ssv && !isNativeAdMobAvailable()) throw new Error('Event reward ads are available in the mobile app.');
@@ -112,7 +113,7 @@ export async function showRewardedAd(placement, ssv) {
 }
 
 export async function initializeMonetization() {
-  if (!onlineServicesAllowed()) return;
+  if (!onlineServicesAllowed() || runtimeRealm() === 'Xcode') return;
   if (hasNativeStore()) {
     void refreshStorePurchases().catch(error => trackMonetizationEvent('store_initialization_failed', { message: error.message }));
     void refreshStoreProducts().catch(error => trackMonetizationEvent('store_products_failed', { message: error.message }));
@@ -132,6 +133,7 @@ export async function purchaseProduct(productId) {
   const product = supportedProducts().find(item => item.id === productId);
   if (!product) throw new Error('Unknown product.');
   requireAdultServices();
+  if (runtimeRealm() === 'Xcode') throw new Error('Use TestFlight on a physical device to test purchases.');
   if (product.cosmeticId && getCosmeticOwnership()[product.cosmeticId]) {
     return { ...product, status: 'owned' };
   }
@@ -167,6 +169,7 @@ export async function purchaseProduct(productId) {
 
 export async function restorePurchases() {
   requireAdultServices();
+  if (runtimeRealm() === 'Xcode') throw new Error('Use TestFlight on a physical device to restore purchases.');
   if (hasNativeStore()) await storeClient.restore();
   else if (isNative()) throw new Error('Purchase restoration is not configured for this platform.');
   trackMonetizationEvent('purchases_restored');

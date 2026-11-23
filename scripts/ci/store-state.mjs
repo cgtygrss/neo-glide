@@ -52,9 +52,14 @@ if (command === 'check') {
     record = { ...candidate, id: deployment.id, submitted: false };
     await status(record.id, 'in_progress', 'Upload started; retry this run if interrupted');
   }
+  resumeAction(record,candidate);
   appendFileSync(process.env.GITHUB_OUTPUT, `deployment=${record.id}\nsubmitted=${record.submitted}\n`);
 } else if (command === 'submitted') {
-  await status(process.env.DEPLOYMENT_ID,deviceTest&&store==='ios'?'success':'in_progress',deviceTest?(store==='ios'?'Available to internal TestFlight group':'Submitted to internal test; Console availability pending'):'Submitted; awaiting store review');
+  if(store==='ios'&&!deviceTest&&identity.iosSubmitForReview===false){
+    await status(process.env.DEPLOYMENT_ID,'in_progress','Uploaded; App Store review pending manual submission');
+  }else{
+    await status(process.env.DEPLOYMENT_ID,deviceTest&&store==='ios'?'success':'in_progress',deviceTest?(store==='ios'?'Available to internal TestFlight group':'Submitted to internal test; Console availability pending'):'Submitted; awaiting store review');
+  }
 } else if (command === 'acknowledge') {
   if (process.env.GITHUB_REF !== 'refs/heads/main' || process.env.CONSOLE_CHECKED !== 'true') throw new Error('Only a manually confirmed main run may acknowledge review.');
   const build = process.env.REVIEWED_BUILD;

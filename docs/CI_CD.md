@@ -26,6 +26,16 @@ glob/regex safety. Replace it after validating a supported upstream release.
   `device_test=true` uses only internal TestFlight/Play and Sandbox functions.
   It works while automatic public publishing is paused. See
   [DEVICE_SECURITY_TEST.md](DEVICE_SECURITY_TEST.md).
+- **Single-store release**: manual main Release runs accept `store=ios` or
+  `store=android`. Both platforms still pass checks, signing and store preflight;
+  only the selected store is uploaded. Automatic main releases retain both stores.
+- **Grouped Apple review**: a public manual run with `store=ios` and
+  `ios_submit_for_review=false` stages the binary and metadata after Firebase
+  deployment. It does not submit an App Store review. The `ios-store` ledger stays
+  unresolved until the exact build and new IAP versions are submitted together
+  through App Store Connect. Verify that actual submission before recording
+  `Submitted; awaiting store review`. Retry inputs are immutable; never switch
+  an existing run from staged to automatic review or broaden its store targets.
 - **Confirm Play review result**: an owner checks the exact build in Play Console
   and records its final outcome. Run on main, initially for existing build **5**,
   only once that build is actually approved/available or rejected. Approval must

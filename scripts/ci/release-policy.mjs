@@ -1,3 +1,5 @@
+import { sameReleaseSelection } from './release-selection.mjs';
+
 export const APPLE_PENDING = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW', 'PENDING_APPLE_RELEASE', 'PENDING_DEVELOPER_RELEASE', 'PROCESSING_FOR_APP_STORE', 'WAITING_FOR_EXPORT_COMPLIANCE', 'ACCEPTED']);
 
 export function validateCandidate({ version, build, maximumBuild, sameArtifact = false }) {
@@ -16,6 +18,7 @@ export function guardOutstanding(records, candidate) {
 export function resumeAction(record, candidate) {
   if (!record) return 'upload';
   for (const field of ['commit', 'build', 'version', 'sha256', 'mode', 'track']) if (record[field] !== candidate[field]) throw new Error('Stored artifact identity does not match this retry.');
+  if (!sameReleaseSelection(record, candidate)) throw new Error('Stored release selection does not match this retry.');
   return record.submitted ? 'skip' : 'resume';
 }
 

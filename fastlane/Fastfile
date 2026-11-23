@@ -7,10 +7,23 @@ def release_data
   JSON.parse(File.read(File.join(ROOT, 'ci-output/identity.json')))
 end
 
+def require_store_target(identity, store)
+  targets = identity.fetch('stores', ['ios', 'android'])
+  unless targets.is_a?(Array) && !targets.empty? && targets.uniq == targets && (targets - ['ios', 'android']).empty? && targets.include?(store)
+    UI.user_error!('Store is not selected in this release manifest')
+  end
+end
+
 lane :publish_ios do
   identity = release_data
+  require_store_target(identity, 'ios')
   UI.user_error!('Public publishing manifest required') unless identity['mode'] == 'publish'
   snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
+  submit_review = identity.fetch('iosSubmitForReview', true)
+  UI.user_error!('Invalid Apple review selection') unless [true, false].include?(submit_review)
+  if !submit_review && (identity['stores'] != ['ios'] || ENV['GITHUB_EVENT_NAME'] != 'workflow_dispatch')
+    UI.user_error!('Manual Apple review requires an explicit iOS-only release')
+  end
   key = app_store_connect_api_key(
     key_id: ENV.fetch('ASC_KEY_ID'), issuer_id: ENV.fetch('ASC_ISSUER_ID'),
     key_content: ENV.fetch('ASC_PRIVATE_KEY_BASE64'), is_key_content_base64: true,
@@ -23,7 +36,7 @@ lane :publish_ios do
     skip_binary_upload: snapshot.fetch('iosExists'), skip_screenshots: true,
     skip_metadata: false, metadata_path: File.join(ROOT, 'ci-output/apple-metadata'),
     release_notes: { 'en-GB' => File.read(File.join(ROOT, "ci/changes/#{identity.fetch('version')}/en-GB.txt")) },
-    submit_for_review: true, automatic_release: true, phased_release: false,
+    submit_for_review: submit_review, automatic_release: true, phased_release: false,
     reject_if_possible: false, force: true,
     run_precheck_before_submit: true, precheck_include_in_app_purchases: false
   )
@@ -31,6 +44,7 @@ end
 
 lane :publish_android do
   identity = release_data
+  require_store_target(identity, 'android')
   UI.user_error!('Public publishing manifest required') unless identity['mode'] == 'publish'
   snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
   config = JSON.parse(File.read(File.join(ROOT, 'ci/release.json')))
@@ -50,6 +64,7 @@ end
 # API step attaches the processed build to the existing internal group only.
 lane :test_ios do
   identity = release_data
+  require_store_target(identity, 'ios')
   UI.user_error!('Device validation manifest required') unless identity['mode'] == 'device-test'
   snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
   unless snapshot.fetch('iosExists')
@@ -69,6 +84,7 @@ end
 
 lane :test_android do
   identity = release_data
+  require_store_target(identity, 'android')
   UI.user_error!('Internal device validation manifest required') unless identity['mode'] == 'device-test' && identity['track'] == 'internal'
   snapshot = JSON.parse(File.read(File.join(ROOT, 'ci-output/store-snapshot.json')))
   upload_to_play_store(
